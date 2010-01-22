@@ -1,14 +1,14 @@
 .PHONY: all
 
 CC := gcc
-CFLAGS := -Wall --pedantic --std=c99
+CFLAGS := -g -Wall --pedantic --std=c99
 LDFLAGS :=
 
-PROGS := numrec_time
+PROGS := time_fft
 
 all: $(PROGS)
 
-numrec_time: main.o four1.o
+time_fft: time_fft.o fft.o four1.o
 	$(CC) -o $(LDFLAGS) $@ $^
 
 clean:
