@@ -90,7 +90,7 @@ static void _complexfftr2(double complex data[], size_t n) {
   free(O);
 }
 
-void complexfftr2(double complex data[], size_t n) {
+void complexfftr2(double data[], size_t n) {
   _complexfftr2((double complex *) data, n);
 }
 
