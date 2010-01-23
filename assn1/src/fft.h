@@ -5,15 +5,15 @@
 
 #define PI 3.141592653589793238462643383279
 
-typedef void(*fft_func)(double data[], size_t n);
+typedef void(*fft_func)(double in[], double out[], size_t n);
 
-void fft_four1(double data[], size_t n);
+void fft_four1(double in[], double out[], size_t n);
 
-void fftr2(double data[], size_t n);
-void complexfftr2(double data[], size_t n);
+void fftr2(double in[], double out[], size_t n);
+void complexfftr2(double in[], double out[], size_t n);
 
-void fftr2opt(double data[], size_t n);
-void complexfftr2opt(double data[], size_t n);
+void fftr2opt(double in[], double out[], size_t n);
+void complexfftr2opt(double in[], double out[], size_t n);
 
 
 struct fft_func_t {

@@ -42,31 +42,32 @@ int main(int argc, char *argv[]) {
 
   const size_t n = 1 << k;
   double *data = (double *) malloc(sizeof(double) * 2*n);
+  double *out = (double *) malloc(sizeof(double) * 2*n);
 
   printf("fft_func = %s\tk = %zu\tn = %zu\n", fft_funcs[fft_idx].name, k, n);
 
+  test(data, n);
   for (size_t iter = 0; iter < iters; iter++) {
-    test(data, n);
-    fft(data, n);
+    fft(data, out, n);
   }
 
   if (check) {
-    if(check(data, n)) {
+    if(check(out, n)) {
       printf("Test: Passed!\n");
     } else {
       printf("Test: Failed!\n");
       for (size_t i = 0; i < n; i++) {
-        printf("%lf\t%lf\n", data[2*i], data[2*i+1]);
+        printf("%lf\t%lf\n", out[2*i], out[2*i+1]);
       }
     }
   } else {
     printf("Test: No check defined\n");
     for (size_t i = 0; i < n; i++) {
-      printf("%lf\t%lf\n", data[2*i], data[2*i+1]);
+      printf("%lf\t%lf\n", out[2*i], out[2*i+1]);
     }
   }
 
   free(data);
-
+  free(out);
   return 0;
 }
