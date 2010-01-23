@@ -18,6 +18,8 @@ void complexfftr2opt(double in[], double out[], size_t n);
 void kd_fftr2(double in[], double out[], size_t n);
 void kd_fftr2_opt(double in[], double out[], size_t n);
 
+void fftw(double in[], double out[], size_t n);
+
 struct fft_func_t {
   fft_func func;
   char *name;
@@ -27,6 +29,7 @@ struct fft_func_t {
 static const size_t num_fft_funcs = 7;
 static const struct fft_func_t fft_funcs[] = {
   {fft_four1,       "fft_four1",       "Numerical Recipes in C"},
+  {fftw,            "fftw",            "FFTW 2.1.5"},
 
   {fftr2,           "fftr2",           "Radix 2 Recursive FFT"},
   {fftr2opt,        "fftr2opt",        "Optimized Radix 2 Recursive FFT"},

@@ -344,3 +344,16 @@ void complexfftr2opt(double in[], double out[], size_t n) {
   const double theta = 2 * PI / n;
   _complexfftr2opt((double complex *) in, (double complex *) out, n, 1, cos(theta) - sin(theta)*I);
 }
+
+
+#ifdef FFTW
+
+#include <fftw.h>
+
+void fftw(double in[], double out[], size_t n) {
+  fftw_complex in[N], out[N];
+  fftw_plan plan = fftw_create_plan(n, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_one(plan, (fftw_complex *) in, (fftw_complex *) out);
+}
+
+#endif
