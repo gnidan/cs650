@@ -110,6 +110,7 @@ static void _fftr2opt(double data[], size_t n, size_t sx, size_t sy, double wnr,
     O[2*i+1] = data[4*i+3];
   }
 
+  //wn2 = wn * wn
   double wn2r = wnr * wnr - wni * wni;
   double wn2i = 2 * wnr * wni;
   _fftr2opt(E, np, sx, sy, wn2r, wn2i);
@@ -127,8 +128,10 @@ static void _fftr2opt(double data[], size_t n, size_t sx, size_t sy, double wnr,
     data[2*k+2*np  ] = E[2*k  ] - Xr;
     data[2*k+2*np+1] = E[2*k+1] - Xi;
 
+    //w = w * wn
+    double wr_old = wr;
     wr = wr * wnr - wi * wni;
-    wi = wi * wnr + wr * wni;
+    wi = wi * wnr + wr_old * wni;
   }
 
   free(E);

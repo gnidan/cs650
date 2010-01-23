@@ -3,75 +3,67 @@
 #include <math.h>
 
 #include "fft.h"
+#include "test.h"
 
 #define PI 3.141592653589793238462643383279
 
-//All reals should equal 1/n, All imaginary values should be 0
-static inline void test0(double data[], size_t n) {
-  for (size_t i = 0; i < 2*n; i++) {
-    data[i] = (i==0);
+static void usage() {
+  fprintf(stderr, "usage: time_fft k iters fft_func test_func\n");
+
+  fprintf(stderr, "\nfft_func values (use integer index):\n");
+  for (size_t i = 0; i < num_fft_funcs; i++) {
+    fprintf(stderr, "\t%zu\t%s\t%s\n", i, fft_funcs[i].name, fft_funcs[i].desc);
   }
-}
 
-//all sqrt( data[i].r^2 + data[i].i^2) should equal 1/n
-static inline void test1(double data[], size_t n) {
-  for (size_t i = 0; i < 2*n; i++) {
-    data[i] = (i==2);
+  fprintf(stderr, "\ntest_func values (use integer index):\n");
+  for (size_t i = 0; i < num_test_funcs; i++) {
+    fprintf(stderr, "\t%zu\t%s\t%s\n", i, test_funcs[i].name, test_funcs[i].desc);
   }
+
+  exit(EXIT_FAILURE);
 }
-
-static inline void test2(double data[], size_t n) {
-  for (size_t i = 0; i < n; i++) {
-    data[2*i  ] = i;
-    data[2*i+1] = 0;
-  }
-}
-
-static inline void test3(double data[], size_t n) {
-  for (size_t i = 0; i < 2*n; i++) {
-    data[i] = i;
-  }
-}
-
-static inline void test4(double data[], size_t n) {
-  for (size_t i = 0; i < n; i++) {
-    data[2*i]   =  cos(10*(double)i/(double)n*2.0*PI);
-    data[2*i+1] = -sin(10*(double)i/(double)n*2.0*PI);
-  }
-}
-
-static const int isign = -1;
-
-
 
 int main(int argc, char *argv[]) {
 
-  if (argc < 3) {
-    fprintf(stderr, "%s k iters\n", argv[0]);
-    return -1;
-  }
+  if (argc < 5)
+    usage();
 
   const size_t k = (size_t) strtoul(argv[1], NULL, 10);
   const size_t iters = (size_t) strtoul(argv[2], NULL, 10);
-  const size_t test = 0;
-  const size_t function = 0;
+  const size_t fft_idx = (size_t) strtoul(argv[3], NULL, 10);
+  const size_t test_idx = (size_t) strtoul(argv[4], NULL, 10);
+
+  if (fft_idx >= num_fft_funcs || test_idx >= num_test_funcs)
+    usage();
+
+  const fft_func fft = fft_funcs[fft_idx].func;
+  const test_func test = test_funcs[test_idx].func;
+  const check_func check = test_funcs[test_idx].check;
 
   const size_t n = 1 << k;
   double *data = (double *) malloc(sizeof(double) * 2*n);
 
-  for (size_t iter = 0; iter < iters; iter++) {
-    test3(data, n);
+  printf("fft_func = %s\tk = %zu\tn = %zu\n", fft_funcs[fft_idx].name, k, n);
 
-    //fft_four1(data, n);
-    //fftr2(data, n);
-    fftr2opt(data, n);
-    //complexfftr2(data, n);
-    //complexfftr2opt(data, n);
+  for (size_t iter = 0; iter < iters; iter++) {
+    test(data, n);
+    fft(data, n);
   }
 
-  printf("k = %zu, n = %zu\n", k, n);
-  for (size_t i = 0; i < n; i++) {
-    printf("%lf\t%lf\n", data[2*i], data[2*i+1]);
+  if (check) {
+    if(check(data, n)) {
+      printf("Test: Passed!\n");
+    } else {
+      printf("Test: Failed!\n");
+      for (size_t i = 0; i < n; i++) {
+        printf("%lf\t%lf\n", data[2*i], data[2*i+1]);
+      }
+    }
+  } else {
+    printf("Test: No check defined\n");
+    for (size_t i = 0; i < n; i++) {
+      printf("%lf\t%lf\n", data[2*i], data[2*i+1]);
+    }
   }
 
   free(data);
