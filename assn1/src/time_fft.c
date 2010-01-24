@@ -36,41 +36,49 @@ int main(int argc, char *argv[]) {
   if (fft_idx >= num_fft_funcs || test_idx >= num_test_funcs)
     usage();
 
-  const fft_func fft = fft_funcs[fft_idx].func;
-  const init_func init = fft_funcs[fft_idx].init;
-  const test_func test = test_funcs[test_idx].func;
-  const check_func check = test_funcs[test_idx].check;
-
   const size_t n = 1 << k;
-  double *data = (double *) malloc(sizeof(double) * 2*n);
+  double *in = (double *) malloc(sizeof(double) * 2*n);
   double *out = (double *) malloc(sizeof(double) * 2*n);
 
-  printf("%s\tn = %zu\n", fft_funcs[fft_idx].name, n);
+  printf("%-20s\t%zu\n", fft_funcs[fft_idx].name, n);
 
-  test(data, n);
+  const test_func test = test_funcs[test_idx].func;
+  test(in, n);
+
+  const fft_func fft = fft_funcs[fft_idx].func;
+  const init_func init = fft_funcs[fft_idx].init;
+  const destroy_func destroy = fft_funcs[fft_idx].init;
+
   void *fft_data = NULL;
-  if (init) {
-    fft_data = init(data, n);
-  }
   for (size_t iter = 0; iter < iters; iter++) {
-    fft(data, out, n, fft_data);
+    if (init) {
+      fft_data = init(in, n);
+    }
+    fft(in, out, n, fft_data);
+    if (destroy) {
+      destroy(fft_data, n);
+    }
   }
+
+  const check_func check = test_funcs[test_idx].check;
 
   if (check) {
     if(!check(out, n)) {
-      printf("Test: Failed!\n");
+      fprintf(stderr, "Test: Failed!\n");
       for (size_t i = 0; i < n; i++) {
-        printf("%lf\t%lf\n", out[2*i], out[2*i+1]);
+        fprintf(stderr, "%lf\t%lf\n", out[2*i], out[2*i+1]);
       }
+    } else {
+      fprintf(stderr, "Test: Passed!\n");
     }
   } else {
-    printf("Test: No check defined\n");
+    fprintf(stderr, "Test: No check defined\n");
     for (size_t i = 0; i < n; i++) {
-      printf("%lf\t%lf\n", out[2*i], out[2*i+1]);
+      fprintf(stderr, "%lf\t%lf\n", out[2*i], out[2*i+1]);
     }
   }
 
-  free(data);
+  free(in);
   free(out);
   return 0;
 }
