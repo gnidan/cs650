@@ -369,13 +369,17 @@ static void _gnd_fftr2(double complex X[], double complex Y[], size_t N)
 
   /* twiddle */
   for(i = 0; i < N/2; i++)
-    Y[i+N/2] = Y[i+N/2] * exp(2 * PI * i * I / N);
+  {
+    double complex twiddle = cos(2 * PI * i / N) + I * sin(2 * PI * i / N);
+    Y[i+N/2] = Y[i+N/2] * twiddle;
+  }
 
   /* vector butterfly */
   for(i = 0; i < N/2; i++)
   {
-    Y[i    ] = Y[i] + Y[i+N/2];
-    Y[i+N/2] = Y[i] - Y[i-N/2];
+    double complex tmp = Y[i];
+    Y[i    ] = tmp + Y[i+N/2];
+    Y[i+N/2] = tmp - Y[i+N/2];
   }
 
   free(P);
