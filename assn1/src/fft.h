@@ -55,7 +55,7 @@ static const struct fft_func_t fft_funcs[] = {
 
 #ifdef FFTW
   {fftw,            fftw_init,  fftw_destroy,  "fftw",            "FFTW 2.1.5"},
-#endif FFTW
+#endif 
 };
 
 #endif /* _FFT_H_ */

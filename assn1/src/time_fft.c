@@ -6,10 +6,18 @@
 #include "test.h"
 
 #ifdef PAPI
+# if defined(__STDC__)
+#  if defined(__STDC_VERSION__)
+#   if (__STDC_VERSION__ >= 199901L)
+     typedef char * caddr_t; 
+#   endif
+#  endif
+# endif
+
 #include <papi.h>
-static const int PAPI_EVENTS[] = { PAPI_TOT_CYC, PAPI_TOT_INS,
-                                   PAPI_FP_OPS, PAPI_L1_DCM };
-static const size_t NUM_EVENTS = 4;
+static int PAPI_EVENTS[] = { PAPI_TOT_CYC, PAPI_TOT_INS,
+                             PAPI_FP_OPS, PAPI_L1_DCM };
+static size_t NUM_EVENTS = 4;
 #endif
 
 #define PI 3.141592653589793238462643383279
@@ -54,36 +62,36 @@ int main(int argc, char *argv[]) {
 
   const fft_func fft = fft_funcs[fft_idx].func;
   const init_func init = fft_funcs[fft_idx].init;
-  const destroy_func destroy = fft_funcs[fft_idx].init;
+  const destroy_func destroy = fft_funcs[fft_idx].destroy;
 
 #ifdef PAPI
   long long *values = (long long *) calloc(sizeof(long long), iters * NUM_EVENTS);
-
-  if ((int ret = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT) {
+	int ret;
+  if ((ret = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT) {
     fprintf(stderr, "PAPI_library_init error %d: %s\n",ret,PAPI_strerror(ret));
     exit(EXIT_FAILURE);
   }
 
   int EventSet = PAPI_NULL;
-  if ((int ret = PAPI_create_eventset(&EventSet)) != PAPI_OK) {
+  if ((ret = PAPI_create_eventset(&EventSet)) != PAPI_OK) {
     fprintf(stderr, "PAPI_create_eventset error %d: %s\n",ret,PAPI_strerror(ret));
     exit(EXIT_FAILURE);
   }
 
-  if ((int ret = PAPI_add_events(EventSet, PAPI_EVENTS, NUM_EVENTS)) != PAPI_OK) {
+  if ((ret = PAPI_add_events(EventSet, PAPI_EVENTS, NUM_EVENTS)) != PAPI_OK) {
     fprintf(stderr, "PAPI_add_events error %d: %s\n",ret,PAPI_strerror(ret));
     exit(EXIT_FAILURE);
   }
 #endif
 
   void *fft_data = NULL;
-  for (size_t iter = 0; iter < iters; iter++) {
+  for (size_t i = 0; i < iters; i++) {
     if (init) {
       fft_data = init(in, n);
     }
 
 #ifdef PAPI
-    if ((int ret = PAPI_start(EventSet)) != PAPI_OK) {
+    if ((ret = PAPI_start(EventSet)) != PAPI_OK) {
       fprintf(stderr, "PAPI_start error %d: %s\n",ret,PAPI_strerror(ret));
       exit(EXIT_FAILURE);
     }
@@ -92,7 +100,7 @@ int main(int argc, char *argv[]) {
     fft(in, out, n, fft_data);
 
 #ifdef PAPI
-    if ((int ret = PAPI_stop(EventSet, &values[i * NUM_EVENTS])) != PAPI_OK) {
+    if ((ret = PAPI_stop(EventSet, &values[i * NUM_EVENTS])) != PAPI_OK) {
       fprintf(stderr, "PAPI_start error %d: %s\n",ret,PAPI_strerror(ret));
       exit(EXIT_FAILURE);
     }
