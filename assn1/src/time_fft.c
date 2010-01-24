@@ -49,16 +49,51 @@ int main(int argc, char *argv[]) {
   const init_func init = fft_funcs[fft_idx].init;
   const destroy_func destroy = fft_funcs[fft_idx].init;
 
+#ifdef PAPI
+  long long *values = (long long *) calloc(sizeof(long long),
+                                           iters * DEFAULT_EVENT_COUNT);
+
+  papi_init(DEFAULT_EVENTS, DEFAULT_EVENT_COUNT);
+
+  if (PAPI_start_counters(DEFAULT_EVENTS, DEFAULT_EVENT_COUNT) != PAPI_OK) {
+    fprintf(stderr, "Cannot start PAPI counters\n");
+    exit(EXIT_FAILURE);
+  }
+#endif
+
   void *fft_data = NULL;
   for (size_t iter = 0; iter < iters; iter++) {
     if (init) {
       fft_data = init(in, n);
     }
+
+#ifdef PAPI
+    if (PAPI_read_counters(values, DEFAULT_EVENT_COUNT) != PAPI_OK) {
+      fprintf(stderr, "Cannot read PAPI counters\n");
+      exit(EXIT_FAILURE);
+    }
+#endif
+
     fft(in, out, n, fft_data);
+
+#ifdef PAPI
+    if (PAPI_read_counters(values, DEFAULT_EVENT_COUNT) != PAPI_OK) {
+      fprintf(stderr, "Cannot read PAPI counters\n");
+      exit(EXIT_FAILURE);
+    }
+#endif
+
     if (destroy) {
       destroy(fft_data, n);
     }
   }
+
+#ifdef PAPI
+  if (PAPI_stop_counters(values, DEFAULT_EVENT_COUNT) != PAPI_OK) {
+    fprintf(stderr, "Cannot stop PAPI counters\n");
+    exit(EXIT_FAILURE);
+  }
+#endif
 
   const check_func check = test_funcs[test_idx].check;
 
