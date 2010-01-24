@@ -5,6 +5,13 @@
 #include "fft.h"
 #include "test.h"
 
+#ifdef PAPI
+#include <papi.h>
+static const int PAPI_EVENTS[] = { PAPI_TOT_CYC, PAPI_TOT_INS,
+                                   PAPI_FP_OPS, PAPI_L1_DCM };
+static const size_t NUM_EVENTS = 4;
+#endif
+
 #define PI 3.141592653589793238462643383279
 
 static void usage() {
@@ -50,13 +57,21 @@ int main(int argc, char *argv[]) {
   const destroy_func destroy = fft_funcs[fft_idx].init;
 
 #ifdef PAPI
-  long long *values = (long long *) calloc(sizeof(long long),
-                                           iters * DEFAULT_EVENT_COUNT);
+  long long *values = (long long *) calloc(sizeof(long long), iters * NUM_EVENTS);
 
-  papi_init(DEFAULT_EVENTS, DEFAULT_EVENT_COUNT);
+  if ((int ret = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT) {
+    fprintf(stderr, "PAPI_library_init error %d: %s\n",ret,PAPI_strerror(ret));
+    exit(EXIT_FAILURE);
+  }
 
-  if (PAPI_start_counters(DEFAULT_EVENTS, DEFAULT_EVENT_COUNT) != PAPI_OK) {
-    fprintf(stderr, "Cannot start PAPI counters\n");
+  int EventSet = PAPI_NULL;
+  if ((int ret = PAPI_create_eventset(&EventSet)) != PAPI_OK) {
+    fprintf(stderr, "PAPI_create_eventset error %d: %s\n",ret,PAPI_strerror(ret));
+    exit(EXIT_FAILURE);
+  }
+
+  if ((int ret = PAPI_add_events(EventSet, PAPI_EVENTS, NUM_EVENTS)) != PAPI_OK) {
+    fprintf(stderr, "PAPI_add_events error %d: %s\n",ret,PAPI_strerror(ret));
     exit(EXIT_FAILURE);
   }
 #endif
@@ -68,8 +83,8 @@ int main(int argc, char *argv[]) {
     }
 
 #ifdef PAPI
-    if (PAPI_read_counters(values, DEFAULT_EVENT_COUNT) != PAPI_OK) {
-      fprintf(stderr, "Cannot read PAPI counters\n");
+    if ((int ret = PAPI_start(EventSet)) != PAPI_OK) {
+      fprintf(stderr, "PAPI_start error %d: %s\n",ret,PAPI_strerror(ret));
       exit(EXIT_FAILURE);
     }
 #endif
@@ -77,8 +92,8 @@ int main(int argc, char *argv[]) {
     fft(in, out, n, fft_data);
 
 #ifdef PAPI
-    if (PAPI_read_counters(values, DEFAULT_EVENT_COUNT) != PAPI_OK) {
-      fprintf(stderr, "Cannot read PAPI counters\n");
+    if ((int ret = PAPI_stop(EventSet, &values[i * NUM_EVENTS])) != PAPI_OK) {
+      fprintf(stderr, "PAPI_start error %d: %s\n",ret,PAPI_strerror(ret));
       exit(EXIT_FAILURE);
     }
 #endif
@@ -87,13 +102,6 @@ int main(int argc, char *argv[]) {
       destroy(fft_data, n);
     }
   }
-
-#ifdef PAPI
-  if (PAPI_stop_counters(values, DEFAULT_EVENT_COUNT) != PAPI_OK) {
-    fprintf(stderr, "Cannot stop PAPI counters\n");
-    exit(EXIT_FAILURE);
-  }
-#endif
 
   const check_func check = test_funcs[test_idx].check;
 
