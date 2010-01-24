@@ -18,6 +18,8 @@ void complexfftr2opt(double in[], double out[], size_t n);
 void kd_fftr2(double in[], double out[], size_t n);
 void kd_fftr2_opt(double in[], double out[], size_t n);
 
+void gnd_fftr2(double in[], double out[], size_t n);
+
 void fftw(double in[], double out[], size_t n);
 
 struct fft_func_t {
@@ -39,6 +41,8 @@ static const struct fft_func_t fft_funcs[] = {
 
   {kd_fftr2,        "kd_fftr2",        "Keith's Radix 2 Recursive FFT"},
   {kd_fftr2_opt,    "kd_fftr2_opt",    "Keith's Optimized Radix 2 Recursive FFT"},
+
+  {gnd_fftr2,       "gnd_fftr2",       "Nick's Radix 2 Recursive FFT"}
 
 };
 
