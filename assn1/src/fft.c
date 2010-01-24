@@ -372,7 +372,7 @@ void *fftw_init(double in[], size_t n) {
   return (void *) fftw_create_plan(n, FFTW_FORWARD, FFTW_ESTIMATE);
 }
 
-void *fftw_destroy(void *data, size_t n) {
+void fftw_destroy(void *data, size_t n) {
   fftw_destroy_plan((fftw_plan) data);
 }
 

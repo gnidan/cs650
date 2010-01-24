@@ -23,7 +23,7 @@ void kd_fftr2(double in[], double out[], size_t n, void *data);
 void kd_fftr2_opt(double in[], double out[], size_t n, void *data);
 
 #ifdef FFTW
-void fftw(double in[], double out[], size_t n, void *data);
+void fft_fftw(double in[], double out[], size_t n, void *data);
 void *fftw_init(double in[], size_t n);
 void fftw_destroy(void *data, size_t n);
 #endif
@@ -37,7 +37,7 @@ struct fft_func_t {
 };
 
 #ifdef FFTW
-static const size_t num_fft_funcs = 6;
+static const size_t num_fft_funcs = 8;
 #else
 static const size_t num_fft_funcs = 7;
 #endif
@@ -54,7 +54,7 @@ static const struct fft_func_t fft_funcs[] = {
   {fft_four1,       four1_init, four1_destroy, "fft_four1",       "Numerical Recipes in C"},
 
 #ifdef FFTW
-  {fftw,            fftw_init,  fftw_destroy,  "fftw",            "FFTW 2.1.5"},
+  {fft_fftw,        fftw_init,  fftw_destroy,  "fftw",            "FFTW 2.1.5"},
 #endif 
 };
 
