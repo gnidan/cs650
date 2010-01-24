@@ -20,7 +20,9 @@ void kd_fftr2_opt(double in[], double out[], size_t n);
 
 void gnd_fftr2(double in[], double out[], size_t n);
 
+#ifdef FFTW
 void fftw(double in[], double out[], size_t n);
+#endif
 
 struct fft_func_t {
   fft_func func;
@@ -28,10 +30,18 @@ struct fft_func_t {
   char *desc;
 };
 
-static const size_t num_fft_funcs = 7;
+#ifdef FFTW
+static const size_t num_fft_funcs = 9;
+#else
+static const size_t num_fft_funcs = 8;
+#endif
+
 static const struct fft_func_t fft_funcs[] = {
   {fft_four1,       "fft_four1",       "Numerical Recipes in C"},
+
+#ifdef FFTW
   {fftw,            "fftw",            "FFTW 2.1.5"},
+#endif
 
   {fftr2,           "fftr2",           "Radix 2 Recursive FFT"},
   {fftr2opt,        "fftr2opt",        "Optimized Radix 2 Recursive FFT"},
