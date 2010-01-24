@@ -6,9 +6,19 @@
 void four1(double data[], unsigned long nn, int isign);
 static const int isign = -1;
 
-void fft_four1(double in[], double out[], size_t n) {
-  memcpy(out, in, sizeof(double) * 2 * n);
-  four1(out-1, n, isign);
+
+void *four1_init(double in[], size_t n) {
+  double *data = malloc(sizeof(double) * 2 * n);
+  memcpy(data, in, sizeof(double) * 2 * n);
+  return NULL;
+}
+
+void fft_four1(double in[], double out[], size_t n, void *data) {
+  four1(((double *)data) - 1, n, isign);
+}
+
+void four1_destroy(void *data, size_t n) {
+  free(data);
 }
 
 /**
@@ -72,7 +82,7 @@ static void _kd_fftr2_opt (double *in, double *out, unsigned int n,
   }
 }
 
-void kd_fftr2_opt(double in[], double out[], size_t n) {
+void kd_fftr2_opt(double in[], double out[], size_t n, void *data) {
   const double omega_r = cos (2 * PI / (double) n);
   const double omega_i = -sin (2 * PI / (double) n);
   _kd_fftr2_opt(in, out, n, omega_r, omega_i, 0, 0, 2);
@@ -165,14 +175,14 @@ static void _kd_fftr2 (double *in, double *out, unsigned int n,
   return;
 }
 
-void kd_fftr2(double in[], double out[], size_t n) {
+void kd_fftr2(double in[], double out[], size_t n, void *data) {
   const double omega_r = cos (2 * PI / (double) n);
   const double omega_i = -sin (2 * PI / (double) n);
   _kd_fftr2(in, out, n, omega_r, omega_i);
 }
 
 //Recursive Radix-2 FFT
-void fftr2(double in[], double out[], size_t n) {
+static void _fftr2(double in[], double out[], size_t n) {
   if (n == 1) {
     out[0] = in[0];
     out[1] = in[1];
@@ -193,8 +203,8 @@ void fftr2(double in[], double out[], size_t n) {
     XO[i+1] = in[2*i+3];
   }
 
-  fftr2(XE, YE, np);
-  fftr2(XO, YO, np);
+  _fftr2(XE, YE, np);
+  _fftr2(XO, YO, np);
 
   //twiddle
   double * T = (double *) malloc(sizeof(double) * np * 2);
@@ -221,6 +231,10 @@ void fftr2(double in[], double out[], size_t n) {
   free(XO);
   free(YE);
   free(YO);
+}
+
+void fftr2(double in[], double out[], size_t n, void *data) {
+  _fftr2(in, out, n);
 }
 
 //fftr2 implemented using C99 complex type. The same as a double array but cleaner
@@ -265,7 +279,7 @@ static void _complexfftr2(double complex in[], double complex out[], size_t n) {
   free(YO);
 }
 
-void complexfftr2(double in[], double out[], size_t n) {
+void complexfftr2(double in[], double out[], size_t n, void *data) {
   _complexfftr2((double complex *) in, (double complex *) out, n);
 }
 
@@ -310,7 +324,7 @@ static void _fftr2opt(double in[], double out[], size_t n, size_t s, double wnr,
   }
 }
 
-void fftr2opt(double in[], double out[], size_t n) {
+void fftr2opt(double in[], double out[], size_t n, void *data) {
   const double theta = 2 * PI / n;
   _fftr2opt(in, out, n, 1, cos(theta), -sin(theta));
 }
@@ -340,19 +354,26 @@ static void _complexfftr2opt(double complex in[], double complex out[],
   }
 }
 
-void complexfftr2opt(double in[], double out[], size_t n) {
+void complexfftr2opt(double in[], double out[], size_t n, void *data) {
   const double theta = 2 * PI / n;
   _complexfftr2opt((double complex *) in, (double complex *) out, n, 1, cos(theta) - sin(theta)*I);
 }
-
 
 #ifdef FFTW
 
 #include <fftw.h>
 
-void fft_fftw(double in[], double out[], size_t n) {
-  fftw_plan plan = fftw_create_plan(n, FFTW_FORWARD, FFTW_ESTIMATE);
+void fft_fftw(double in[], double out[], size_t n, void *data) {
+  fftw_plan plan = (fftw_plan) data;
   fftw_one(plan, (fftw_complex *) in, (fftw_complex *) out);
+}
+
+void *fftw_init(double in[], size_t n) {
+  return (void *) fftw_create_plan(n, FFTW_FORWARD, FFTW_ESTIMATE);
+}
+
+void *fftw_destroy(void *data, size_t n) {
+  fftw_destroy_plan((fftw_plan) data);
 }
 
 #endif

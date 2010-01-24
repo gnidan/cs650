@@ -12,7 +12,7 @@ static void usage() {
 
   fprintf(stderr, "\nfft_func values (use integer index):\n");
   for (size_t i = 0; i < num_fft_funcs; i++) {
-    fprintf(stderr, "\t%zu\t%s\t%s\n", i, fft_funcs[i].name, fft_funcs[i].desc);
+    fprintf(stderr, "\t%zu\t%-20s\t%s\n", i, fft_funcs[i].name, fft_funcs[i].desc);
   }
 
   fprintf(stderr, "\ntest_func values (use integer index):\n");
@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
     usage();
 
   const fft_func fft = fft_funcs[fft_idx].func;
+  const init_func init = fft_funcs[fft_idx].init;
   const test_func test = test_funcs[test_idx].func;
   const check_func check = test_funcs[test_idx].check;
 
@@ -44,17 +45,19 @@ int main(int argc, char *argv[]) {
   double *data = (double *) malloc(sizeof(double) * 2*n);
   double *out = (double *) malloc(sizeof(double) * 2*n);
 
-  printf("fft_func = %s\tk = %zu\tn = %zu\n", fft_funcs[fft_idx].name, k, n);
+  printf("%s\tn = %zu\n", fft_funcs[fft_idx].name, n);
 
   test(data, n);
+  void *fft_data = NULL;
+  if (init) {
+    fft_data = init(data, n);
+  }
   for (size_t iter = 0; iter < iters; iter++) {
-    fft(data, out, n);
+    fft(data, out, n, fft_data);
   }
 
   if (check) {
-    if(check(out, n)) {
-      printf("Test: Passed!\n");
-    } else {
+    if(!check(out, n)) {
       printf("Test: Failed!\n");
       for (size_t i = 0; i < n; i++) {
         printf("%lf\t%lf\n", out[2*i], out[2*i+1]);
