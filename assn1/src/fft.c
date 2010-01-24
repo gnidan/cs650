@@ -350,8 +350,7 @@ void complexfftr2opt(double in[], double out[], size_t n) {
 
 #include <fftw.h>
 
-void fftw(double in[], double out[], size_t n) {
-  fftw_complex in[N], out[N];
+void fft_fftw(double in[], double out[], size_t n) {
   fftw_plan plan = fftw_create_plan(n, FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_one(plan, (fftw_complex *) in, (fftw_complex *) out);
 }
