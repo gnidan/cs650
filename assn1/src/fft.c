@@ -350,6 +350,7 @@ static void _gnd_fftr2(double complex X[], double complex Y[], size_t N)
   if(N == 1)
   {
     Y[0] = X[0];
+    return;
   }
   int i;
 
