@@ -122,14 +122,16 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "%lf\t%lf\n", out[2*i], out[2*i+1]);
       }
     } else {
-      fprintf(stderr, "Test: Passed!\n");
+      //fprintf(stderr, "Test: Passed!\n");
     }
   } else {
-    fprintf(stderr, "Test: No check defined\n");
-    for (size_t i = 0; i < n; i++) {
-      fprintf(stderr, "%lf\t%lf\n", out[2*i], out[2*i+1]);
-    }
+    //fprintf(stderr, "Test: No check defined\n");
+    //for (size_t i = 0; i < n; i++) {
+    //  fprintf(stderr, "%lf\t%lf\n", out[2*i], out[2*i+1]);
+    //}
   }
+
+  printf("%s\t%zu", fft_funcs[fft_idx].name, k);
 
 #ifdef PAPI
   for (size_t i = 0; i < NUM_EVENTS; ++i) {

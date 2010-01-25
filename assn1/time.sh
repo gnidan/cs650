@@ -7,6 +7,6 @@ for fft in 4 5 6 7; do
     n=1
     while [ $n -lt 25 ]; do
         ./src/time_fft $n $ITERATIONS $fft $test
-        let n+=1
+        $n+=1
     done
 done
