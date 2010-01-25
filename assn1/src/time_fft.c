@@ -132,10 +132,6 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef PAPI
-  double ave[NUM_EVENTS];
-  long long min[NUM_EVENTS];
-  long long max[NUM_EVENTS];
-
   for (size_t i = 0; i < NUM_EVENTS; ++i) {
     double ave = 0;
     long long min = LLONG_MAX;
