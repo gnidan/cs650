@@ -4,6 +4,10 @@ CC := gcc
 CFLAGS := -g -Wall --pedantic --std=c99
 LDFLAGS := -lm
 
+ifdef OPT
+CFLAGS += -O3 -march=nocona
+endif
+
 ifdef FFTW
 FFTW_DIR := $(HOME)/local/fftw-2.1.5-kodiak
 CFLAGS += -DFFTW -I$(FFTW_DIR)/include
