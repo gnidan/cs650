@@ -301,16 +301,34 @@ latency =
 
 Calibrator v0.9e
 (by Stefan.Manegold@cwi.nl, http://www.cwi.nl/~manegold/)
+7e3c4010 140559217606672 4096    16
+7e3c4fff 140559217610751 4096  4095
+7e3c5000 140559217610752 4096     0
 
-CPU loop + L1 access:       4.13 ns =   3 cy
-             ( delay:     301.37 ns = 241 cy )
+MINTIME = 10000
+
+analyzing cache throughput...
+      range      stride       spots     brutto-  netto-time
+  167772160           8    20971520       15968         499
+
+analyzing cache latency...
+      range      stride       spots     brutto-  netto-time
+  167772160           8    20971520      122280       30570
+
+analyzing TLB latency...
+      range      stride       spots     brutto-  netto-time
+   18874368        1152       16384       18368        1148
+
+
+CPU loop + L1 access:       4.14 ns =   3 cy
+             ( delay:     301.16 ns = 241 cy )
 
 caches:
 level  size    linesize   miss-latency        replace-time
-  1     32 KB   64 bytes    1.07 ns =   1 cy    6.03 ns =   5 cy
-  2      4 MB  128 bytes   19.66 ns =  16 cy  104.68 ns =  84 cy
+  1     32 KB   64 bytes    1.44 ns =   1 cy    6.11 ns =   5 cy
+  2      4 MB  128 bytes   19.52 ns =  16 cy  104.66 ns =  84 cy
 
 TLBs:
 level #entries  pagesize  miss-latency
-  1      256       4 KB    10.61 ns =   8 cy 
+  1      256       4 KB    10.55 ns =   8 cy 
 
