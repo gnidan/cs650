@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <limits.h>
 
 #include "fft.h"
 #include "test.h"
@@ -9,10 +10,13 @@
 # if defined(__STDC__)
 #  if defined(__STDC_VERSION__)
 #   if (__STDC_VERSION__ >= 199901L)
-     typedef char * caddr_t; 
+typedef char * caddr_t;
 #   endif
 #  endif
 # endif
+
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 #include <papi.h>
 static int PAPI_EVENTS[] = { PAPI_TOT_CYC, PAPI_TOT_INS,
@@ -54,8 +58,6 @@ int main(int argc, char *argv[]) {
   const size_t n = 1 << k;
   double *in = (double *) malloc(sizeof(double) * 2*n);
   double *out = (double *) malloc(sizeof(double) * 2*n);
-
-  printf("%-20s\t%zu\n", fft_funcs[fft_idx].name, n);
 
   const test_func test = test_funcs[test_idx].func;
   test(in, n);
@@ -128,6 +130,27 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "%lf\t%lf\n", out[2*i], out[2*i+1]);
     }
   }
+
+#ifdef PAPI
+  double ave[NUM_EVENTS];
+  long long min[NUM_EVENTS];
+  long long max[NUM_EVENTS];
+
+  for (size_t i = 0; i < NUM_EVENTS; ++i) {
+    double ave = 0;
+    long long min = LLONG_MAX;
+    long long max = LLONG_MIN;
+
+    for (size_t j = 0; j < iters; ++j) {
+      ave += values[j*NUM_EVENTS+i];
+      min = MIN(min[i], values[j*NUM_EVENTS+i]);
+      max = MAX(max[i], values[j*NUM_EVENTS+i]);
+    }
+    ave /= iters;
+
+    printf("%lf %lld %lld ", ave, min, max);
+  }
+#endif
 
   free(in);
   free(out);
