@@ -1,427 +1,195 @@
 -- Assignment 1 ------------------------------------------------------
-Linux tux64-13.cs.drexel.edu 2.6.29-8-cs-np #9 SMP Sun Aug 16 00:46:06 EDT 2009 x86_64 GNU/Linux
+Linux kodiak 2.6.24-21-pcng #1 SMP Tue Nov 4 12:41:17 EST 2008 x86_64 GNU/Linux
 -- GCC Info ----------------------------------------------------------
-gcc (Ubuntu 4.3.3-5ubuntu4) 4.3.3
-Copyright (C) 2008 Free Software Foundation, Inc.
+gcc (GCC) 4.2.4 (Ubuntu 4.2.4-1ubuntu4)
+Copyright (C) 2007 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 -- CPU Info ----------------------------------------------------------
 processor	: 0
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
 physical id	: 0
 siblings	: 4
 core id		: 0
 cpu cores	: 4
-apicid		: 0
-initial apicid	: 0
 fpu		: yes
 fpu_exception	: yes
-cpuid level	: 5
+cpuid level	: 10
 wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4799.66
-TLB size	: 1024 4K pages
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3992.94
 clflush size	: 64
 cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
 
 processor	: 1
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
+physical id	: 1
 siblings	: 4
-core id		: 1
+core id		: 0
 cpu cores	: 4
-apicid		: 1
-initial apicid	: 1
 fpu		: yes
 fpu_exception	: yes
-cpuid level	: 5
+cpuid level	: 10
 wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.26
-TLB size	: 1024 4K pages
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.11
 clflush size	: 64
 cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
 
 processor	: 2
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
 physical id	: 0
 siblings	: 4
-core id		: 2
+core id		: 1
 cpu cores	: 4
-apicid		: 2
-initial apicid	: 2
 fpu		: yes
 fpu_exception	: yes
-cpuid level	: 5
+cpuid level	: 10
 wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.25
-TLB size	: 1024 4K pages
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.10
 clflush size	: 64
 cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
 
 processor	: 3
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
+physical id	: 1
+siblings	: 4
+core id		: 1
+cpu cores	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.11
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
+
+processor	: 4
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
+physical id	: 0
+siblings	: 4
+core id		: 2
+cpu cores	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.07
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
+
+processor	: 5
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
+physical id	: 1
+siblings	: 4
+core id		: 2
+cpu cores	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.12
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
+
+processor	: 6
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
 physical id	: 0
 siblings	: 4
 core id		: 3
 cpu cores	: 4
-apicid		: 3
-initial apicid	: 3
 fpu		: yes
 fpu_exception	: yes
-cpuid level	: 5
+cpuid level	: 10
 wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4837.70
-TLB size	: 1024 4K pages
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.08
 clflush size	: 64
 cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 4
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 1
-siblings	: 4
-core id		: 0
-cpu cores	: 4
-apicid		: 4
-initial apicid	: 4
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.25
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 5
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 1
-siblings	: 4
-core id		: 1
-cpu cores	: 4
-apicid		: 5
-initial apicid	: 5
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4810.17
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 6
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 1
-siblings	: 4
-core id		: 2
-cpu cores	: 4
-apicid		: 6
-initial apicid	: 6
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.25
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
 
 processor	: 7
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping	: 11
+cpu MHz		: 1995.002
+cache size	: 4096 KB
 physical id	: 1
 siblings	: 4
 core id		: 3
 cpu cores	: 4
-apicid		: 7
-initial apicid	: 7
 fpu		: yes
 fpu_exception	: yes
-cpuid level	: 5
+cpuid level	: 10
 wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.25
-TLB size	: 1024 4K pages
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good pni monitor ds_cpl vmx tm2 ssse3 cx16 xtpr dca lahf_lm
+bogomips	: 3990.11
 clflush size	: 64
 cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 8
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 2
-siblings	: 4
-core id		: 0
-cpu cores	: 4
-apicid		: 8
-initial apicid	: 8
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4838.63
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 9
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 2
-siblings	: 4
-core id		: 1
-cpu cores	: 4
-apicid		: 9
-initial apicid	: 9
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.25
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 10
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 2
-siblings	: 4
-core id		: 2
-cpu cores	: 4
-apicid		: 10
-initial apicid	: 10
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4762.79
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 11
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 2
-siblings	: 4
-core id		: 3
-cpu cores	: 4
-apicid		: 11
-initial apicid	: 11
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.26
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 12
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 3
-siblings	: 4
-core id		: 0
-cpu cores	: 4
-apicid		: 12
-initial apicid	: 12
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.26
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 13
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 3
-siblings	: 4
-core id		: 1
-cpu cores	: 4
-apicid		: 13
-initial apicid	: 13
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.27
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 14
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 3
-siblings	: 4
-core id		: 2
-cpu cores	: 4
-apicid		: 14
-initial apicid	: 14
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4839.02
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
-
-processor	: 15
-vendor_id	: AuthenticAMD
-cpu family	: 16
-model		: 4
-model name	: Quad-Core AMD Opteron(tm) Processor 8378
-stepping	: 2
-cpu MHz		: 800.000
-cache size	: 512 KB
-physical id	: 3
-siblings	: 4
-core id		: 3
-cpu cores	: 4
-apicid		: 15
-initial apicid	: 15
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 5
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm 3dnowext 3dnow constant_tsc rep_good nonstop_tsc pni monitor cx16 lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt
-bogomips	: 4800.25
-TLB size	: 1024 4K pages
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 48 bits physical, 48 bits virtual
-power management: ts ttp tm stc 100mhzsteps hwpstate
+address sizes	: 38 bits physical, 48 bits virtual
+power management:
 
 -- PAPI --------------------------------------------------------------
 Memory Cache and TLB Hierarchy Information.
@@ -430,114 +198,102 @@ TLB Information.
   There may be multiple descriptors for each level of TLB
   if multiple page sizes are supported.
 
-L1 Instruction TLB:
-  Page Size:           4096 KB
-  Number of Entries:      8
-  Associativity:       Full
-
 L1 Data TLB:
   Page Size:           4096 KB
-  Number of Entries:     24
-  Associativity:       Full
-
-L1 Instruction TLB:
-  Page Size:           2048 KB
-  Number of Entries:     16
-  Associativity:       Full
-
-L1 Data TLB:
-  Page Size:           2048 KB
-  Number of Entries:     48
-  Associativity:       Full
-
-L1 Instruction TLB:
-  Page Size:              4 KB
   Number of Entries:     32
-  Associativity:       Full
-
-L1 Data TLB:
-  Page Size:              4 KB
-  Number of Entries:     48
-  Associativity:       Full
-
-L2 Data TLB:
-  Page Size:           4096 KB
-  Number of Entries:     64
-  Associativity:          2
-
-L2 Data TLB:
-  Page Size:           2048 KB
-  Number of Entries:    128
-  Associativity:          2
-
-L2 Instruction TLB:
-  Page Size:              4 KB
-  Number of Entries:    512
   Associativity:          4
 
-L2 Data TLB:
+L1 Instruction TLB:
   Page Size:              4 KB
-  Number of Entries:    512
+  Number of Entries:    128
+  Associativity:          4
+
+L1 Instruction TLB:
+  Page Size:           2048 KB
+  Number of Entries:      8
+  Associativity:          4
+
+L1 Instruction TLB:
+  Page Size:           4096 KB
+  Number of Entries:      4
+  Associativity:          4
+
+L1 Data TLB:
+  Page Size:           4096 KB
+  Number of Entries:     16
+  Associativity:          4
+
+L1 Data TLB:
+  Page Size:              4 KB
+  Number of Entries:    256
   Associativity:          4
 
 
 Cache Information.
 
 L1 Data Cache:
-  Total size:            64 KB
+  Total size:            32 KB
   Line size:             64 B
-  Number of Lines:     1024
-  Associativity:          2
+  Number of Lines:      512
+  Associativity:          8
 
 L1 Instruction Cache:
-  Total size:            64 KB
+  Total size:            32 KB
   Line size:             64 B
-  Number of Lines:     1024
-  Associativity:          2
+  Number of Lines:      512
+  Associativity:          8
 
 L2 Unified Cache:
-  Total size:           512 KB
+  Total size:          4096 KB
   Line size:             64 B
-  Number of Lines:     8192
+  Number of Lines:    65536
   Associativity:         16
-
-L3 Unified Cache:
-  Total size:          3072 KB
-  Line size:             64 B
-  Number of Lines:    49152
-  Associativity:         48
 
 mem_info.c                               PASSED
 -- MOB ---------------------------------------------------------------
 Allocated 64MB of memory for benchmarking
 Performing benchmark: Cache Size/Levels 
 Data Caches:
+Found L1: [8192]
 Performing benchmark: Cache Share 
 Performing benchmark: Cache Line Size 
 Data Caches:
+Elected line size:  8
 Performing benchmark: Cache Associativity 
 Data Caches:
+Detected L1 is direct-mapped.
 Performing benchmark: Cache Replacement Policy 
 Data Caches:
 Performing benchmark: Cache Write Policy 
 Data Caches:
+Found L1 replacement policy is write-through/no-allocate
 Performing benchmark: Cache Indexing (Virtual/Physical) 
 Performing benchmark: TLB Page Size 
 Data TLBs:
 Performing benchmark: TLB Entry Count 
 Data TLBs:
-Num entries: 32
+Number of entries not detected
 Performing benchmark: TLB Associativity 
 Data TLBs:
 Found associativity 32 
 # MOB Config file 
-# Date Wed Jan 20 15:46:01 2010
-# Host: tux64-13.cs.drexel.edu 
+# Date Mon Jan 25 00:42:42 2010
+# Host: kodiak 
 # Run params: trials=3 runTime=1000000 verbosity=2 
+[CACHE]
+level = 1
+type = Data
+size = 8192
+lineSize = 8
+associativity = 1
+replacement = 
+writeMode = writeThrough-noalloc
+latency = 
+
 [TLB]
 type = Data
 pageSize = 524288
-numEntries = 32
+numEntries = 
 associativity = 32
 latency = 
 
@@ -545,33 +301,16 @@ latency =
 
 Calibrator v0.9e
 (by Stefan.Manegold@cwi.nl, http://www.cwi.nl/~manegold/)
-c9942010 140534711853072 4096    16
-c9942fff 140534711857151 4096  4095
-c9943000 140534711857152 4096     0
 
-MINTIME = 10000
-
-analyzing cache throughput...
-      range      stride       spots     brutto-  netto-time
-  167772160           8    20971520       10288         643
-
-analyzing cache latency...
-      range      stride       spots     brutto-  netto-time
-  167772160           8    20971520      113520       28380
-
-analyzing TLB latency...
-      range      stride       spots     brutto-  netto-time
-   18874368        1152       16384       19552        2444
-
-
-CPU loop + L1 access:       3.73 ns =   3 cy
-             ( delay:     560.27 ns = 448 cy )
+CPU loop + L1 access:       4.13 ns =   3 cy
+             ( delay:     301.37 ns = 241 cy )
 
 caches:
 level  size    linesize   miss-latency        replace-time
-  1    512 KB  128 bytes  -267.88 ns = -213 cy   16.45 ns =  13 cy
-  2      6 MB  128 bytes   97.16 ns =  78 cy   96.52 ns =  77 cy
+  1     32 KB   64 bytes    1.07 ns =   1 cy    6.03 ns =   5 cy
+  2      4 MB  128 bytes   19.66 ns =  16 cy  104.68 ns =  84 cy
 
 TLBs:
 level #entries  pagesize  miss-latency
-  1      256       8 KB    18.12 ns =  14 cy 
+  1      256       4 KB    10.61 ns =   8 cy 
+
