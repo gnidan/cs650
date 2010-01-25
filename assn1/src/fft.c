@@ -10,7 +10,7 @@ static const int isign = -1;
 void *four1_init(double in[], size_t n) {
   double *data = malloc(sizeof(double) * 2 * n);
   memcpy(data, in, sizeof(double) * 2 * n);
-  return NULL;
+  return data;
 }
 
 void fft_four1(double in[], double out[], size_t n, void *data) {

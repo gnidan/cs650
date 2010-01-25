@@ -148,9 +148,10 @@ int main(int argc, char *argv[]) {
 
     printf("\t%lf\t%lld\t%lld", ave, min, max);
   }
-  printf("\n");
   free(values);
 #endif
+
+  printf("\n");
 
   free(in);
   free(out);
