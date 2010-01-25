@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
     }
     ave /= iters;
 
-    printf("%lf %lld %lld ", ave, min, max);
+    printf("\t%lf\t%lld\t%lld", ave, min, max);
   }
   printf("\n");
   free(values);
