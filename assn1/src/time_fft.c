@@ -143,8 +143,8 @@ int main(int argc, char *argv[]) {
 
     for (size_t j = 0; j < iters; ++j) {
       ave += values[j*NUM_EVENTS+i];
-      min = MIN(min[i], values[j*NUM_EVENTS+i]);
-      max = MAX(max[i], values[j*NUM_EVENTS+i]);
+      min = MIN(min, values[j*NUM_EVENTS+i]);
+      max = MAX(max, values[j*NUM_EVENTS+i]);
     }
     ave /= iters;
 
