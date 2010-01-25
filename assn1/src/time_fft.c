@@ -146,6 +146,8 @@ int main(int argc, char *argv[]) {
 
     printf("%lf %lld %lld ", ave, min, max);
   }
+  printf("\n");
+  free(values);
 #endif
 
   free(in);
