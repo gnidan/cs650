@@ -26,6 +26,6 @@ void DFT_rec(int N, int n, double *Y, double *X, int s);
 void DFT_buf_rec(int N, int n, double *Y, double *X, int s, int th);
 
 void init_DFT(int N);
-void destroy_DFT();
+void destroy_DFT(int N);
 
 #endif /* _FFT4_H_ */
