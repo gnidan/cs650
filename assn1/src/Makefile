@@ -24,7 +24,7 @@ PROGS := time_fft
 
 all: $(PROGS)
 
-time_fft: time_fft.o fft.o test.o four1.o
+time_fft: time_fft.o fft.o test.o four1.o fft4.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:

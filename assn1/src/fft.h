@@ -9,10 +9,6 @@ typedef void(*fft_func)(double in[], double out[], size_t n, void *data);
 typedef void *(*init_func)(double in[], size_t n);
 typedef void(*destroy_func)(void *data, size_t n);
 
-void fft_four1(double in[], double out[], size_t n, void *data);
-void *four1_init(double in[], size_t n);
-void four1_destroy(void *data, size_t n);
-
 void fftr2(double in[], double out[], size_t n, void *data);
 void fftr2opt(double in[], double out[], size_t n, void *data);
 
@@ -21,6 +17,15 @@ void complexfftr2opt(double in[], double out[], size_t n, void *data);
 
 void kd_fftr2(double in[], double out[], size_t n, void *data);
 void kd_fftr2_opt(double in[], double out[], size_t n, void *data);
+
+void fft_rec4(double in[], double out[], size_t n, void *data);
+void fft_buf_rec4(double in[], double out[], size_t n, void *data);
+void *fft_rec4_init(double in[], size_t n);
+void fft_rec4_destroy(void *data, size_t n);
+
+void fft_four1(double in[], double out[], size_t n, void *data);
+void *four1_init(double in[], size_t n);
+void four1_destroy(void *data, size_t n);
 
 #ifdef FFTW
 void fft_fftw(double in[], double out[], size_t n, void *data);
@@ -37,25 +42,28 @@ struct fft_func_t {
 };
 
 #ifdef FFTW
-static const size_t num_fft_funcs = 8;
+static const size_t num_fft_funcs = 10;
 #else
-static const size_t num_fft_funcs = 7;
+static const size_t num_fft_funcs = 9;
 #endif
 static const struct fft_func_t fft_funcs[] = {
-  {fftr2,           NULL,       NULL,          "fftr2",           "Radix 2 Recursive FFT"},
-  {fftr2opt,        NULL,       NULL,          "fftr2opt",        "Optimized Radix 2 Recursive FFT"},
+  {fftr2,           NULL,          NULL,             "fftr2",           "Radix 2 Recursive FFT"},
+  {fftr2opt,        NULL,          NULL,             "fftr2opt",        "Optimized Radix 2 Recursive FFT"},
 
-  {complexfftr2,    NULL,       NULL,          "complexfftr2",    "Radix 2 Recursive FFT (C99 complex type)"},
-  {complexfftr2opt, NULL,       NULL,          "complexfftr2opt", "Optimized Radix 2 Recursive FFT (C99 complex type)"},
+  {complexfftr2,    NULL,          NULL,             "complexfftr2",    "Radix 2 Recursive FFT (C99 complex type)"},
+  {complexfftr2opt, NULL,          NULL,             "complexfftr2opt", "Optimized Radix 2 Recursive FFT (C99 complex type)"},
 
-  {kd_fftr2,        NULL,       NULL,          "kd_fftr2",        "Keith's Radix 2 Recursive FFT"},
-  {kd_fftr2_opt,    NULL,       NULL,          "kd_fftr2_opt",    "Keith's Optimized Radix 2 Recursive FFT"},
+  {kd_fftr2,        NULL,          NULL,             "kd_fftr2",        "Keith's Radix 2 Recursive FFT"},
+  {kd_fftr2_opt,    NULL,          NULL,             "kd_fftr2_opt",    "Keith's Optimized Radix 2 Recursive FFT"},
 
-  {fft_four1,       four1_init, four1_destroy, "fft_four1",       "Numerical Recipes in C"},
+  {fft_four1,       four1_init,    four1_destroy,    "fft_four1",       "Numerical Recipes in C"},
+
+  {fft_rec4,        fft_rec4_init, fft_rec4_destroy, "DFT_rec",         "Fast Numerical Code Radix 4 Recursive FFT"},
+  {fft_buf_rec4,    fft_rec4_init, fft_rec4_destroy, "DFT_buf_rec",     "Fast Numerical Code Radix 4 Buffered Recursive FFT (Threshold = 16)"},
 
 #ifdef FFTW
-  {fft_fftw,        fftw_init,  fftw_destroy,  "fftw",            "FFTW 2.1.5"},
-#endif 
+  {fft_fftw,        fftw_init,     fftw_destroy,     "fftw",            "FFTW 2.1.5"},
+#endif
 };
 
 #endif /* _FFT_H_ */
