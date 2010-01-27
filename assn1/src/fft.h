@@ -22,6 +22,9 @@ void complexfftr2opt(double in[], double out[], size_t n, void *data);
 void kd_fftr2(double in[], double out[], size_t n, void *data);
 void kd_fftr2_opt(double in[], double out[], size_t n, void *data);
 
+void fftr4(double in[], double out[], size_t n, void *data);
+void *fftr4_init(double in[], size_t n);
+
 #ifdef FFTW
 void fft_fftw(double in[], double out[], size_t n, void *data);
 void *fftw_init(double in[], size_t n);
@@ -37,9 +40,9 @@ struct fft_func_t {
 };
 
 #ifdef FFTW
-static const size_t num_fft_funcs = 8;
+static const size_t num_fft_funcs = 9;
 #else
-static const size_t num_fft_funcs = 7;
+static const size_t num_fft_funcs = 8;
 #endif
 static const struct fft_func_t fft_funcs[] = {
   {fftr2,           NULL,       NULL,          "fftr2",           "Radix 2 Recursive FFT"},
@@ -56,6 +59,8 @@ static const struct fft_func_t fft_funcs[] = {
 #ifdef FFTW
   {fft_fftw,        fftw_init,  fftw_destroy,  "fftw",            "FFTW 2.1.5"},
 #endif 
+
+  {fftr4,           fftr4_init, NULL,          "fftr4",           "Radix 4 Recursive FFT"},
 };
 
 #endif /* _FFT_H_ */
