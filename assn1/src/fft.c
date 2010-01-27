@@ -3,6 +3,12 @@
 #include <string.h>
 #include "fft.h"
 
+#include "fft4.h"
+
+#ifdef FFTW
+#include <fftw.h>
+#endif
+
 void four1(double data[], unsigned long nn, int isign);
 static const int isign = -1;
 
@@ -360,9 +366,6 @@ void complexfftr2opt(double in[], double out[], size_t n, void *data) {
 }
 
 #ifdef FFTW
-
-#include <fftw.h>
-
 void fft_fftw(double in[], double out[], size_t n, void *data) {
   fftw_plan plan = (fftw_plan) data;
   fftw_one(plan, (fftw_complex *) in, (fftw_complex *) out);
@@ -375,5 +378,21 @@ void *fftw_init(double in[], size_t n) {
 void fftw_destroy(void *data, size_t n) {
   fftw_destroy_plan((fftw_plan) data);
 }
-
 #endif
+
+void *fft_rec4_init(double in[], size_t n) {
+  init_DFT(n);
+  return NULL;
+}
+
+void fft_rec4_destroy(void *data, size_t n) {
+  destroy_DFT(n);
+}
+
+void fft_rec4(double in[], double out[], size_t n, void *data) {
+  DFT_rec(n, log4(n), out, in, 1);
+}
+
+void fft_buf_rec4(double in[], double out[], size_t n, void *data) {
+  DFT_buf_rec(n, log4(n), out, in, 1, 16);
+}
