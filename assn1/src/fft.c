@@ -371,8 +371,12 @@ void fft_fftw(double in[], double out[], size_t n, void *data) {
   fftw_one(plan, (fftw_complex *) in, (fftw_complex *) out);
 }
 
-void *fftw_init(double in[], size_t n) {
+void *fftw_estimate_init(double in[], size_t n) {
   return (void *) fftw_create_plan(n, FFTW_FORWARD, FFTW_ESTIMATE);
+}
+
+void *fftw_measure_init(double in[], size_t n) {
+  return (void *) fftw_create_plan(n, FFTW_FORWARD, FFTW_MEASURE);
 }
 
 void fftw_destroy(void *data, size_t n) {
