@@ -6,6 +6,7 @@ set title 'FFT PAPI L1 Data Cache Misses (Minimum) (Normalized)'
 set xlabel 'FFT Size (log_2)'
 set xtic 2
 set ylabel 'Misses'
+set yrange [0:6]
 plot \
 '../data/kd_fftr2_norm.dat' using 2:13 title 'fftr2' with linespoints , \
 '../data/kd_fftr2_opt_norm.dat' using 2:13 title 'fftr2\_opt' with linespoints , \
