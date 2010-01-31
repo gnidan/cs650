@@ -165,6 +165,36 @@ measurements were calculated.
 
 
 \section{Summary of Results}
+The results of the experiments clearly show that FFTW is the most efficient of
+the implementations that we tested.  This is not surprising given the 
+amount of work which has been put into this library and the fact that it has 
+the ability to take advantage of the platform on which it is run, whereas the
+other implementations do not take their environment into consideration.
+
+Perhaps the most interesting result is the great difference in the performance
+of the two versions of the recursive algorithm which we ourselves implemented.
+The na\"{i}ve implementation of the algorithm performs an explicit permutation
+on the input vector, uses temporary memory allocation for various operations,
+and does not merge any loops together.  The ``optimized'' version of this 
+algorithm uses stride parameters so that explicit permutation is not necessary,
+does not use any temporary allocation, and merges the loops that perform the
+``twiddle'' and ``vector butterfly'' operations into a single loop.
+
+The performance plots presented in Section 4 show that the na\"{i}ve 
+implementation is clearly the most inefficient of the implementations, but our
+optimized version performs nearly as well as both the radix four version 
+from \cite{Chellappa:08} and the iterative algorithm from \cite{148286}.  This
+result can best be seen in Figure \ref{fig:ins_ave} which shows the total 
+number of instructions performed by each of the implementations when called
+10 consecutive times on each of the input vector lengths.
+
+Another surprising result is that our optimized version actually outperforms
+all other implementations with respect to certain measures.  In particular, 
+Figures \ref{fig:cache_misses_ave} and \ref{fig:cache_misses_min} show that 
+our optimized recursive function usually results in fewer cache misses than any
+of the other implementations, especially when we look at relatively long
+input vectors.
+
 
 \section{Computing Platform}
 All timings were run on \texttt{kodiak.cs.drexel.edu}, a quad-core
@@ -179,14 +209,14 @@ It has a 32kB L1 data cache, a 32kB L1 instruction cache, and a 4MB L2 cache
 for each pair of cores, resulting in a total of 8MB L2 cache
 \cite{clovertown}. The results from calibrator \cite{calibrator}, a program
 that analyzes the cache-memory system and extracts details are shown in
-Figure~\ref{fig:calibrator_cac he}. These graphs clearly indicate that the core
+Figure~\ref{fig:calibrator_cache}. These graphs clearly indicate that the core
 does indeed have a 4MB L2 cache and a 32kB L1 data cache. The TLB is also
 correctly identified as having 256 entries in
 Figure~\ref{fig:calibrator_tlb}. \texttt{PAPI\_mem\_info} \cite{papi} was able
 to provide further information. The L2 cache is 16 way set associative and the
 L1 caches are 8 way set associative.
 
-\begin{figure}[htbp]
+\begin{figure}[!h]
   \centering
 	\includegraphics[type=pdf,ext=.pdf,read=.pdf,width=\columnwidth]{../system_info/calibrator-out.cache-miss-latency}
 	\includegraphics[type=pdf,ext=.pdf,read=.pdf,width=\columnwidth]{../system_info/calibrator-out.cache-replace-time}
@@ -194,7 +224,7 @@ L1 caches are 8 way set associative.
   \label{fig:calibrator_cache}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[!h]
   \centering
 	\includegraphics[type=pdf,ext=.pdf,read=.pdf,width=\columnwidth]{../system_info/calibrator-out.TLB-miss-latency}
   \caption{The Calibrator graph indicating TLB size.}
@@ -212,12 +242,31 @@ the other tools. All of the system information gathered is in the
 The source code for each of the algorithms (with the exception of FFTW) can be
 found in the included files.  The file {\tt four1.c} contains the iterative
 implementation from \emph{Numerical Recipes in C}.  The file {\tt fft.c}
-contains our implementations of both the na\"{i}ve and optimized versions of the
+contains our implementations of both the na\"{i}ve and optimized versions of
+ the
 the radix-2 FFT algorithm.  Note that even though this source contains multiple
 implementations of these algorithms, the functions named {\tt kd\_fftr2} and
 {\tt kd\_fftr2\_opt} are the only ones we measured for comparisons.  The file
 {\tt fft4.c} contains the FFT radix-4 code from ``How To Write Fast Numerical
 Code: A Small Introduction''.
+
+The included {\tt Makefile} can be used to properly compile object files from
+each of the above mentioned source files.  These object files are used along
+with {\tt time\_fft.c} to compile the timing program {\tt time\_fft}, which we
+describe in the next section.
+
+
+\subsection{Test Functions}
+The file {\tt test.c} contains a suite of functions which can be used to ensure
+that the various implementations of the FFT are working properly.  For each
+test case, there are two functions, named {\tt test\emph{i}} and {\tt
+	check\emph{i}}, for some integer $i$.  The {\tt test\emph{i}} function
+creates an input vector of the desired size for which the output of the FFT is
+known.  The {\tt check\emph{i}} function compares the output vector from that
+FFT that it is given to the expected result.  The {\tt time\_fft} program can
+be used to test the implementations by specifying an $i > 0$ as the final
+command line argument.
+
 
 \subsection{Timing the Algorithms}
 
@@ -244,7 +293,7 @@ the above statistics.  For example, the following command generates these
 statistics when the na\"{i}ve implementation of the FFT is called 10 times on a
 vector of length $2^5$:
 \begin{verbatim}
-  time_fft 5 10 4 0
+                 time_fft 5 10 4 0
 \end{verbatim}
 The $4$ in the above command tells the program which of the functions to call
 to perform the FFT.  To obtain a usage statement for the program which details
@@ -256,41 +305,32 @@ The timings which we present in this report were computed by running the above
 program on each of the implementations on input vectors of sizes $2^k$, where
 $k$ ranged from $1$ to $24$ (with the exception of the radix 4 code whose input
 sizes were of size $2^{2k}$, where $k$ ranged from $1$ to $12$).  Each function
-was called 10 times on each input vector.  The included shell script {\tt
-	time.sh} may be used to recreate the timing data, which is presented in its
-raw format in the file timings.txt.
+was called 10 times on each input vector.  The included shell script
+ {\tt time.sh} may be used to recreate the timing data, which is presented in 
+its raw format in the file timings.txt.
 
+\subsection{Performance Plots}
 In addition to the raw data in timings.txt, we have also prepared performance
 plots for all of the data collected to give a visual comparison of the
-different algorithms.  Two such plots are presented below Figure
-\ref{fig:ave_ops}, which compares the average number of floating point
-operations performed by each of the algorithms on the smaller and larger input
-sizes\footnote{Note that {\tt DFT\_rec} and {\tt DFT\_buf\_rec} refer to the
-	radix-4 implementations of the FFT, without and with, respectively,
-	buffering.}.
+different algorithms.  We include several of these plots here, but all plots
+we created have been included in the attached files.
 
 \begin{figure}[htbp]
   \centering
 	\includegraphics[width=\columnwidth]{../plots/tot_cyc_min}
 	\includegraphics[width=\columnwidth]{../plots/tot_cyc_min_norm}
-  \caption{}
+  \caption{Plot summary of the minimum number of total cycles used by each
+	   algorithm when run on each input vector size 10 times.}
   \label{fig:cyc_min}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-	\includegraphics[width=\columnwidth]{../plots/tot_cyc_min_large}
-	\includegraphics[width=\columnwidth]{../plots/tot_cyc_min_small}
-  \caption{}
-  \label{fig:cyc_min_size}
-\end{figure}
-
-
-\begin{figure}[htbp]
-  \centering
 	\includegraphics[width=\columnwidth]{../plots/tot_ins_ave}
 	\includegraphics[width=\columnwidth]{../plots/tot_ins_ave_norm}
-  \caption{}
+  \caption{Plot summary of the average number of instructions issued by
+           each algorithm over 10 iterations of each input size.  The lower
+           graph is normalized to the {\tt fftw\_measure}.}
   \label{fig:ins_ave}
 \end{figure}
 
@@ -305,17 +345,6 @@ sizes\footnote{Note that {\tt DFT\_rec} and {\tt DFT\_buf\_rec} refer to the
 		minimum instead of the average.}
   \label{fig:fp_ops}
 \end{figure}
-
-From Figure \ref{fig:fp_ops}, it seems quite clear that FFTW is by far the most
-efficient implementation among those tested.  What is interesting here is how
-little difference there appears to be between our na\"{i}ve implementation and
-our optimized version.  Both of these implemenations appear to be relatively
-inefficient.  However, some of the other plots (all of which are included in
-the attached pdf files) do point out that the optimized version outperforms the
-na\"{i}ve implementation in several areas.  For instance, Figure
-\ref{fig:cache_misses_ave}) shows that not only does our optimized version produce
-much fewer cache misses than our na\"{i}ve version, but out optimized version
-actually outperforms all the other algorithms in this respect.
 
 \begin{figure}[htbp]
   \centering
@@ -337,20 +366,24 @@ actually outperforms all the other algorithms in this respect.
   \label{fig:cache_misses_min}
 \end{figure}
 
-\subsection{Test Functions}
-The file {\tt test.c} contains a suite of functions which can be used to ensure
-that the various implementations of the FFT are working properly.  For each
-test case, there are two functions, named {\tt test\emph{i}} and {\tt
-	check\emph{i}}, for some integer $i$.  The {\tt test\emph{i}} function
-creates an input vector of the desired size for which the output of the FFT is
-known.  The {\tt check\emph{i}} function compares the output vector from that
-FFT that it is given to the expected result.  The {\tt time\_fft} program can
-be used to test the implementations by specifying an $i > 0$ as the final
-command line argument.
+\pagebreak
 
 \section{Conclusion}
+As the performance plots in the previous section show, a straightforward
+implementation of the FFT performs poorly relative to existing implementations.
+However, using this implementation as a starting point, and then optimizing it
+by merging loops, removing all temporary allocation, and adding a stride 
+parameter to remove the need for explicit permutation of the input vector
+results in a recursive algorithm whose performance is on par with the 
+performance of the canonical iterative implementation presented in 
+\cite{148286}. 
 
-
+Furthermore, we have also seen how poorly the iterative algorithm performs
+against the finely-tuned recursive algorithm FFTW.  This result shows the power
+ of carefully implementing the 
+algorithm from the Cooley-Tukey Factorization as it is more straightforward
+than understanding the iterative algorithm.
+   
 \bibliographystyle{plain}
 \bibliography{report}
 \end{document}
