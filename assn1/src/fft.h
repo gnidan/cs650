@@ -45,7 +45,7 @@ struct fft_func_t {
 #ifdef FFTW
 static const size_t num_fft_funcs = 11;
 #else
-static const size_t num_fft_funcs = 10;
+static const size_t num_fft_funcs = 9;
 #endif
 static const struct fft_func_t fft_funcs[] = {
   {fftr2,           NULL,               NULL,             "fftr2",           "Radix 2 Recursive FFT"},
