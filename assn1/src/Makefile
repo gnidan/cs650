@@ -1,11 +1,13 @@
 .PHONY: all
 
 CC := gcc
-CFLAGS := -g -Wall --pedantic --std=c99
+CFLAGS := -Wall --pedantic --std=c99
 LDFLAGS := -lm
 
 ifdef OPT
 CFLAGS += -O3 -march=nocona
+else
+CFLAGS += -g
 endif
 
 ifdef FFTW
