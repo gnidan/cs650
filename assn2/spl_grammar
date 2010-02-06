@@ -4,7 +4,7 @@
 program   ->  stmt_list
 
 stmt_list ->  stmt "\n" stmt_list
-          |   stmt 
+          |   stmt "\n"
 
 stmt      ->  let_list expression
           |   expression
@@ -14,7 +14,7 @@ let_list  ->  directive "\n" let_list
           |   comment "\n" let_list
           |   directive "\n"
           |   assignment "\n"
-          |   comment
+          |   comment "\n"
 
 directive -> "#" directive_action
 
