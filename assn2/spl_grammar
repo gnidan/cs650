@@ -40,10 +40,10 @@ expr_list          -> expression expr_list
                    |  expression
 
 atom               -> NAME
-                   | NUMBER
+                   |  NUMBER
 
 NAME               -> [A-Za-z]+      % maybe make this more robust
-NUMBER             -> [0-9]+         % and this is gonna need complex # support
+NUMBER             -> [0-9]+         % and this is gonna need complex support
 CMT_STRING         -> [^\n]*
 
 TYPE               -> [rR][eE][aA][lL] | [cC][oO][mM][pP][lL][eE][xX]
