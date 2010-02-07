@@ -3,7 +3,6 @@
 class Variable:
   pass
 
-
 class SplOperation:
   def __init__(self, *args):
     self.args = args
@@ -16,12 +15,13 @@ class Compose(SplOperation):
     self.args = [A, B]
 
   def generate_icode(self, input, output):
-    tmp = Variable()
     iseq = B.generate_icode(input, tmp)
     iseq.append( A.generate_icode(tmp, output)
     return iseq
 
 class ICode:
+  temps = []
+
   def __init__(self, op, src1, src2, dest):
     self.inst = op, src1, src2, dest
 
@@ -37,3 +37,7 @@ class ICode:
   def dest(self):
     return self.inst[3]
 
+class newtmp(ICode):
+  def __init__(self, n):
+    self.inst = ("newtmp", n, None, None)
+    temps.append(Variable())
