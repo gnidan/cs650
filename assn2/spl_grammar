@@ -26,7 +26,6 @@ directive_action   -> SUBNAME NAME      % define a subroutine name
                    |  DEBUG BOOL
                    |  INTERNAL BOOL
 
-
 assignment         -> "(" DEFINE NAME expression ")"
                    |  "(" UNDEFINE NAME ")"
 
@@ -43,7 +42,7 @@ atom               -> NAME
                    |  NUMBER
 
 NAME               -> [A-Za-z]+      % maybe make this more robust
-NUMBER             -> [0-9]+         % and this is gonna need complex support
+NUMBER             -> [0-9]+         % and this is gonna need complex no support
 CMT_STRING         -> [^\n]*
 
 TYPE               -> [rR][eE][aA][lL] | [cC][oO][mM][pP][lL][eE][xX]
@@ -56,3 +55,5 @@ UNROLL             -> [uU][nN][rR][oO][lL][lL]
 VERBOSE            -> [vV][eE][rR][bB][oO][sS][eE]
 DEBUG              -> [dD][eE][bB][uU][gG]
 INTERNAL           -> [iI][nN][tT][eE][rR][nN][aA][lL]
+DEFINE             -> [dD][eE][fF][iI][nN][eE]
+UNDEFINE           -> [uU][nN][dD][eE][fF][iI][nN][eE]
