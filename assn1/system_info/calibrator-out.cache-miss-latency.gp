@@ -25,23 +25,23 @@ set yrange[1.000000:1000.000000]
 #set y2range[1.000000:1000.000000]
 set grid x2tics
 set xtics mirror ('1k' 1, '' 2, '4k' 4, '' 8, '16k' 16, '' 32, '64k' 64, '' 128, '256k' 256, '' 512, '1M' 1024, '' 2048, '4M' 4096, '' 8192, '16M' 16384, '' 32768, '64M' 65536, '' 131072)
-set x2tics mirror ('[512k]' 512, '[6M]' 6144)
-set y2tics ('(3)' 3.730000, '(-210)' -264.150000, '(-133)' -166.990000, '0.8' 1, '8' 10, '80' 100, '800' 1000)
+set x2tics mirror ('[32k]' 32, '[4M]' 4096)
+set y2tics ('(3)' 4.140000, '(4)' 5.580000, '(20)' 25.100000, '0.8' 1, '8' 10, '80' 100, '800' 1000)
 set label 1 '(3.75)  ' at 0.750000,3.750000 right
 set arrow 1 from 0.750000,3.750000 to 163840.000000,3.750000 nohead lt 0
-set label 2 '(-262)  ' at 0.750000,-262.500000 right
-set arrow 2 from 0.750000,-262.500000 to 163840.000000,-262.500000 nohead lt 0
-set label 3 '(-166)  ' at 0.750000,-166.250000 right
-set arrow 3 from 0.750000,-166.250000 to 163840.000000,-166.250000 nohead lt 0
+set label 2 '(5)  ' at 0.750000,5.000000 right
+set arrow 2 from 0.750000,5.000000 to 163840.000000,5.000000 nohead lt 0
+set label 3 '(25)  ' at 0.750000,25.000000 right
+set arrow 3 from 0.750000,25.000000 to 163840.000000,25.000000 nohead lt 0
  set label 4 '^{ Calibrator v0.9e (Stefan.Manegold\@cwi.nl, www.cwi.nl/~manegold) }' at graph 0.5,graph 0.02 center
 #set label 4    'Calibrator v0.9e (Stefan.Manegold@cwi.nl, www.cwi.nl/~manegold)'    at graph 0.5,graph 0.03 center
 plot \
 0.1 title 'stride:' with points pt 0 ps 0 , \
-'calibrator-out.cache-miss-latency.data' using 1:($7-560.270000) title '256' with linespoints lt 1 pt 3 , \
-'calibrator-out.cache-miss-latency.data' using 1:($13-560.270000) title '\{128\}' with linespoints lt 2 pt 4 , \
-'calibrator-out.cache-miss-latency.data' using 1:($19-560.270000) title '64' with linespoints lt 3 pt 5 , \
-'calibrator-out.cache-miss-latency.data' using 1:($25-560.270000) title '32' with linespoints lt 4 pt 6 , \
-'calibrator-out.cache-miss-latency.data' using 1:($31-560.270000) title '16' with linespoints lt 5 pt 7 , \
-'calibrator-out.cache-miss-latency.data' using 1:($37-560.270000) title '8' with linespoints lt 6 pt 8
+'calibrator-out.cache-miss-latency.data' using 1:($7-301.160000) title '256' with linespoints lt 1 pt 3 , \
+'calibrator-out.cache-miss-latency.data' using 1:($13-301.160000) title '\{128\}' with linespoints lt 2 pt 4 , \
+'calibrator-out.cache-miss-latency.data' using 1:($19-301.160000) title '\{64\}' with linespoints lt 3 pt 5 , \
+'calibrator-out.cache-miss-latency.data' using 1:($25-301.160000) title '32' with linespoints lt 4 pt 6 , \
+'calibrator-out.cache-miss-latency.data' using 1:($31-301.160000) title '16' with linespoints lt 5 pt 7 , \
+'calibrator-out.cache-miss-latency.data' using 1:($37-301.160000) title '8' with linespoints lt 6 pt 8
 set nolabel
 set noarrow

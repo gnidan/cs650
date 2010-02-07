@@ -1,0 +1,113 @@
+CS 650 - Assignment #1
+Group Members:
+	Keith Dailey
+	Kevin Lynch
+	Nick D'Andrea
+
+
+ FILES AND DIRECTORIES
+-----------------------
+	report.pdf  - Contains the summary report of the work done.
+	src         - This directory contains all source code for the various
+                     FFT algorithms.  The Makefile in this directory will
+                     create the program named time_fft which can be used to
+                     time any of the algorithms.  See below for more
+                     information.
+	plots       - This directory contains all the performance plots that
+                     we created.  Most are pdf files, but there are some png
+                     files as well.
+  time.sh     - A simple script that produces timing data on all of the
+                     FFT implementations, each on all allowable input vector
+                     sizes.
+	timings.txt - The output from the above script.
+
+
+ PERFORMING EXPERIMENTS
+------------------------
+
+  In the src directory, time_fft can be compiled by simply typing make.  By
+  default, it is compiled without PAPI or FFTW support, and compiler
+  optimizations are disabled.  To enable them the following environment
+  variables must be defined:
+
+    PAPI=1  - Adds PAPI support. $PAPI_DIR must be set to the PAPI PREFIX
+                  directory. This defaults to
+                      /site/local/papi_x86_64
+
+    FFTW=1  - Adds FFTW support. $FFTW_DIR must be set to the FFTW PREFIX
+                  directory. This defaults to
+                      $(HOME)/local/fftw-2.1.5-kodiak
+
+    OPT=1   - Adds compiler optimizations for kodiak. These are set to
+                      -O3 -march=nocona
+
+    To enable all: $ PAP=1 FFTW=1 OPT=1 make
+
+	During runtime LD_LIBRARY_PATH must be set appropriately.
+
+Then, one can view a usage statement by typing
+  ./time_fft.  The basic usage statement for the program is
+
+           ./time_fft k iters fft_func test_func
+
+  where  k  is the lg of the input size of the vector, iters is the number of
+  times to run the chosen algorithm, fft_func is the choice of algorithm to
+  test, and test_func is the choice of which test to run to ensure that the
+  algorithm is performing correctly.
+
+  Recognized values for fft_func and test_func can be found in the program's
+  usage statement.  A couple notes may be necessary.  First, notice that there
+  are multiple implementations of the Radix 2 recursive FFT that can be chosen.
+  While these exist in the code and can be timed, the time.sh script and thus
+  all data presented in the report use only those implementations which
+  begin with the prefix "kd_".  Second, the test functions are used as follows:
+  for each value i which is recognized by time_fft, there are two functions,
+  testi() and checki().  To ensure that the chosen algorithm is correct, the
+  program calls testi() which creates an input vector for which the output of
+  the FFT is known.  The program then runs the chosen algorithm on this input,
+  and calls checki() on the output to confirm that the expected output was
+  given.
+
+  For example, suppose that we wish to test our naive implementation of the
+  radix 2 fft on 10 iterations with input vector size 8.  We run the program
+  as follows:
+
+          ./time_fft 3 10 4 0
+
+  and the output should be similar to the following:
+
+    kd_fftr2    3     5135.700000    3297    20070    6291.500000   5795    10760    297.800000   282   380    16.600000    0    153
+
+  (notice that this is one of the lines from the file timings.txt).
+  The output of the program contains the following columns:
+
+            column          meaning
+              1        The name of the algorithm that was timed.
+              2        The lg of the size of the input vector.
+              3        Average number of cycles.
+              4        Minimum number of cycles.
+              5        Maximum number of cycles.
+              6        Average number of instructions issued.
+              7        Minimum number of instructions issued.
+              8        Maximum number of instructions issued.
+              9        Average floating point operations.
+             10        Minimum floating point operations.
+             11        Maximum floating point operations.
+             12        Average cache misses.
+             13        Minimum cache misses.
+             14        Maximum cache misses.
+
+  The bash script time.sh can perform a group of timing experiments at once and
+  print the output to stdout.  It does this by simply calling the program
+  time_fft with varying command line arguments.  The script takes at least 3
+  command line arguments.  The usage for the script is as follows:
+
+        ./time.sh start stop step [fft_alg1 fft_alg2 fft_alg3]
+
+  where start is the lg of the smallest sized input vector to test,
+        stop is the lg of the largest sized input vector to test, and
+        step is the amount by which to step the lg of the size of the input
+        vector. fft_alg is the index of the algorithm.
+
+  The step argument is useful when testing the Radix 4 implementation since
+  input sizes which are not a power of 4 will cause the program to crash.

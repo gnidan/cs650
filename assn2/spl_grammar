@@ -1,0 +1,44 @@
+% work in progress so far.
+%
+
+program   ->  stmt_list
+
+stmt_list ->  stmt "\n" stmt_list
+          |   stmt 
+
+stmt      ->  let_list expression
+          |   expression
+
+let_list  ->  directive "\n" let_list
+          |   assignment "\n" let_list
+          |   comment "\n" let_list
+          |   directive "\n"
+          |   assignment "\n"
+          |   comment
+
+directive -> "#" directive_action
+
+directive_action -> SUBNAME NAME      % define a subroutine name
+                 |  DATATYPE TYPE     % data/code type is real or complex
+                 |  CODETYPE TYPE
+                 |  UNROLL BOOL         % unrolling can be on or off
+                 |  VERBOSE BOOL
+                 |  DEBUG BOOL
+                 |  INTERNAL BOOL
+
+
+assignment -> "(" DEFINE NAME expression ")"
+           -> "(" UNDEFINE NAME ")"
+
+comment    -> ";" STRING "\n"
+           |  ";;" STRING "\n"
+
+expresion -> "(" expr_list ")"
+          |  atom
+
+expr_list -> expression expr_list
+          |  expression
+
+atom      -> NAME
+          -> NUMBER
+
