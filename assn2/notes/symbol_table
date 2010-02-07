@@ -2,9 +2,9 @@ SYMBOL TABLE
 
 Columns:
 
-Name   Offest   Type   Value
------|--------|------|------
-     |        |      |
+Name   Offest   Type   Value   Input Size   Output size
+-----|--------|------|-------|------------|------------
+     |        |      |       |            |
             .
             .
             .
