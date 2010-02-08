@@ -1,5 +1,6 @@
-% work in progress so far.
+% work in progress so far. 
 %
+% (TOKENs in uppercase, nonterminals in lower)
 
 program            ->  stmt_list
 
@@ -32,18 +33,21 @@ assignment         -> "(" DEFINE NAME expression ")"
 comment            -> ";" CMT_STRING "\n"
                    |  ";;" CMT_STRING "\n"
 
-expresion          -> "(" expr_list ")"
-                   |  atom
+expresion          -> "(" expr_list ")"   % do we need to support zero-element
+                                          %   lists?
 
-expr_list          -> expression expr_list
-                   |  expression
+expr_list          -> expr_element expr_list
+                   |  expr_element
+
+expr_element       -> expression
+                   |  atom
 
 atom               -> NAME
                    |  NUMBER
 
-NAME               -> [A-Za-z]+      % maybe make this more robust
-NUMBER             -> [0-9]+         % and this is gonna need complex no support
-CMT_STRING         -> [^\n]*
+NAME               -> [A-Za-z]+           % maybe make this more robust
+NUMBER             -> [0-9]+              % and this is gonna need complex 
+CMT_STRING         -> [^\n]*              %   number support
 
 TYPE               -> [rR][eE][aA][lL] | [cC][oO][mM][pP][lL][eE][xX]
 BOOL               -> [oO][nN] | [oO][fF][fF]
