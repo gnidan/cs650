@@ -1,0 +1,7 @@
+An expression is a matrix in theory, but can be thought of as a function
+that applies a linear transformation to an input vector, yielding some output
+vector
+
+We should keep track of the size going in and out (which we can figure out 
+based on size-rules [see pg. 6 of Xiong2001]) 
+

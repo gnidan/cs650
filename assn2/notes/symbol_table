@@ -1,0 +1,35 @@
+SYMBOL TABLE
+
+Columns:
+
+Name   Offest   Type   Value   Input Size   Output size
+-----|--------|------|-------|------------|------------
+     |        |      |       |            |
+            .
+            .
+            .
+
+Types:
+    - vector
+    - scalar
+    - spl_expression
+
+Okay so I'm thinking we store these things as some kind of object so that we can
+track where they're declared, accessed, and modified.
+
+Maybe we could build vectors in the symbol table as one entry for the vector,
+storing the size of the vector, and then entries under the same name but w/
+offset for the scalar values within the vector.
+
+We can store spl_expressions pre-compiled or maybe post-compilation. I imagine
+probably the former, but it might be good to do something with built-ins to
+make things better for us. (One of the papers explicitly states that
+predefined matrices are stored in the symbol table just like anything else, 
+or at least re-definable in the symbol table. So I'm thinking we could just
+inherit our expression class for built-ins that know how to generate i-code for
+themselves.)
+
+When we go about compiling for real, it's then just a simple dump of all
+the expressions in the symbol table as C functions. Remember: spl_expressions
+are simultaneously matrices AND linear transformations, with emphasis for our
+purposes on the latter.

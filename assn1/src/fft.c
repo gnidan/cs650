@@ -365,6 +365,55 @@ void complexfftr2opt(double in[], double out[], size_t n, void *data) {
   _complexfftr2opt((double complex *) in, (double complex *) out, n, 1, cos(theta) - sin(theta)*I);
 }
 
+<<<<<<< HEAD
+static void _gnd_fftr2(double complex X[], double complex Y[], size_t N)
+{
+  if(N == 1)
+  {
+    Y[0] = X[0];
+    return;
+  }
+  int i;
+
+  /* stride */
+  double complex *P = (double complex *) malloc(sizeof(double complex) * N);
+
+  for(i = 0; i < N/2; i++)
+  {
+    P[i    ] = X[2*i  ];
+    P[i+N/2] = X[2*i+1];
+  }
+
+  /* recurse */
+  _gnd_fftr2(P, Y, N/2);
+  _gnd_fftr2(P+N/2, Y+N/2, N/2);
+
+  /* twiddle */
+  for(i = 0; i < N/2; i++)
+  {
+    double complex twiddle = cos(2 * PI * i / N) + I * sin(2 * PI * i / N);
+    Y[i+N/2] = Y[i+N/2] * twiddle;
+  }
+
+  /* vector butterfly */
+  for(i = 0; i < N/2; i++)
+  {
+    double complex tmp = Y[i];
+    Y[i    ] = tmp + Y[i+N/2];
+    Y[i+N/2] = tmp - Y[i+N/2];
+  }
+
+  free(P);
+}
+
+void gnd_fftr2(double in[], double out[], size_t n)
+{
+  _gnd_fftr2((double complex *) in, (double complex *) out, n);
+}
+
+
+=======
+>>>>>>> c5eddd98fbc801fe9c169601d90298712dcf2831
 #ifdef FFTW
 void fft_fftw(double in[], double out[], size_t n, void *data) {
   fftw_plan plan = (fftw_plan) data;

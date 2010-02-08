@@ -1,0 +1,6 @@
+Behaviors Notes
+===============
+
+As building the abstract syntax tree happens, keep track of input and
+output sizes for all operations (i.e. store that stuff in the spl_expression
+object at hand)
