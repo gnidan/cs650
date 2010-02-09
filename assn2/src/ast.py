@@ -12,10 +12,11 @@ Contains all of the AST Node classes.
 """
 
 import math
+import cmath
 
 class Node:
     def __init__(self):
-        raise AbstractClassError(self.__class__)
+        raise AbstractClassError('Node')
 
     def evaluate(self, *args, **kwargs):
         raise NotImplementedError('Node.evaluate: virtual method must be overridden')
@@ -232,7 +233,7 @@ class Constructor(Node):
     vector_var = None
 
     def __init__(self):
-        raise AbstractClassError(self.__class__)
+        raise AbstractClassError('Constructor')
 
     def __store_matrix_vector__(self, symbol_table):
         # we're iterating over the matrix in the appropriate-major order and
@@ -627,6 +628,7 @@ class S(Intrinsic):
 
 ##### A.1 Errors #####
 class AbstractClassError(NotImplementedError):
-  def __init__(self, cls):
-    self = NotImplementedError(cls.__name__ + ": Abstract class. Do not instantiate.")
-
+    def __init__(self, name):
+        self.msg = "%s: Abstract class. Do not instantiate." % name
+    def __str__(self):
+        return self.msg
