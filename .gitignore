@@ -2,3 +2,5 @@
 *.o
 *.log
 *.aux
+*.pyc
+*.dbg
