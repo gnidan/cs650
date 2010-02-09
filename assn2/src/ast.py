@@ -107,49 +107,49 @@ class Sin(Function):
         self.number = number
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.number)
+        return "Sin(%s)" % (self.number)
 
 class Cos(Function):
     def __init__(self, number):
         self.number = number
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.number)
+        return "Cos(%s)" % (self.number)
 
 class Tan(Function):
     def __init__(self, number):
         self.number = number
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.number)
+        return "Tan(%s)" % (self.number)
 
 class Log(Function):
     def __init__(self, number):
         self.number = number
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.number)
+        return "Log(%s)" % (self.number)
 
 class Exp(Function):
     def __init__(self, number):
         self.number = number
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.number)
+        return "Exp(%s)" % (self.number)
 
 class Sqrt(Function):
     def __init__(self, number):
         self.number = number
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.number)
+        return "Sqrt(%s)" % (self.number)
 
 class Pi(Function):
     def __init__(self):
         pass
 
     def __repr__(self):
-        return self.__name__
+        return "Pi"
 
 ##### Operators #####
 class Add(Function):
@@ -158,7 +158,7 @@ class Add(Function):
         self.right = right
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+        return "Add(%s, %s)" % (self.left, self.right)
 
 class Sub(Function):
     def __init__(self, left, right):
@@ -166,7 +166,7 @@ class Sub(Function):
         self.right = right
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+        return "Sub(%s, %s)" % (self.left, self.right)
 
 
 class Mul(Function):
@@ -175,7 +175,7 @@ class Mul(Function):
         self.right = right
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+        return "Mul(%s, %s)" % (self.left, self.right)
 
 
 class Div(Function):
@@ -184,7 +184,7 @@ class Div(Function):
         self.right = right
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+        return "Div(%s, %s)" % (self.left, self.right)
 
 
 class Mod(Function):
@@ -193,14 +193,14 @@ class Mod(Function):
         self.right = right
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+        return "Mod(%s, %s)" % (self.left, self.right)
 
 class Neg(Function):
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name, self.value)
+        return "Neg(%s)" % (self.value)
 
 ##### 1.1 Predefined Matrix Constructors ######
 class Constructor(Node):
@@ -223,7 +223,7 @@ class MatrixRow(Constructor):
         return len(self.values)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.values)
+        return "MatrixRow(%s)" % (self.values)
 
 class Matrix(Constructor):
     def __init__(self):
@@ -240,7 +240,7 @@ class Matrix(Constructor):
         self.m += 1
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.rows)
+        return "Matrix(%s)" % (self.rows)
 
 class Diagonal(Constructor):
     def __init__(self, values):
@@ -251,7 +251,7 @@ class Diagonal(Constructor):
         return len(self.values)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.values)
+        return "Diagonal(%s)" % (self.values)
 
 class Permutation(Constructor):
     def __init__(self, values):
@@ -262,7 +262,7 @@ class Permutation(Constructor):
         return len(self.values)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.values)
+        return "Permutation(%s)" % (self.values)
 
 class RPermutation(Constructor):
     def __init__(self, values):
@@ -273,7 +273,7 @@ class RPermutation(Constructor):
         return len(self.values)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.values)
+        return "RPermutation(%s)" % (self.values)
 
 class SparseElement(Constructor):
     def __init__(self, i, j, a):
@@ -282,7 +282,7 @@ class SparseElement(Constructor):
         self.a = a
 
     def __repr__(self):
-        return "%s(%s %s %s)" % (self.__name__, self.i, self.j, self.a)
+        return "SparesElement(%s %s %s)" % (self.i, self.j, self.a)
 
 class Sparse(Constructor):
     def __init__(self, values):
@@ -295,7 +295,7 @@ class Sparse(Constructor):
         return len(self.values)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.values)
+        return "Sparse(%s)" % (self.values)
 
 ##### 1.2 Predefined Parametrized Matrices ######
 class ParametrizedMatrix(Node):
@@ -306,7 +306,7 @@ class F(ParametrizedMatrix):
         self.n = n
 
     def __repr__(self):
-        return "(%s %s)" % (self.__name__, self.n)
+        return "(F %s)" % (self.n)
 
 class I(ParametrizedMatrix):
     def __init__(self, n):
@@ -318,21 +318,21 @@ class I(ParametrizedMatrix):
         self.n = n
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.m, self.n)
+        return "(I %s %s)" % (self.m, self.n)
 
 class J(ParametrizedMatrix):
     def __init__(self, n):
         self.n = n
 
     def __repr__(self):
-        return "(%s %s)" % (self.__name__, self.n)
+        return "(J %s)" % (self.n)
 
 class O(ParametrizedMatrix):
     def __init__(self, n):
         self.n = n
 
     def __repr__(self):
-        return "(%s %s)" % (self.__name__, self.n)
+        return "(O %s)" % (self.n)
 
 class T(ParametrizedMatrix):
     def __init__(self, mn, n):
@@ -340,7 +340,7 @@ class T(ParametrizedMatrix):
         self.n = n
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.m, self.n)
+        return "(T %s %s)" % (self.m, self.n)
 
 class L(ParametrizedMatrix):
     def __init__(self, mn, n):
@@ -348,52 +348,49 @@ class L(ParametrizedMatrix):
         self.n = n
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.m, self.n)
+        return "(L %s %s)" % (self.m, self.n)
 
 ##### 1.3 Predefined Matrix Operations ######
 class Operation(Node):
     pass
 
 class Compose(Operation):
-    def __init__(self, A, B):
-        self.A = A
-        self.B = B
+    def __init__(self, formulas):
+        self.formulas = formulas
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.A, self.B)
+        return "Compose(%s)" % (self.formulas)
 
 class Tensor(Operation):
-    def __init__(self, A, B):
-        self.A = A
-        self.B = B
+    def __init__(self, formulas):
+        self.formulas = formulas
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.A, self.B)
+        return "Tensor(%s)" % (self.formulas)
+
 
 class DirectSum(Operation):
-    def __init__(self, A, B):
-        self.A = A
-        self.B = B
+    def __init__(self, formulas):
+        self.formulas = formulas
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.A, self.B)
+        return "DirectSum(%s)" % (self.formulas)
 
 class Conjugate(Operation):
-    def __init__(self, A, B):
+    def __init__(self, A, P):
         self.A = A
-        self.B = B
+        self.P = P
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.A, self.B)
+        return "Conjugate(%s %s)" % (self.A, self.P)
 
 class Scale(Operation):
-    def __init__(self, a, B):
+    def __init__(self, a, A):
         self.a = a
-        self.B = B
+        self.A = A
 
     def __repr__(self):
-        return "(%s %s %s)" % (self.__name__, self.a, self.B)
-    pass
+        return "Scale(%s %s)" % (self.a, self.A)
 
 ##### 2.1 Assignment ######
 class Assignment(Node):
@@ -405,67 +402,74 @@ class Define(Assignment):
         self.value = value
 
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__name__, self.symbol, self.value)
+        return "Define(%s, %s)" % (self.symbol, self.value)
 
 class Undefine(Assignment):
     def __init__(self, symbol, value):
         self.symbol = symbol
 
     def __repr__(self):
-        return "%s(%s)" % (self.__name__, self.symbol)
+        return "Undefine(%s)" % (self.symbol)
 
 ##### 2.2 Directive ######
 class Directive(Node):
     pass
 
-class Subname(Directive):
+class SubName(Directive):
     def __init__(self, symbol):
         self.symbol = symbol
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.symbol)
+    def __repr__(self):
+        return "SubName(%s)" % (self.symbol)
 
-class Datatype(Directive):
+class DataType(Directive):
     def __init__(self, t):
         self.t = t
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.t)
+    def __repr__(self):
+        return "DataType(%s)" % (self.t)
 
-class Codetype(Directive):
+class CodeType(Directive):
     def __init__(self, t):
         self.t = t
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.t)
+    def __repr__(self):
+        return "CodeType(%s)" % (self.t)
+
+class Optimize(Directive):
+    def __init__(self, flag):
+        self.flag = flag
+
+    def __repr__(self):
+        return "Optimize(%s)" % (self.flag)
 
 class Unroll(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.flag)
+    def __repr__(self):
+        return "Unroll(%s)" % (self.flag)
 
 class Verbose(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.flag)
+    def __repr__(self):
+        return "Verbose(%s)" % (self.flag)
 
 class Debug(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.flag)
+    def __repr__(self):
+        return "Debug(%s)" % (self.flag)
 
 class Internal(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def __str__(self):
-        return "%s(%s)" % (self.__name__, self.flag)
+    def __repr__(self):
+        return "Inernal(%s)" % (self.flag)
 
 #### Type ####
 class Type(Node):
@@ -494,14 +498,14 @@ class On(Flag):
         pass
 
     def __repr__(self):
-        return self.__name__
+        return "on"
 
 class Off(Flag):
     def __init__(self):
         pass
 
     def __repr__(self):
-        return self.__name__
+        return "off"
 
 ##### 2.3 Comments ######
 class Comment(Node):
@@ -509,4 +513,4 @@ class Comment(Node):
         self.txt = txt
 
     def __repr__(self):
-        return "%s(%s)", self.__name__, self.txt
+        return "Comment(%s)" % (self.txt)

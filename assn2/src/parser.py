@@ -16,7 +16,7 @@ import ply.yacc as yacc
 
 import ast
 
-class MiniParser:
+class SPLParser:
     def __init__(self,debug=False):
         self.debug = debug
         modname = self.__class__.__name__
@@ -50,7 +50,14 @@ class MiniParser:
         'I', 'J', 'O', 'F', 'L', 'T',
         'COMPOSE', 'TENSOR', 'DIRECT_SUM', 'CONJUGATE', 'SCALE',
         'DEFINE', 'UNDEFINE',
-        'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 'INTERNAL',
+        'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 'INTERNAL', 'OPTIMIZE',
+        'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH',
+        'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
+        'INTEGER', 'DOUBLE',
+        'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI',
+        'REAL', 'COMPLEX',
+        'ON', 'OFF',
+        'SYMBOL'
     )
 
     # dictionary of reserved words
@@ -106,22 +113,13 @@ class MiniParser:
         "w"         :	"ROOT_OF_ONE",
     }
 
-    t_VAR_X = r'$x'
-    t_VAR_Y = r'$y'
-    t_VAR_F = r'$f[0-9]+'
-    t_VAR_I = r'$i[0-9]+'
-    t_VAR_R = r'$r[0-9]+'
-    t_VAR_T = r'$t[0-9]+'
-    t_VAR_P = r'$p[0-9]+'
-
-    t_PLUS = r'+'
     t_MINUS = r'-'
-    t_MULT = r'*'
+    t_PLUS = r'\+'
+    t_MULT = r'\*'
     t_DIV = r'/'
+    t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_HASH = r'\#'
-    t_LBRACKET = r'\['
-    t_RBRACKET = r'\]'
     t_COMMA = r','
 
     def t_INVISIBLE_COMMENT(self, t):
@@ -130,10 +128,11 @@ class MiniParser:
 
     def t_COMMENT(self, t):
         r';.*'
-        return t[1:]
+        t.value = t.value[1:]
+        return t
 
     def t_DOUBLE(self,t):
-        r"""(\d+(\.\d*)?|\.\d+)([eE][-+]? \d+)?""" #This is a much better decimal number
+        r"""(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?""" #This is a much better decimal number
         try:
             t.value = float(t.value)
         except ValueError:
@@ -150,9 +149,9 @@ class MiniParser:
             t.value = 0
         return t
 
-    def t_symbol(self, t):
+    def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value.lower(), "symbol")
+        t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
         return t
 
     # Define a rule so we can track line numbers
@@ -185,27 +184,28 @@ class MiniParser:
         p[0] = ast.StmtList(p[1])
 
     def p_stmt(self, p):
-        """stmt : definition
+        """stmt : formula
                 | directive
-                | formula
-                | comment"""
+                | definition
+                | comment
+                | INVISIBLE_COMMENT"""
         p[0] = p[1]
 
     def p_comment(self, p):
-        'stmt : COMMENT'
+        'comment : COMMENT'
         p[0] = ast.Comment(p[1])
 
     def p_directive_subname(self, p):
-        'directive : HASH SUBNAME symbol'
-        p[0] = ast.Subname(p[3])
+        'directive : HASH SUBNAME SYMBOL'
+        p[0] = ast.SubName(p[3])
 
     def p_directive_codetype(self, p):
         'directive : HASH CODETYPE type'
-        p[0] = ast.Codetype(p[3])
+        p[0] = ast.CodeType(p[3])
 
     def p_directive_datatype(self, p):
         'directive : HASH DATATYPE type'
-        p[0] = ast.Datatype(p[3])
+        p[0] = ast.DataType(p[3])
 
     def p_directive_optimize(self, p):
         'directive : HASH OPTIMIZE flag'
@@ -227,33 +227,76 @@ class MiniParser:
         'directive : HASH INTERNAL flag'
         p[0] = ast.Internal(p[3])
 
-    def p_type(self, p):
+    def p_type_real(self, p):
         'type : REAL'
         p[0] = ast.RealType()
 
-    def p_type(self, p):
+    def p_type_complex(self, p):
         'type : COMPLEX'
         p[0] = ast.ComplexType()
 
-    def p_flag(self, p):
+    def p_flag_on(self, p):
         'flag : ON'
         p[0] = On(p[1])
 
-    def p_flag(self, p):
+    def p_flag_off(self, p):
         'flag : OFF'
         p[0] = Off(p[1])
 
     def p_definition_formula(self, p):
-        'definition : DEFINE symbol formula'
-        p[0] = ast.Define(p[2], p[3])
+        'definition : LPAREN DEFINE SYMBOL formula RPAREN'
+        p[0] = ast.Define(p[3], p[4])
 
     def p_formula(self, p):
         """formula : matrix
                    | diagonal
                    | permutation
                    | rpermutation
-                   | sparse"""
+                   | sparse
+                   | compose
+                   | tensor
+                   | direct_sum
+                   | conjugate
+                   | scale
+                   | f
+                   | i
+                   | j
+                   | l
+                   | o
+                   | t"""
         p[0] = p[1]
+
+    def p_formula_paren(self, p):
+        'formula : LPAREN formula RPAREN'
+        p[0] = p[2]
+
+    def p_f(self, p):
+        'f : LPAREN F number RPAREN'
+        p[0] = ast.F(p[3])
+
+    def p_i(self, p):
+        'i : LPAREN I number RPAREN'
+        p[0] = ast.I(p[3])
+
+    def p_i2(self, p):
+        'i : LPAREN I number number RPAREN'
+        p[0] = ast.I(p[3], p[4])
+
+    def p_j(self, p):
+        'j : LPAREN J number RPAREN'
+        p[0] = ast.J(p[3])
+
+    def p_l(self, p):
+        'l : LPAREN L number number RPAREN'
+        p[0] = ast.L(p[3], p[4])
+
+    def p_o(self, p):
+        'o : LPAREN O number RPAREN'
+        p[0] = ast.O(p[3])
+
+    def p_t(self, p):
+        't : LPAREN T number number RPAREN'
+        p[0] = ast.T(p[3], p[4])
 
     def p_matrix(self, p):
         'matrix : LPAREN MATRIX matrix_row_list RPAREN'
@@ -315,13 +358,42 @@ class MiniParser:
         'triple : LPAREN number number number RPAREN'
         p[0] = ast.SparseElement(p[2], p[3], p[4])
 
+    def p_compose(self, p):
+        'compose : LPAREN COMPOSE formulas RPAREN'
+        p[0] = ast.Compose(p[3])
+
+    def p_tensor(self, p):
+        'tensor : LPAREN TENSOR formulas RPAREN'
+        p[0] = ast.Tensor(p[3])
+
+    def p_direct_sum(self, p):
+        'direct_sum : LPAREN DIRECT_SUM formulas RPAREN'
+        p[0] = ast.DirectSum(p[3])
+
+    def p_conjugate(self, p):
+        'conjugate : LPAREN CONJUGATE formula formula RPAREN'
+        p[0] = ast.Conjugate(A, P)
+
+    def p_scale(self, p):
+        'scale : LPAREN SCALE number formula RPAREN'
+        p[0] = ast.Scale(a, B)
+
+    def p_formulas(self, p):
+        'formulas : formula formulas'
+        p[2].insert(0, p[1])
+        p[0] = p[2]
+
+    def p_formulas_end(self, p):
+        'formulas : formula'
+        p[0] = [ p[1] ]
+
     def p_definition_value(self, p):
-        'definition : DEFINE symbol number'
-        p[0] = ast.Define(p[2], p[3])
+        'definition : LPAREN DEFINE SYMBOL number RPAREN'
+        p[0] = ast.Define(p[3], p[4])
 
     def p_undefine(self, p):
-        'undefinition : UNDEFINE symbol number'
-        p[0] = ast.Define(p[2], p[3])
+        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
+        p[0] = ast.Undefine(p[3])
 
     def p_number_add(self, p):
         'number : number PLUS number'
@@ -404,70 +476,10 @@ class MiniParser:
         'function : PI'
         p[0] = ast.Pi()
 
+    def p_error(self, p):
+        if p is not None:
+            print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
+        return None
 
-
-#Unimplemented: DEFINE_ , PRIMITIVE , OPERATION , DIRECT , ALIAS , size_rule, shape, formula, root_of_one
-
-
-# 	def p_factor_proc(self, p):
-# 		'factor : proc'
-# 		p[0] = p[1]
-
-# 	def p_factor_list(self, p):
-# 		'factor : list'
-# 		p[0] = p[1]
-
-# 	def p_factor_number(self, p):
-# 		'factor : NUMBER'
-# 		p[0] = ast.NumNode(p[1])
-
-# 	def p_factor_ident(self, p):
-# 		'factor : IDENT'
-# 		p[0] = ast.VarNode(p[1])
-
-# 	def p_list_empty(self, p):
-# 		'list : LBRACKET RBRACKET'
-# 		p[0] = ast.ListNode()
-
-# 	def p_list(self, p):
-# 		'list : LBRACKET sequence RBRACKET'
-# 		p[0] = ast.ListNode(p[2])
-
-# 	def p_sequence(self, p):
-# 		'sequence : expr COMMA sequence'
-# 		p[3].insert(0, p[1])
-# 		p[0] = p[3]
-
-# 	def p_sequence_tail(self, p):
-# 		'sequence : expr'
-# 		p[0] = [p[1]]
-
-# 	def p_factor_funcall(self, p):
-# 		'factor : funcall'
-# 		p[0] = p[1]
-
-# #	def p_funcall(self, p):
-# #		'funcall : IDENT LPAREN expr_list RPAREN'
-# #		p[0] = ast.CallNode(p[1], p[3])
-
-# 	def p_funcall_proc(self, p):
-# 		'funcall : factor LPAREN expr_list RPAREN'
-# 		p[0] = ast.CallNode(p[1], p[3])
-
-# 	def p_proc(self, p):
-# 		'proc : PROC LPAREN param_list RPAREN stmt_list END'
-# 		p[0] = ast.ProcNode(p[3], p[5])
-
-# 	def p_expr_list(self, p):
-# 		'expr_list : expr COMMA expr_list'
-# 		p[3].prepend(p[1])
-# 		p[0] = p[3]
-
-# 	def p_expr_list_tail(self, p):
-# 		'expr_list : expr'
-# 		p[0] = ast.ExprListNode(p[1])
-
-	def p_error(self, p):
-		if p is not None:
-			print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
-		return None
+#Unimplemented: templates, DEFINE_ , PRIMITIVE ,
+#OPERATION , DIRECT , ALIAS , size_rule, shape, root_of_one
