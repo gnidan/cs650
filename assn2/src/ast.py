@@ -11,8 +11,6 @@ ast.py
 Contains all of the AST Node classes.
 """
 
-import runtime
-
 class MajorOrder:
     ROW=1
     COL=2
@@ -70,11 +68,11 @@ class StmtList(Node):
 
     def __len__(self):
         return len(self.stmts)
-    
+
 #### NUMBERS ####
 class Number(Node):
     pass
-    
+
 class Scalar(Number):
     pass
 
@@ -124,7 +122,7 @@ class Tan(Function):
 
     def __repr__(self):
         return "%s(%s)" % (self.__name__, self.number)
-    
+
 class Log(Function):
     def __init__(self, number):
         self.number = number
@@ -151,7 +149,7 @@ class Pi(Function):
         pass
 
     def __repr__(self):
-        return "%s" % (self.__name__)
+        return self.__name__
 
 ##### Operators #####
 class Add(Function):
@@ -208,60 +206,193 @@ class Neg(Function):
 class Constructor(Node):
     pass
 
+class MatrixRow(Constructor):
+    def __init__(self, values):
+        def self.n = len(values)
+        self.values = values
+
+    def __init__(self):
+        def self.n = 0
+        self.values = []
+
+    def prepend(self, a):
+        self.values.insert(0, a)
+        self.n += 1
+
+    def __len__(self):
+        return len(self.values)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.values)
+
 class Matrix(Constructor):
-    pass
+    def __init__(self):
+        self.m = 0
+        self.n = 0
+        self.rows = []
+
+    def prepend(self, row):
+        if len(self.rows) == 0:
+            self.n = len(row)
+        elif len(row) != self.n:
+            raise ValueError("Invalid row size")
+        self.rows.insert(0, rows)
+        self.m += 1
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.rows)
 
 class Diagonal(Constructor):
-    pass
+    def __init__(self, values):
+        def self.n = len(values)
+        self.values = values
+
+    def __len__(self):
+        return len(self.values)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.values)
 
 class Permutation(Constructor):
-    pass
+    def __init__(self, values):
+        def self.n = len(values)
+        self.values = values
+
+    def __len__(self):
+        return len(self.values)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.values)
 
 class RPermutation(Constructor):
-    pass
+    def __init__(self, values):
+        def self.n = len(values)
+        self.values = values
+
+    def __len__(self):
+        return len(self.values)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.values)
+
+class SparseElement(Constructor):
+    def __init__(self, i, j, a):
+        self.i = i
+        self.j = j
+        self.a = a
+
+    def __repr__(self):
+        return "%s(%s %s %s)" % (self.__name__, self.i, self.j, self.a)
 
 class Sparse(Constructor):
-    pass
+    def __init__(self, values):
+        self.m = 0
+        self.n = 0
+        self.values = values
+        #TODO calculate m and n from max values
+
+    def __len__(self):
+        return len(self.values)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.values)
 
 ##### 1.2 Predefined Parametrized Matrices ######
 class ParametrizedMatrix(Node):
     pass
 
+class F(ParametrizedMatrix):
+    def __init__(self, n):
+        self.n = n
+
+    def __repr__(self):
+        return "(%s %s)" % (self.__name__, self.n)
+
 class I(ParametrizedMatrix):
-    pass
+    def __init__(self, n):
+        self.m = n
+        self.n = n
+
+    def __init__(self, m, n):
+        self.m = m
+        self.n = n
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.m, self.n)
 
 class J(ParametrizedMatrix):
-    pass
+    def __init__(self, n):
+        self.n = n
+
+    def __repr__(self):
+        return "(%s %s)" % (self.__name__, self.n)
 
 class O(ParametrizedMatrix):
-    pass
+    def __init__(self, n):
+        self.n = n
 
-class F(ParametrizedMatrix):
-    pass
-
-class L(ParametrizedMatrix):
-    pass
+    def __repr__(self):
+        return "(%s %s)" % (self.__name__, self.n)
 
 class T(ParametrizedMatrix):
-    pass
+    def __init__(self, mn, n):
+        self.m = m
+        self.n = n
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.m, self.n)
+
+class L(ParametrizedMatrix):
+    def __init__(self, mn, n):
+        self.m = m
+        self.n = n
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.m, self.n)
 
 ##### 1.3 Predefined Matrix Operations ######
 class Operation(Node):
     pass
 
 class Compose(Operation):
-    pass
+    def __init__(self, A, B):
+        self.A = A
+        self.B = B
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.A, self.B)
 
 class Tensor(Operation):
-    pass
+    def __init__(self, A, B):
+        self.A = A
+        self.B = B
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.A, self.B)
 
 class DirectSum(Operation):
-    pass
+    def __init__(self, A, B):
+        self.A = A
+        self.B = B
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.A, self.B)
 
 class Conjugate(Operation):
-    pass
+    def __init__(self, A, B):
+        self.A = A
+        self.B = B
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.A, self.B)
 
 class Scale(Operation):
+    def __init__(self, a, B):
+        self.a = a
+        self.B = B
+
+    def __repr__(self):
+        return "(%s %s %s)" % (self.__name__, self.a, self.B)
     pass
 
 ##### 2.1 Assignment ######
@@ -288,25 +419,53 @@ class Directive(Node):
     pass
 
 class Subname(Directive):
-    pass
+    def __init__(self, symbol):
+        self.symbol = symbol
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.symbol)
 
 class Datatype(Directive):
-    pass
+    def __init__(self, t):
+        self.t = t
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.t)
 
 class Codetype(Directive):
-    pass
+    def __init__(self, t):
+        self.t = t
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.t)
 
 class Unroll(Directive):
-    pass
+    def __init__(self, flag):
+        self.flag = flag
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.flag)
 
 class Verbose(Directive):
-    pass
+    def __init__(self, flag):
+        self.flag = flag
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.flag)
 
 class Debug(Directive):
-    pass
+    def __init__(self, flag):
+        self.flag = flag
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.flag)
 
 class Internal(Directive):
-    pass
+    def __init__(self, flag):
+        self.flag = flag
+
+    def __str__(self):
+        return "%s(%s)" % (self.__name__, self.flag)
 
 #### Type ####
 class Type(Node):

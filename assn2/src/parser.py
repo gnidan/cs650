@@ -176,9 +176,9 @@ class MiniParser:
         p[0] = ast.Program(p[1])
 
     def p_stmt_list(self, p):
-        'stmt_list : stmt SEMICOLON stmt_list'
-        p[3].prepend(p[1])
-        p[0] = p[3]
+        'stmt_list : stmt stmt_list'
+        p[2].prepend(p[1])
+        p[0] = p[2]
 
     def p_stmt_list_tail(self, p):
         'stmt_list : stmt'
@@ -187,6 +187,7 @@ class MiniParser:
     def p_stmt(self, p):
         """stmt : definition
                 | directive
+                | formula
                 | comment"""
         p[0] = p[1]
 
@@ -197,31 +198,31 @@ class MiniParser:
     def p_directive_subname(self, p):
         'directive : HASH SUBNAME symbol'
         p[0] = ast.Subname(p[3])
-        
+
     def p_directive_codetype(self, p):
         'directive : HASH CODETYPE type'
         p[0] = ast.Codetype(p[3])
-        
+
     def p_directive_datatype(self, p):
         'directive : HASH DATATYPE type'
         p[0] = ast.Datatype(p[3])
-        
+
     def p_directive_optimize(self, p):
         'directive : HASH OPTIMIZE flag'
         p[0] = ast.Optimize(p[3])
-        
+
     def p_directive_unroll(self, p):
         'directive : HASH UNROLL flag'
         p[0] = ast.Unroll(p[3])
-        
+
     def p_directive_debug(self, p):
         'directive : HASH DEBUG flag'
         p[0] = ast.Debug(p[3])
-        
+
     def p_directive_verbose(self, p):
         'directive : HASH VERBOSE flag'
         p[0] = ast.Verbose(p[3])
-        
+
     def p_directive_internal(self, p):
         'directive : HASH INTERNAL flag'
         p[0] = ast.Internal(p[3])
@@ -245,6 +246,74 @@ class MiniParser:
     def p_definition_formula(self, p):
         'definition : DEFINE symbol formula'
         p[0] = ast.Define(p[2], p[3])
+
+    def p_formula(self, p):
+        """formula : matrix
+                   | diagonal
+                   | permutation
+                   | rpermutation
+                   | sparse"""
+        p[0] = p[1]
+
+    def p_matrix(self, p):
+        'matrix : LPAREN MATRIX matrix_row_list RPAREN'
+        p[0] = p[3]
+
+    def p_matrix_row_list(self, p):
+        'matrix_row_list : matrix_row matrix_row_list'
+        p[4].prepend(p[2])
+        p[0] = p[4]
+
+    def p_matrix_row_list_row(self, p):
+        'matrix_row_list : matrix_row'
+        p[0] = ast.Matrix()
+        p[0].prepend(p[2])
+
+    def p_matrix_row(self, p):
+        'matrix_row : number_list'
+        p[0] = ast.MatrixRow(p[1])
+
+    def p_number_list(self, p):
+        'number_list : LPAREN nums RPAREN'
+        p[0] = p[2]
+
+    def p_numbers(self, p):
+        'nums : number nums'
+        p[2].insert(0, p[1])
+        p[0] = p[2]
+
+    def p_numbers_end(self, p):
+        'nums : number'
+        p[0] = [p[1]]
+
+    def p_diagonal(self, p):
+        'diagonal : LPAREN DIAGONAL number_list RPAREN'
+        p[0] = ast.Diagonal(p[3])
+
+    def p_permutation(self, p):
+        'permutation : LPAREN PERMUTATION number_list RPAREN'
+        p[0] = ast.Permutation(p[3])
+
+    def p_rpermutation(self, p):
+        'rpermutation : LPAREN RPERMUTATION number_list RPAREN'
+        p[0] = ast.RPermutation(p[3])
+
+    def p_spare(self, p):
+        'sparse : LPAREN SPARSE triple_list RPAREN'
+        p[0] = ast.Sparse(p[3])
+
+    def p_triple_list(self, p):
+        'triple_list : triple triple_list'
+        p[2].insert(0, p[1])
+        p[0] = p[1]
+
+    def p_triple_list_end(self, p):
+        'triple_list : triple'
+        p[0] = [ p[1] ]
+
+    def p_triple(self, p):
+        'triple : LPAREN number number number RPAREN'
+        p[0] = ast.SparseElement(p[2], p[3], p[4])
 
     def p_definition_value(self, p):
         'definition : DEFINE symbol number'
@@ -305,7 +374,7 @@ class MiniParser:
     def p_complex(self, p):
         'complex : LPAREN number COMMA number RPAREN'
         p[0] = ast.Complex(p[2], p[4])
-        
+
 ##### Functions #####
     def p_function_sin(self, p):
         'function : SIN LPAREN number RPAREN'
