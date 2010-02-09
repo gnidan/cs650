@@ -19,18 +19,21 @@ class Node:
         raise AbstractClassError('Node')
 
     def evaluate(self, *args, **kwargs):
-        raise NotImplementedError('Node.evaluate: virtual method must be overridden')
+        raise NotImplementedError
 
     def __str__(self):
         return repr(self)
 
     def __repr__(self):
         '''prints the AST in an ATerm like format'''
-        raise NotImplementedError('Node.__repr__: virtual method must be overridden')
+        raise NotImplementedError
 
 class Program(Node):
     def __init__(self, stmts):
         self.stmts = stmts
+
+    def evaluate(self, *args, **kwargs):
+        raise NotImplementedError
 
     def __repr__(self):
         return "Program(%s)" % (self.stmts)

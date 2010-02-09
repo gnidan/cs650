@@ -17,7 +17,7 @@ class MajorOrder:
 
 class OutputLanguage:
     def __init__(self):
-        raise NotImplementedError('OutputLanguage: Base class. Do not instantiate')
+        raise NotImplementedError
 
 class C99(OutputLanguage):
     def comment_begin():
