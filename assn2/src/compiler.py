@@ -73,7 +73,8 @@ def main(argv=None):
     try:
         t = parser.parse(data)
     except Exception, err:
-        print err.args
+        print err
+        raise
         return 2
 
     if verbose:

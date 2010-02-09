@@ -36,7 +36,7 @@ class Node:
     def __init__(self):
         raise NotImplementedError('Node: Base class. Do not instantiate')
 
-    def evaluate(self, env, lang=C99):
+    def evaluate(self, env, options={'wsign' : 1, 'lang' : C99} ):
         raise NotImplementedError('Node.evaluate: virtual method must be overridden')
 
     def __str__(self):
@@ -149,7 +149,15 @@ class Pi(Function):
         pass
 
     def __repr__(self):
-        return "Pi"
+        return "pi"
+
+class w(Function):
+    def __init__(self, n, k=None):
+        self.n = n
+        self.k = k
+
+    def __repr__(self):
+        return "w(%s %s)" % (self.n, self.k)
 
 ##### Operators #####
 class Add(Function):
@@ -309,11 +317,7 @@ class F(ParametrizedMatrix):
         return "(F %s)" % (self.n)
 
 class I(ParametrizedMatrix):
-    def __init__(self, n):
-        self.m = n
-        self.n = n
-
-    def __init__(self, m, n):
+    def __init__(self, m, n=None):
         self.m = m
         self.n = n
 
@@ -336,19 +340,19 @@ class O(ParametrizedMatrix):
 
 class T(ParametrizedMatrix):
     def __init__(self, mn, n):
-        self.m = m
+        self.mn = mn
         self.n = n
 
     def __repr__(self):
-        return "(T %s %s)" % (self.m, self.n)
+        return "(T %s %s)" % (self.mn, self.n)
 
 class L(ParametrizedMatrix):
     def __init__(self, mn, n):
-        self.m = m
+        self.mn = mn
         self.n = n
 
     def __repr__(self):
-        return "(L %s %s)" % (self.m, self.n)
+        return "(L %s %s)" % (self.mn, self.n)
 
 ##### 1.3 Predefined Matrix Operations ######
 class Operation(Node):
@@ -514,3 +518,74 @@ class Comment(Node):
 
     def __repr__(self):
         return "Comment(%s)" % (self.txt)
+
+
+class Intrinsic(Node):
+    pass
+
+class W(Instrinsic):
+    def __init__(self, m, k):
+        self.m = m
+        self.k = k
+
+    def __repr__(self):
+        return "W(%s %s)" % (self.m, self.k)
+
+class WR(Instrinsic):
+    def __init__(self, m, k):
+        self.m = m
+        self.k = k
+
+    def __repr__(self):
+        return "WR(%s %s)" % (self.m, self.k)
+
+class WI(Instrinsic):
+    def __init__(self, m, k):
+        self.m = m
+        self.k = k
+
+    def __repr__(self):
+        return "WI(%s %s)" % (self.m, self.k)
+
+class TW(Instrinsic):
+    def __init__(self, m, n, k):
+        self.m = m
+        self.n = n
+        self.k = k
+
+    def __repr__(self):
+        return "TW(%s %s %s)" % (self.m, self.n, self.k)
+
+class TWR(Instrinsic):
+    def __init__(self, m, n, k):
+        self.m = m
+        self.n = n
+        self.k = k
+
+    def __repr__(self):
+        return "TWR(%s %s %s)" % (self.m, self.n, self.k)
+
+class TWI(Instrinsic):
+    def __init__(self, m, n, k):
+        self.m = m
+        self.n = n
+        self.k = k
+
+    def __repr__(self):
+        return "TWI(%s %s %s)" % (self.m, self.n, self.k)
+
+class C(Instrinsic):
+    def __init__(self, m, n, k):
+        self.m = m
+        self.k = k
+
+    def __repr__(self):
+        return "C(%s %s)" % (self.m, self.k)
+
+class S(Instrinsic):
+    def __init__(self, m, n, k):
+        self.m = m
+        self.k = k
+
+    def __repr__(self):
+        return "S(%s %s)" % (self.m, self.k)

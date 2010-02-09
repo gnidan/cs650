@@ -54,7 +54,8 @@ class SPLParser:
         'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
-        'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI',
+        'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI', 
+        'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'w'
         'REAL', 'COMPLEX',
         'ON', 'OFF',
         'SYMBOL'
@@ -110,7 +111,13 @@ class SPLParser:
         "undefine"  :	"UNDEFINE",
         "unroll"    :	"UNROLL",
         "verbose"   :	"VERBOSE",
-        "w"         :	"ROOT_OF_ONE",
+        "w"         :	"w",
+        "F"         : "F",
+        "I"         : "I",
+        "J"         : "J",
+        "L"         : "L",
+        "O"         : "O",
+        "T"         : "T",
     }
 
     t_MINUS = r'-'
@@ -151,7 +158,7 @@ class SPLParser:
 
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
+        t.type = self.RESERVED.get(t.value(), "SYMBOL")
         return t
 
     # Define a rule so we can track line numbers
@@ -276,7 +283,7 @@ class SPLParser:
 
     def p_i(self, p):
         'i : LPAREN I number RPAREN'
-        p[0] = ast.I(p[3])
+        p[0] = ast.I(p[3], p[3])
 
     def p_i2(self, p):
         'i : LPAREN I number number RPAREN'
@@ -427,7 +434,8 @@ class SPLParser:
     def p_number(self, p):
         """number : function
                   | scalar
-                  | complex"""
+                  | complex
+                  | intrinsic"""
         p[0] = p[1]
 
     def p_scalar(self,p):
@@ -446,6 +454,49 @@ class SPLParser:
     def p_complex(self, p):
         'complex : LPAREN number COMMA number RPAREN'
         p[0] = ast.Complex(p[2], p[4])
+
+    def p_intrinsic(self, p):
+        """intrinsic : i_W
+                     | i_WR
+                     | i_WI
+                     | i_TW
+                     | i_TWR
+                     | i_TWI
+                     | i_C
+                     | i_S"""
+        p[0] = p[1]
+
+    def p_W(self, p):
+        'i_W : W LPAREN number number RPAREN'
+        p[0] = ast.W(p[3], p[4])
+
+    def p_WR(self, p):
+        'i_WR : WR LPAREN number number RPAREN'
+        p[0] = ast.WR(p[3], p[4])
+
+    def p_WI(self, p):
+        'i_WI : WI LPAREN number number RPAREN'
+        p[0] = ast.WI(p[3], p[4])
+
+    def p_TW(self, p):
+        'i_TW : TW LPAREN number number number RPAREN'
+        p[0] = ast.TW(p[3], p[4], p[5])
+
+    def p_TWR(self, p):
+        'i_TWR : TWR LPAREN number number number RPAREN'
+        p[0] = ast.TWR(p[3], p[4], p[5])
+
+    def p_TWI(self, p):
+        'i_TWI : TWI LPAREN number number number RPAREN'
+        p[0] = ast.TWI(p[3], p[4], p[5])
+
+    def p_C(self, p):
+        'i_C : C LPAREN number number RPAREN'
+        p[0] = ast.C(p[3], p[4])
+
+    def p_S(self, p):
+        'i_S : S LPAREN number number RPAREN'
+        p[0] = ast.S(p[3], p[4])
 
 ##### Functions #####
     def p_function_sin(self, p):
@@ -475,6 +526,14 @@ class SPLParser:
     def p_function_pi(self, p):
         'function : PI'
         p[0] = ast.Pi()
+
+    def p_function_w(self, p):
+        'function : w LPAREN number RPAREN'
+        p[0] = ast.w(p[3])
+
+    def p_function_w2(self, p):
+        'function : w LPAREN number COMMA number RPAREN'
+        p[0] = ast.w(p[3], p[5])
 
     def p_error(self, p):
         if p is not None:
