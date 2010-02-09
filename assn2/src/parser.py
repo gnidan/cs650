@@ -117,18 +117,10 @@ class MiniParser:
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_COMMENT = r';'
-    t_DIRECTIVE = r'\#'
+    t_HASH = r'\#'
     t_LBRACKET = r'\['
     t_RBRACKET = r'\]'
     t_COMMA = r','
-
-    t_EQUALS = r'='
-    t_PLUS = r'+'
-    t_MINUS = r'-'
-    t_MULT = r'*'
-    t_DIV = r'/'
-    t_MOD = r'%'
-    t_UMINUS = r'-'
 
     def t_INVISIBLE_COMMENT(self, t):
         r';;.*'
@@ -147,7 +139,7 @@ class MiniParser:
             t.value = float('nan')
         return t
 
-    def t_INT(self,t):
+    def t_INTEGER(self,t):
         r'\d+'
         try:
             t.value = int(t.value)
@@ -156,9 +148,9 @@ class MiniParser:
             t.value = 0
         return t
 
-    def t_IDENT(self, t):
+    def t_symbol(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value.lower(), "IDENT")
+        t.type = self.RESERVED.get(t.value.lower(), "symbol")
         return t
 
     # Define a rule so we can track line numbers
@@ -177,51 +169,64 @@ class MiniParser:
 
     ##### YACC ################################################################
 
-#     def p_program(self, p):
-#         'program : stmt_list'
-#         p[0] = ast.ProgramNode(p[1])
+    def p_program(self, p):
+        'program : stmt_list'
+        p[0] = ast.Program(p[1])
 
-#     def p_stmt_list(self, p):
-#         'stmt_list : stmt SEMICOLON stmt_list'
-#         p[3].prepend(p[1])
-#         p[0] = p[3]
+    def p_stmt_list(self, p):
+        'stmt_list : stmt SEMICOLON stmt_list'
+        p[3].prepend(p[1])
+        p[0] = p[3]
 
-#     def p_stmt_list_tail(self, p):
-#         'stmt_list : stmt'
-#         p[0] = ast.StmtListNode(p[1])
+    def p_stmt_list_tail(self, p):
+        'stmt_list : stmt'
+        p[0] = ast.StmtList(p[1])
 
-#     def p_stmt(self, p):
-#         """stmt : assign_stmt
-#             | define_stmt
-# 				| if_stmt
-# 				| while_stmt
-# 				| repeat_stmt
-# 				| return_stmt"""
-# 		p[0] = p[1]
+    def p_stmt(self, p):
+        """stmt : definition
+                | formula
+                | template_def
+                | directive"""
+        p[0] = p[1]
 
-# 	def p_assign_stmt(self, p):
-# 		'assign_stmt : IDENT ASSIGN expr'
-# 		p[0] = ast.AssignNode(p[1], p[3])
+    def p_def_formula(self, p):
+        'definition : DEFINE symbol formula'
+        p[0] = ast.Define(p[2], p[3])
 
-# 	def p_define_stmt(self, p):
-# 		'define_stmt : DEFINE IDENT PROC LPAREN param_list RPAREN stmt_list END'
-# 		p[0] = ast.DefineNode(p[2], p[5], p[7])
+    def p_definition_value(self, p):
+        'definition : DEFINE symbol number'
+        p[0] = ast.Define(p[2], p[3])
 
-# 	def p_if_stmt(self, p):
-# 		'if_stmt : IF expr THEN stmt_list ELSE stmt_list FI'
-# 		p[0] = ast.IfNode(p[2], p[4], p[6])
+    def p_undefine(self, p):
+        'undefinition : UNDEFINE symbol number'
+        p[0] = ast.Define(p[2], p[3])
 
-# 	def p_while_stmt(self, p):
-# 		'while_stmt : WHILE expr DO stmt_list OD'
-# 		p[0] = ast.WhileNode(p[2], p[4])
+    def p_number(self, p):
+        """number : scalar
+                  | complex"""
+        p[0] = p[1]
 
-# 	def p_repeat_stmt(self, p):
-# 		'repeat_stmt : REPEAT stmt_list UNTIL expr'
-# 		p[0] = ast.RepeatNode(p[2], p[4])
+    def p_scalar(self,p):
+        """scalar : integer
+                  | double"""
+        p[0] = p[1]
 
-# 	def p_return_stmt(self, p):
-# 		'return_stmt : RETURN expr'
-# 		p[0] = ast.ReturnNode(p[2])
+    def p_integer(self, p):
+        'integer : INTEGER'
+        p[0] = ast.Integer(p[1])
+
+
+    def p_double(self, p):
+        'double : DOUBLE'
+        p[0] = ast.Double(p[1])
+
+    def p_complex(self, p):
+        'complex : LPAREN scalar COMMA scalar RPAREN'
+        p[0] = ast.Complex(p[2], p[4])
+
+    # def p_primitive(self, p):
+    #     pass
+
 
 # 	def p_param_list(self, p):
 # 		'param_list : IDENT COMMA param_list'
@@ -318,7 +323,7 @@ class MiniParser:
 # 		'expr_list : expr'
 # 		p[0] = ast.ExprListNode(p[1])
 
-# 	def p_error(self, p):
-# 		if p is not None:
-# 			print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
-# 		return None
+	def p_error(self, p):
+		if p is not None:
+			print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
+		return None

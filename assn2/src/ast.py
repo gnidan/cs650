@@ -27,10 +27,59 @@ class Node:
         '''prints the AST in an ATerm like format'''
         raise NotImplementedError('Node.__repr__: virtual method must be overridden')
 
-class Program(None):
-    def __init__(self):
-        pass
+class Program(Node):
+    def __init__(self, stmts):
+        self.stmts = stmts
 
+    def __repr__(self):
+        return "Program(%s)" % (self.stmts)
+
+class StmtList(Node):
+    def __init__(self, stmt=None):
+        if stmt is None:
+            self.stmts = []
+        else:
+            self.stmts = [stmt]
+
+    def prepend(self, stmt):
+        self.stmts.insert(0, stmt)
+
+    def __repr__(self):
+        return "StmtList(%s)" % (self.stmts)
+
+    def __len__(self):
+        return len(self.stmts)
+
+class Define(Node):
+    def __init__(self, symbol, value):
+        self.symbol = symbol
+        self.value = value
+
+    def __repr__(self):
+        return "Define(%s, %s)" % (self.symbol, self.value)
+
+class Integer(Node):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "Integer(%s)" % (self.value)
+
+class Double(Node):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "Double(%s)" % (self.value)
+
+class Complex(Node):
+    def __init__(self, real, imaginary):
+        self.real = real
+        self.imaginary = imaginary
+
+    def __repr__(self):
+        return "Complex(%s)" % (self.real, self.imaginary)
+    
 ##### 1.1 Predefined Matrix Constructors ######
 class Constructor(Node):
     pass
