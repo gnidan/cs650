@@ -132,7 +132,7 @@ class SPLParser:
         return t
 
     def t_DOUBLE(self,t):
-        r"""(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?""" #This is a much better decimal number
+        r"""(\d+(\.\d*)|\.\d+)([eE][-+]?\d+)?""" #This is a much better decimal number
         try:
             t.value = float(t.value)
         except ValueError:
