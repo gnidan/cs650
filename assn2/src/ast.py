@@ -208,11 +208,11 @@ class Constructor(Node):
 
 class MatrixRow(Constructor):
     def __init__(self, values):
-        def self.n = len(values)
+        self.n = len(values)
         self.values = values
 
     def __init__(self):
-        def self.n = 0
+        self.n = 0
         self.values = []
 
     def prepend(self, a):
@@ -244,7 +244,7 @@ class Matrix(Constructor):
 
 class Diagonal(Constructor):
     def __init__(self, values):
-        def self.n = len(values)
+        self.n = len(values)
         self.values = values
 
     def __len__(self):
@@ -255,7 +255,7 @@ class Diagonal(Constructor):
 
 class Permutation(Constructor):
     def __init__(self, values):
-        def self.n = len(values)
+        self.n = len(values)
         self.values = values
 
     def __len__(self):
@@ -266,7 +266,7 @@ class Permutation(Constructor):
 
 class RPermutation(Constructor):
     def __init__(self, values):
-        def self.n = len(values)
+        self.n = len(values)
         self.values = values
 
     def __len__(self):
