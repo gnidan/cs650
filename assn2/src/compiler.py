@@ -22,6 +22,7 @@ This is the CS650 SPL compiler in PLY
     -h, --help              Displays this help message
     -i file, --input=file   The input file to be compiled
     -v                      Sets the verbosity
+    -xposw, -xnegw          Sign of exponent in Nth root of unity
 '''
 
 class Usage(Exception):
@@ -35,10 +36,11 @@ def main(argv=None):
     filename = None
     verbose = False
     debug = False
+    sign = 1
 
     try:
         try:
-            opts, args = getopt.getopt(argv[1:], "hi:vd", ["help", "input="])
+            opts, args = getopt.getopt(argv[1:], "hi:vdx:", ["help", "input="])
         except getopt.error, msg:
             raise Usage(msg)
 
@@ -48,6 +50,13 @@ def main(argv=None):
                 verbose = True
             if option == "-d":
                 debug = 1
+            if option == "-x":
+              if value == "posw":
+                  sign = 1
+              elif value == "negw":
+                  sign = -1
+              else:
+                  raise Usage("Invalid option for -x\n\n" + help_message)
             if option in ("-h", "--help"):
                 raise Usage(help_message)
             if option in ("-i", "--input"):
