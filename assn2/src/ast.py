@@ -13,11 +13,34 @@ Contains all of the AST Node classes.
 
 import runtime
 
+class MajorOrder:
+    ROW=1
+    COL=2
+
+class OutputLanguage:
+
+    
+    def __init__(self):
+        raise NotImplementedError('OutputLanguage: Base class. Do not instantiate')
+
+class C99(OutputLanguage):
+    def comment_begin():
+        return "/*"
+
+    def comment_end():
+        return "*/"
+
+    def index(rows, cols, i, j):
+        return i * cols + j
+
+    def major_order():
+        return MajorOrder.ROW
+
 class Node:
     def __init__(self):
         raise NotImplementedError('Node: Base class. Do not instantiate')
 
-    def evaluate(self):
+    def evaluate(self, env, lang=C99):
         raise NotImplementedError('Node.evaluate: virtual method must be overridden')
 
     def __str__(self):
