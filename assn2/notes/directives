@@ -1,0 +1,9 @@
+Directives modify compiler options.
+
+Datatype and Codetype:
+
+Datatype sets the type of the input/output vector
+Codetype sets the type in the code: REAL is two-consequent doubles, COMPLEX
+  is complex datatype (C99 funky stuff).
+
+
