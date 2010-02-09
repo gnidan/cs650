@@ -81,14 +81,16 @@ class Integer(Scalar):
         self.value = value
 
     def __repr__(self):
-        return "Integer(%s)" % (self.value)
+        #return "Integer(%s)" % (self.value)
+        return "%s" % (self.value)
 
 class Double(Scalar):
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
-        return "Double(%s)" % (self.value)
+        #return "Double(%s)" % (self.value)
+        return "%s" % (self.value)
 
 class Complex(Number):
     def __init__(self, real, imaginary):
@@ -96,7 +98,7 @@ class Complex(Number):
         self.imaginary = imaginary
 
     def __repr__(self):
-        return "Complex(%s)" % (self.real, self.imaginary)
+        return "Complex(%s, %s)" % (self.real, self.imaginary)
 
 
 class Function(Node):
@@ -219,10 +221,6 @@ class MatrixRow(Constructor):
         self.n = len(values)
         self.values = values
 
-    def __init__(self):
-        self.n = 0
-        self.values = []
-
     def prepend(self, a):
         self.values.insert(0, a)
         self.n += 1
@@ -244,7 +242,7 @@ class Matrix(Constructor):
             self.n = len(row)
         elif len(row) != self.n:
             raise ValueError("Invalid row size")
-        self.rows.insert(0, rows)
+        self.rows.insert(0, row)
         self.m += 1
 
     def __repr__(self):
@@ -305,6 +303,15 @@ class Sparse(Constructor):
     def __repr__(self):
         return "Sparse(%s)" % (self.values)
 
+class Index(Node):
+    def __init__(self, start, stride, stop):
+        self.start = start
+        self.stride = stride
+        self.stop = stop
+
+    def __repr__(self):
+        return "Index(%s, %s, %s)" % (self.start, self.stride, self.stop)
+
 ##### 1.2 Predefined Parametrized Matrices ######
 class ParametrizedMatrix(Node):
     pass
@@ -339,12 +346,13 @@ class O(ParametrizedMatrix):
         return "(O %s)" % (self.n)
 
 class T(ParametrizedMatrix):
-    def __init__(self, mn, n):
+    def __init__(self, mn, n, index=None):
         self.mn = mn
         self.n = n
+        self.index = index
 
     def __repr__(self):
-        return "(T %s %s)" % (self.mn, self.n)
+        return "(T %s %s %s)" % (self.mn, self.n, self.index)
 
 class L(ParametrizedMatrix):
     def __init__(self, mn, n):

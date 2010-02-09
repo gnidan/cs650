@@ -51,7 +51,7 @@ class SPLParser:
         'COMPOSE', 'TENSOR', 'DIRECT_SUM', 'CONJUGATE', 'SCALE',
         'DEFINE', 'UNDEFINE',
         'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 'INTERNAL', 'OPTIMIZE',
-        'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH',
+        'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH', 'COLON',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
@@ -63,61 +63,68 @@ class SPLParser:
 
     # dictionary of reserved words
     RESERVED = {
-        "C"         :	"C",
-        "S"         :	"S",
-        "TW"        :	"TW",
-        "TWI"       :	"TWI",
-        "TWR"       :	"TWR",
-        "W"         :	"W",
-        "WI"        :	"WI",
-        "WR"        :	"WR",
-        "alias"     :	"ALIAS",
-        "any"       :	"ANYNODE",
-        "call"      :	"CALL",
-        "codetype"  :	"CODETYPE",
-        "complex"   :	"COMPLEX",
-        "cos"       :	"COS",
-        "datatype"  :	"DATATYPE",
-        "debug"     :	"DEBUG",
-        "def"       :	"DEFINE",
-        "define"    :	"DEFINE",
-        "define_"   :	"DEFINE_",
-        "deftemp"   :	"DEFTEMP",
-        "direct"    :	"DIRECT",
-        "div"       :	"DIV",
-        "do"        :	"LOOP",
-        "dounroll"  :	"LOOPUNROLL",
-        "end"       :	"LOOPEND",
-        "exp"       :	"EXP",
-        "internal"  :	"INTERNAL",
-        "log"       :	"LOG",
-        "misc"      :	"MISC",
-        "mod"       :	"MOD",
-        "off"       :	"OFF",
-        "on"        :	"ON",
-        "operation" :	"OPERATION",
-        "optimize"  :	"OPTIMIZE",
-        "pi"        :	"PI",
-        "primitive" :	"PRIMITIVE",
-        "real"      :	"REAL",
-        "recursive" :	"RECURSIVE",
-        "slef"      :	"SELFNODE",
-        "sin"       :	"SIN",
-        "sqrt"      :	"SQRT",
-        "subname"   :	"SUBNAME",
-        "tan"       :	"TAN",
-        "template"  :	"TEMPLATE",
-        "undef"     :	"UNDEFINE",
-        "undefine"  :	"UNDEFINE",
-        "unroll"    :	"UNROLL",
-        "verbose"   :	"VERBOSE",
-        "w"         :	"WSCALAR",
-        "F"         : "F",
-        "I"         : "I",
-        "J"         : "J",
-        "L"         : "L",
-        "O"         : "O",
-        "T"         : "T",
+        "C"            :	"C",
+        "S"            :	"S",
+        "TW"           :	"TW",
+        "TWI"          :	"TWI",
+        "TWR"          :	"TWR",
+        "W"            :	"W",
+        "WI"           :	"WI",
+        "WR"           :	"WR",
+        "alias"        :	"ALIAS",
+        "any"          :	"ANYNODE",
+        "call"         :	"CALL",
+        "codetype"     :	"CODETYPE",
+        "complex"      :	"COMPLEX",
+        "cos"          :	"COS",
+        "datatype"     :	"DATATYPE",
+        "debug"        :	"DEBUG",
+        "def"          :	"DEFINE",
+        "define"       :	"DEFINE",
+        "define_"      :	"DEFINE_",
+        "deftemp"      :	"DEFTEMP",
+        "direct"       :	"DIRECT",
+        "div"          :	"DIV",
+        "do"           :	"LOOP",
+        "dounroll"     :	"LOOPUNROLL",
+        "end"          :	"LOOPEND",
+        "exp"          :	"EXP",
+        "internal"     :	"INTERNAL",
+        "log"          :	"LOG",
+        "misc"         :	"MISC",
+        "mod"          :	"MOD",
+        "off"          :	"OFF",
+        "on"           :	"ON",
+        "operation"    :	"OPERATION",
+        "optimize"     :	"OPTIMIZE",
+        "pi"           :	"PI",
+        "primitive"    :	"PRIMITIVE",
+        "real"         :	"REAL",
+        "recursive"    :	"RECURSIVE",
+        "slef"         :	"SELFNODE",
+        "sin"          :	"SIN",
+        "sqrt"         :	"SQRT",
+        "subname"      :	"SUBNAME",
+        "tan"          :	"TAN",
+        "template"     :	"TEMPLATE",
+        "undef"        :	"UNDEFINE",
+        "undefine"     :	"UNDEFINE",
+        "unroll"       :	"UNROLL",
+        "verbose"      :	"VERBOSE",
+        "w"            :	"WSCALAR",
+        "F"            : "F",
+        "I"            : "I",
+        "J"            : "J",
+        "L"            : "L",
+        "O"            : "O",
+        "T"            : "T",
+        "direct_sum"   :	"DIRECT_SUM",
+        "compose"      :  "COMPOSE",
+        "tensor"       :  "TENSOR",
+        "matrix"       :  "MATRIX",
+        "permutation"  :  "PERMUTATION",
+        "rpermutation" :  "RPERMUTATION",
+        "diagonal"     :  "DIAGONAL",
     }
 
     t_MINUS = r'-'
@@ -128,6 +135,7 @@ class SPLParser:
     t_RPAREN = r'\)'
     t_HASH = r'\#'
     t_COMMA = r','
+    t_COLON = r':'
 
     t_WSCALAR = r'w'
 
@@ -246,11 +254,11 @@ class SPLParser:
 
     def p_flag_on(self, p):
         'flag : ON'
-        p[0] = On(p[1])
+        p[0] = ast.On()
 
     def p_flag_off(self, p):
         'flag : OFF'
-        p[0] = Off(p[1])
+        p[0] = ast.Off()
 
     def p_definition_formula(self, p):
         'definition : LPAREN DEFINE SYMBOL formula RPAREN'
@@ -272,7 +280,8 @@ class SPLParser:
                    | j
                    | l
                    | o
-                   | t"""
+                   | t
+                   | SYMBOL"""
         p[0] = p[1]
 
     def p_formula_paren(self, p):
@@ -303,9 +312,17 @@ class SPLParser:
         'o : LPAREN O number RPAREN'
         p[0] = ast.O(p[3])
 
+    def p_index(self, p):
+        'index : number COLON number COLON number'
+        p[0] = ast.Index(p[1], p[3], p[5])
+
     def p_t(self, p):
         't : LPAREN T number number RPAREN'
         p[0] = ast.T(p[3], p[4])
+
+    def p_t_idx(self, p):
+        't : LPAREN T number number COMMA index RPAREN'
+        p[0] = ast.T(p[3], p[4], p[6])
 
     def p_matrix(self, p):
         'matrix : LPAREN MATRIX matrix_row_list RPAREN'
@@ -313,13 +330,13 @@ class SPLParser:
 
     def p_matrix_row_list(self, p):
         'matrix_row_list : matrix_row matrix_row_list'
-        p[4].prepend(p[2])
-        p[0] = p[4]
+        p[2].prepend(p[1])
+        p[0] = p[2]
 
     def p_matrix_row_list_row(self, p):
         'matrix_row_list : matrix_row'
         p[0] = ast.Matrix()
-        p[0].prepend(p[2])
+        p[0].prepend(p[1])
 
     def p_matrix_row(self, p):
         'matrix_row : number_list'
@@ -426,7 +443,7 @@ class SPLParser:
 
     def p_number_neg(self, p):
         'number : MINUS number %prec UMINUS'
-        p[0] = Neg(p[2])
+        p[0] = ast.Neg(p[2])
 
     def p_number_paren(self, p):
         'number : LPAREN number RPAREN'
