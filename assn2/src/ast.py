@@ -15,7 +15,7 @@ import math
 
 class Node:
     def __init__(self):
-        raise NotImplementedError('Node: Base class. Do not instantiate')
+        raise AbstractClassError(self.__class__)
 
     def evaluate(self, *args, **kwargs):
         raise NotImplementedError('Node.evaluate: virtual method must be overridden')
@@ -225,7 +225,23 @@ class Neg(Operator):
 
 ##### 1.1 Predefined Matrix Constructors ######
 class Constructor(Node):
-    pass
+    matrix     = []
+    rows       = 0
+    cols       = 0
+
+    vector_var = None
+
+    def __init__(self):
+        raise AbstractClassError(self.__class__)
+
+    def __store_matrix_vector__(self, symbol_table):
+        # we're iterating over the matrix in the appropriate-major order and
+        # storing that as a vector in the symbol table
+        tmp        = NewTmp( rows * cols )
+        vector_var = tmp.var
+        iseq = [tmp]
+
+
 
 class MatrixRow(Constructor):
     def __init__(self, values):
@@ -608,3 +624,9 @@ class S(Intrinsic):
 
     def __repr__(self):
         return "S(%s %s)" % (self.m, self.k)
+
+##### A.1 Errors #####
+class AbstractClassError(NotImplementedError):
+  def __init__(self, cls):
+    self = NotImplementedError(cls.__name__ + ": Abstract class. Do not instantiate.")
+
