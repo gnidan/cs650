@@ -54,8 +54,8 @@ class SPLParser:
         'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
-        'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI', 
-        'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'w'
+        'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
+        'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'WSCALAR',
         'REAL', 'COMPLEX',
         'ON', 'OFF',
         'SYMBOL'
@@ -111,7 +111,7 @@ class SPLParser:
         "undefine"  :	"UNDEFINE",
         "unroll"    :	"UNROLL",
         "verbose"   :	"VERBOSE",
-        "w"         :	"w",
+        "w"         :	"WSCALAR",
         "F"         : "F",
         "I"         : "I",
         "J"         : "J",
@@ -128,6 +128,8 @@ class SPLParser:
     t_RPAREN = r'\)'
     t_HASH = r'\#'
     t_COMMA = r','
+
+    t_WSCALAR = r'w'
 
     def t_INVISIBLE_COMMENT(self, t):
         r';;.*'
@@ -158,7 +160,7 @@ class SPLParser:
 
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value(), "SYMBOL")
+        t.type = self.RESERVED.get(t.value, "SYMBOL")
         return t
 
     # Define a rule so we can track line numbers
@@ -528,11 +530,11 @@ class SPLParser:
         p[0] = ast.Pi()
 
     def p_function_w(self, p):
-        'function : w LPAREN number RPAREN'
+        'function : WSCALAR LPAREN number RPAREN'
         p[0] = ast.w(p[3])
 
     def p_function_w2(self, p):
-        'function : w LPAREN number COMMA number RPAREN'
+        'function : WSCALAR LPAREN number COMMA number RPAREN'
         p[0] = ast.w(p[3], p[5])
 
     def p_error(self, p):
