@@ -529,7 +529,7 @@ class W(Instrinsic):
         self.k = k
 
     def __repr__(self):
-        return "W(%s %s)" % (self.m, self.k)
+        return "W(%s %s)" % (self.m, self.k)    
 
 class WR(Instrinsic):
     def __init__(self, m, k):
@@ -545,7 +545,7 @@ class WI(Instrinsic):
         self.k = k
 
     def __repr__(self):
-        return "WI(%s %s)" % (self.m, self.k)
+        return "WI(%s %s)" % (self.m, self.k)    
 
 class TW(Instrinsic):
     def __init__(self, m, n, k):
@@ -572,20 +572,20 @@ class TWI(Instrinsic):
         self.k = k
 
     def __repr__(self):
-        return "TWI(%s %s %s)" % (self.m, self.n, self.k)
+        return "TWI(%s %s %s)" % (self.m, self.n, self.k)    
 
 class C(Instrinsic):
-    def __init__(self, m, n, k):
+    def __init__(self, m, k):
         self.m = m
         self.k = k
 
     def __repr__(self):
-        return "C(%s %s)" % (self.m, self.k)
+        return "C(%s %s)" % (self.m, self.k)    
 
 class S(Instrinsic):
-    def __init__(self, m, n, k):
+    def __init__(self, m, k):
         self.m = m
         self.k = k
 
     def __repr__(self):
-        return "S(%s %s)" % (self.m, self.k)
+        return "S(%s %s)" % (self.m, self.k)    
