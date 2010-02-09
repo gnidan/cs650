@@ -11,32 +11,13 @@ ast.py
 Contains all of the AST Node classes.
 """
 
-class MajorOrder:
-    ROW=1
-    COL=2
-
-class OutputLanguage:
-    def __init__(self):
-        raise NotImplementedError('OutputLanguage: Base class. Do not instantiate')
-
-class C99(OutputLanguage):
-    def comment_begin():
-        return "/*"
-
-    def comment_end():
-        return "*/"
-
-    def index(rows, cols, i, j):
-        return i * cols + j
-
-    def major_order():
-        return MajorOrder.ROW
+import math
 
 class Node:
     def __init__(self):
         raise NotImplementedError('Node: Base class. Do not instantiate')
 
-    def evaluate(self, env, options={'wsign' : 1, 'lang' : C99} ):
+    def evaluate(self, *args, **kwargs):
         raise NotImplementedError('Node.evaluate: virtual method must be overridden')
 
     def __str__(self):
@@ -100,13 +81,24 @@ class Complex(Number):
     def __repr__(self):
         return "Complex(%s, %s)" % (self.real, self.imaginary)
 
+class ConstantError(ValueError):
+    def __init__(self, msg):
+        self.msg = msg
 
 class Function(Node):
-    pass
+    def evalf(sclr, cmplx, val):
+        val = self.number.evaluate()
+        if isinstance(type(e), complex):
+            cmplx(val)
+        else:
+            sclr(val)
 
 class Sin(Function):
     def __init__(self, number):
         self.number = number
+
+    def evaluate(self, *args, **kwargs):
+        return evalf(math.sin, cmath.sin, self.number.evaluate(*args, **kwargs))
 
     def __repr__(self):
         return "Sin(%s)" % (self.number)
@@ -115,12 +107,18 @@ class Cos(Function):
     def __init__(self, number):
         self.number = number
 
+    def evaluate(self, *args, **kwargs):
+        return evalf(math.cos, cmath.cos, self.number.evaluate(*args, **kwargs))
+
     def __repr__(self):
         return "Cos(%s)" % (self.number)
 
 class Tan(Function):
     def __init__(self, number):
         self.number = number
+
+    def evaluate(self, *args, **kwargs):
+        return evalf(math.tan, cmath.tan, self.number.evaluate(*args, **kwargs))
 
     def __repr__(self):
         return "Tan(%s)" % (self.number)
@@ -129,12 +127,18 @@ class Log(Function):
     def __init__(self, number):
         self.number = number
 
+    def evaluate(self, *args, **kwargs):
+        return evalf(math.log, cmath.log, self.number.evaluate(*args, **kwargs))
+
     def __repr__(self):
         return "Log(%s)" % (self.number)
 
 class Exp(Function):
     def __init__(self, number):
         self.number = number
+
+    def evaluate(self, *args, **kwargs):
+        return evalf(math.exp, cmath.exp, self.number.evaluate(*args, **kwargs))
 
     def __repr__(self):
         return "Exp(%s)" % (self.number)
@@ -143,12 +147,18 @@ class Sqrt(Function):
     def __init__(self, number):
         self.number = number
 
+    def evaluate(self, *args, **kwargs):
+        return evalf(math.sqrt, cmath.sqrt, self.number.evaluate(*args, **kwargs))
+
     def __repr__(self):
         return "Sqrt(%s)" % (self.number)
 
 class Pi(Function):
     def __init__(self):
         pass
+
+    def evaluate(self, *args, **kwargs):
+        return math.pi
 
     def __repr__(self):
         return "pi"
@@ -162,7 +172,10 @@ class w(Function):
         return "w(%s %s)" % (self.n, self.k)
 
 ##### Operators #####
-class Add(Function):
+class Operator:
+    pass
+
+class Add(Operator):
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -170,7 +183,7 @@ class Add(Function):
     def __repr__(self):
         return "Add(%s, %s)" % (self.left, self.right)
 
-class Sub(Function):
+class Sub(Operator):
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -178,8 +191,7 @@ class Sub(Function):
     def __repr__(self):
         return "Sub(%s, %s)" % (self.left, self.right)
 
-
-class Mul(Function):
+class Mul(Operator):
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -187,8 +199,7 @@ class Mul(Function):
     def __repr__(self):
         return "Mul(%s, %s)" % (self.left, self.right)
 
-
-class Div(Function):
+class Div(Operator):
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -197,7 +208,7 @@ class Div(Function):
         return "Div(%s, %s)" % (self.left, self.right)
 
 
-class Mod(Function):
+class Mod(Operator):
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -205,7 +216,7 @@ class Mod(Function):
     def __repr__(self):
         return "Mod(%s, %s)" % (self.left, self.right)
 
-class Neg(Function):
+class Neg(Operator):
     def __init__(self, value):
         self.value = value
 
