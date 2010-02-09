@@ -523,15 +523,15 @@ class Comment(Node):
 class Intrinsic(Node):
     pass
 
-class W(Instrinsic):
+class W(Intrinsic):
     def __init__(self, m, k):
         self.m = m
         self.k = k
 
     def __repr__(self):
-        return "W(%s %s)" % (self.m, self.k)    
+        return "W(%s %s)" % (self.m, self.k)
 
-class WR(Instrinsic):
+class WR(Intrinsic):
     def __init__(self, m, k):
         self.m = m
         self.k = k
@@ -539,15 +539,15 @@ class WR(Instrinsic):
     def __repr__(self):
         return "WR(%s %s)" % (self.m, self.k)
 
-class WI(Instrinsic):
+class WI(Intrinsic):
     def __init__(self, m, k):
         self.m = m
         self.k = k
 
     def __repr__(self):
-        return "WI(%s %s)" % (self.m, self.k)    
+        return "WI(%s %s)" % (self.m, self.k)
 
-class TW(Instrinsic):
+class TW(Intrinsic):
     def __init__(self, m, n, k):
         self.m = m
         self.n = n
@@ -556,7 +556,7 @@ class TW(Instrinsic):
     def __repr__(self):
         return "TW(%s %s %s)" % (self.m, self.n, self.k)
 
-class TWR(Instrinsic):
+class TWR(Intrinsic):
     def __init__(self, m, n, k):
         self.m = m
         self.n = n
@@ -565,27 +565,27 @@ class TWR(Instrinsic):
     def __repr__(self):
         return "TWR(%s %s %s)" % (self.m, self.n, self.k)
 
-class TWI(Instrinsic):
+class TWI(Intrinsic):
     def __init__(self, m, n, k):
         self.m = m
         self.n = n
         self.k = k
 
     def __repr__(self):
-        return "TWI(%s %s %s)" % (self.m, self.n, self.k)    
+        return "TWI(%s %s %s)" % (self.m, self.n, self.k)
 
-class C(Instrinsic):
+class C(Intrinsic):
     def __init__(self, m, k):
         self.m = m
         self.k = k
 
     def __repr__(self):
-        return "C(%s %s)" % (self.m, self.k)    
+        return "C(%s %s)" % (self.m, self.k)
 
-class S(Instrinsic):
+class S(Intrinsic):
     def __init__(self, m, k):
         self.m = m
         self.k = k
 
     def __repr__(self):
-        return "S(%s %s)" % (self.m, self.k)    
+        return "S(%s %s)" % (self.m, self.k)
