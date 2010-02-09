@@ -77,7 +77,7 @@ class MiniParser:
         "deftemp"   :	"DEFTEMP",
         "direct"    :	"DIRECT",
         "div"       :	"DIV",
-        "do"        :	" LOOP",
+        "do"        :	"LOOP",
         "dounroll"  :	"LOOPUNROLL",
         "end"       :	"LOOPEND",
         "exp"       :	"EXP",
@@ -86,10 +86,10 @@ class MiniParser:
         "misc"      :	"MISC",
         "mod"       :	"MOD",
         "off"       :	"OFF",
-        "on"        :	" ON",
+        "on"        :	"ON",
         "operation" :	"OPERATION",
         "optimize"  :	"OPTIMIZE",
-        "pi"        :	" PI",
+        "pi"        :	"PI",
         "primitive" :	"PRIMITIVE",
         "real"      :	"REAL",
         "recursive" :	"RECURSIVE",
@@ -114,9 +114,11 @@ class MiniParser:
     t_VAR_T = r'$t[0-9]+'
     t_VAR_P = r'$p[0-9]+'
 
-    t_LPAREN = r'\('
+    t_PLUS = r'+'
+    t_MINUS = r'-'
+    t_MULT = r'*'
+    t_DIV = r'/'
     t_RPAREN = r'\)'
-    t_COMMENT = r';'
     t_HASH = r'\#'
     t_LBRACKET = r'\['
     t_RBRACKET = r'\]'
@@ -184,12 +186,63 @@ class MiniParser:
 
     def p_stmt(self, p):
         """stmt : definition
-                | formula
-                | template_def
-                | directive"""
+                | directive
+                | comment"""
         p[0] = p[1]
 
-    def p_def_formula(self, p):
+    def p_comment(self, p):
+        'stmt : COMMENT'
+        p[0] = ast.Comment(p[1])
+
+    def p_directive_subname(self, p):
+        'directive : HASH SUBNAME symbol'
+        p[0] = ast.Subname(p[3])
+        
+    def p_directive_codetype(self, p):
+        'directive : HASH CODETYPE type'
+        p[0] = ast.Codetype(p[3])
+        
+    def p_directive_datatype(self, p):
+        'directive : HASH DATATYPE type'
+        p[0] = ast.Datatype(p[3])
+        
+    def p_directive_optimize(self, p):
+        'directive : HASH OPTIMIZE flag'
+        p[0] = ast.Optimize(p[3])
+        
+    def p_directive_unroll(self, p):
+        'directive : HASH UNROLL flag'
+        p[0] = ast.Unroll(p[3])
+        
+    def p_directive_debug(self, p):
+        'directive : HASH DEBUG flag'
+        p[0] = ast.Debug(p[3])
+        
+    def p_directive_verbose(self, p):
+        'directive : HASH VERBOSE flag'
+        p[0] = ast.Verbose(p[3])
+        
+    def p_directive_internal(self, p):
+        'directive : HASH INTERNAL flag'
+        p[0] = ast.Internal(p[3])
+
+    def p_type(self, p):
+        'type : REAL'
+        p[0] = ast.RealType()
+
+    def p_type(self, p):
+        'type : COMPLEX'
+        p[0] = ast.ComplexType()
+
+    def p_flag(self, p):
+        'flag : ON'
+        p[0] = On(p[1])
+
+    def p_flag(self, p):
+        'flag : OFF'
+        p[0] = Off(p[1])
+
+    def p_definition_formula(self, p):
         'definition : DEFINE symbol formula'
         p[0] = ast.Define(p[2], p[3])
 
@@ -201,8 +254,38 @@ class MiniParser:
         'undefinition : UNDEFINE symbol number'
         p[0] = ast.Define(p[2], p[3])
 
+    def p_number_add(self, p):
+        'number : number PLUS number'
+        p[0] = ast.Add(p[1], p[3])
+
+    def p_number_sub(self, p):
+        'number : number MINUS number'
+        p[0] = ast.Sub(p[1], p[3])
+
+    def p_number_mul(self, p):
+        'number : number MULT number'
+        p[0] = ast.Mul(p[1], p[3])
+
+    def p_number_div(self, p):
+        'number : number DIV number'
+        p[0] = ast.Div(p[1], p[3])
+
+    def p_number_mod(self, p):
+        'number : number MOD number'
+        p[0] = ast.Mod(p[1], p[3])
+
+    def p_number_neg(self, p):
+        'number : MINUS number %prec UMINUS'
+        p[0] = Neg(p[2])
+
+    def p_number_paren(self, p):
+        'number : LPAREN number RPAREN'
+        p[0] = p[2]
+
+##### Numbers #####
     def p_number(self, p):
-        """number : scalar
+        """number : function
+                  | scalar
                   | complex"""
         p[0] = p[1]
 
@@ -215,55 +298,47 @@ class MiniParser:
         'integer : INTEGER'
         p[0] = ast.Integer(p[1])
 
-
     def p_double(self, p):
         'double : DOUBLE'
         p[0] = ast.Double(p[1])
 
     def p_complex(self, p):
-        'complex : LPAREN scalar COMMA scalar RPAREN'
+        'complex : LPAREN number COMMA number RPAREN'
         p[0] = ast.Complex(p[2], p[4])
+        
+##### Functions #####
+    def p_function_sin(self, p):
+        'function : SIN LPAREN number RPAREN'
+        p[0] = ast.Sin(p[3])
 
-    # def p_primitive(self, p):
-    #     pass
+    def p_function_cos(self, p):
+        'function : COS LPAREN number RPAREN'
+        p[0] = ast.Cos(p[3])
+
+    def p_function_tan(self, p):
+        'function : TAN LPAREN number RPAREN'
+        p[0] = ast.Tan(p[3])
+
+    def p_function_log(self, p):
+        'function : LOG LPAREN number RPAREN'
+        p[0] = ast.Log(p[3])
+
+    def p_function_exp(self, p):
+        'function : EXP LPAREN number RPAREN'
+        p[0] = ast.Exp(p[3])
+
+    def p_function_sqrt(self, p):
+        'function : SQRT LPAREN number RPAREN'
+        p[0] = ast.Sqrt(p[3])
+
+    def p_function_pi(self, p):
+        'function : PI'
+        p[0] = ast.Pi()
 
 
-# 	def p_param_list(self, p):
-# 		'param_list : IDENT COMMA param_list'
-# 		p[3].prepend(p[1])
-# 		p[0] = p[3]
 
-# 	def p_param_list_tail(self, p):
-# 		'param_list : IDENT'
-# 		p[0] = ast.ParamListNode(p[1])
+#Unimplemented: DEFINE_ , PRIMITIVE , OPERATION , DIRECT , ALIAS , size_rule, shape, formula, root_of_one
 
-# 	def p_expr_plus(self, p):
-# 		'expr : expr PLUS term'
-# 		p[0] = ast.AddNode(p[1], p[3])
-
-# 	def p_expr_minus(self, p):
-# 		'expr : expr MINUS term'
-# 		p[0] = ast.SubNode(p[1], p[3])
-
-# 	def p_expr_lcat(self, p):
-# 		'expr : expr LCAT expr'
-# 		p[0] = ast.LcatNode(p[1], p[3])
-
-# 	def p_expr_term(self, p):
-# 		'expr : term'
-# 		p[0] = p[1]
-
-# 	def p_term(self, p):
-# 		'term : term MULT factor'
-# 		p[0] = ast.MulNode(p[1], p[3])
-
-# 	def p_term_factor(self, p):
-# 		'term : factor'
-# 		p[0] = p[1]
-
-# 	def p_factor_expr(self, p):
-# 		'factor : LPAREN expr RPAREN'
-# 		p[0] = p[2]
 
 # 	def p_factor_proc(self, p):
 # 		'factor : proc'

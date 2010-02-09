@@ -18,8 +18,6 @@ class MajorOrder:
     COL=2
 
 class OutputLanguage:
-
-    
     def __init__(self):
         raise NotImplementedError('OutputLanguage: Base class. Do not instantiate')
 
@@ -72,37 +70,140 @@ class StmtList(Node):
 
     def __len__(self):
         return len(self.stmts)
+    
+#### NUMBERS ####
+class Number(Node):
+    pass
+    
+class Scalar(Number):
+    pass
 
-class Define(Node):
-    def __init__(self, symbol, value):
-        self.symbol = symbol
-        self.value = value
-
-    def __repr__(self):
-        return "Define(%s, %s)" % (self.symbol, self.value)
-
-class Integer(Node):
+class Integer(Scalar):
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
         return "Integer(%s)" % (self.value)
 
-class Double(Node):
+class Double(Scalar):
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
         return "Double(%s)" % (self.value)
 
-class Complex(Node):
+class Complex(Number):
     def __init__(self, real, imaginary):
         self.real = real
         self.imaginary = imaginary
 
     def __repr__(self):
         return "Complex(%s)" % (self.real, self.imaginary)
+
+
+class Function(Node):
+    pass
+
+class Sin(Function):
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.number)
+
+class Cos(Function):
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.number)
+
+class Tan(Function):
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.number)
     
+class Log(Function):
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.number)
+
+class Exp(Function):
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.number)
+
+class Sqrt(Function):
+    def __init__(self, number):
+        self.number = number
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.number)
+
+class Pi(Function):
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return "%s" % (self.__name__)
+
+##### Operators #####
+class Add(Function):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+
+class Sub(Function):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+
+
+class Mul(Function):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+
+
+class Div(Function):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+
+
+class Mod(Function):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__name, self.left, self.right)
+
+class Neg(Function):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name, self.value)
+
 ##### 1.1 Predefined Matrix Constructors ######
 class Constructor(Node):
     pass
@@ -168,22 +269,31 @@ class Assignment(Node):
     pass
 
 class Define(Assignment):
-    pass
+    def __init__(self, symbol, value):
+        self.symbol = symbol
+        self.value = value
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__name__, self.symbol, self.value)
 
 class Undefine(Assignment):
-    pass
+    def __init__(self, symbol, value):
+        self.symbol = symbol
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__name__, self.symbol)
 
 ##### 2.2 Directive ######
 class Directive(Node):
     pass
 
-class SubName(Directive):
+class Subname(Directive):
     pass
 
-class DataType(Directive):
+class Datatype(Directive):
     pass
 
-class CodeType(Directive):
+class Codetype(Directive):
     pass
 
 class Unroll(Directive):
@@ -198,6 +308,46 @@ class Debug(Directive):
 class Internal(Directive):
     pass
 
+#### Type ####
+class Type(Node):
+    pass
+
+class RealType(Type):
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return "real"
+
+class ComplexType(Type):
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return "complex"
+
+#### Flag ####
+class Flag(Node):
+    pass
+
+class On(Flag):
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return self.__name__
+
+class Off(Flag):
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return self.__name__
+
 ##### 2.3 Comments ######
 class Comment(Node):
-    pass
+    def __init__(self, txt):
+        self.txt = txt
+
+    def __repr__(self):
+        return "%s(%s)", self.__name__, self.txt
