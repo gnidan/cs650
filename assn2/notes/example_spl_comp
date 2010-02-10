@@ -1,0 +1,25 @@
+#datatype real
+#unroll on
+(define I2F2 (tensor (I 2)(F 2)))
+        .
+        .
+        V
+
+I2F2 (in symbol table):
+
+
+
+#unroll off
+#subname I64F2
+(tensor (I 32) (I2F2))
+
+        .
+        .
+        V
+
+
+  for out, in
+  out[4 * i0 + 1] = in[4 * i0 + 1] + in[4 * i0 + 2]
+  out[4 * i0 + 2] = in[4 * i0 + 1] + in[4 * i0 + 2]
+  out[4 * i0 + 3] = in[4 * i0 + 3] + in[4 * i0 + 4]
+  out[4 * i0 + 4] = in[4 * i0 + 3] - in[4 * i0 + 4]

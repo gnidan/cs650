@@ -1,0 +1,78 @@
+tensor (I 2) (F 2):
+
+ F  |
+  2 |
+----+---- 
+    | F
+    |  2
+
+    .
+    .
+    V
+
+1  1  0  0
+1 -1  0  0
+0  0  1  1
+0  0  1 -1
+
+(template (F n_) [n_>0]
+  (
+  do $i0 = 0, n_-1
+    $out[$i0] = 0
+    do $i1 = 0, n_-1
+      $r0 = $i0 * $i1
+      $f0 = W(n_ $r0) * $in($i1)
+      $out[$i0] = $out[$i0] + $f0
+
+    end
+  end
+  ))
+
+      .
+      .
+      V
+
+    op  dest         src1       src2       % yield var
+------  ---------    ---------  ---------    --------- 
+
+    do               n_                    % $i0
+  assn  $out[$i0]    0
+    do               n_                    % $i1
+  mult  $r0          $i0        $i1
+  call  $f0          W(n_ $r0)
+  mult  $f1          $f0        $in[$i1]
+  mult  $out[$i0]    $out[$i0]  $f1
+end_do
+end_do
+
+(F 2) unrolled:
+
+    op  dest         src1       src2       % yield var
+------  ---------    ---------  ---------    --------- 
+
+  assn  $out[0]      0
+  mult  $r0          0          0
+  call  $f0          W(2  $r0)
+  mult  $f1          $f0        $in[0]
+  mult  $out[0]      $out[0]    $f0
+  mult  $r0          0          1
+  call  $f0          W(2  $r0)
+  mult  $f1          $f0        $in[1]
+  mult  $out[0]      $out[0]    $f1
+  assn  $out[1]      0
+  mult  $r0          1          0
+  call  $f0          W(2  $r0)
+  mult  $f1          $f0        $in[0]
+  mult  $out[1]      $out[1]    $f0
+  mult  $r0          1          1
+  call  $f0          W(2  $r0)
+  mult  $f1          $f0        $in[1]
+  mult  $out[1]      $out[1]    $f0
+
+(F 2) unrolled and optimized
+      .
+      .
+      V
+  <fill in later>
+
+
