@@ -229,23 +229,8 @@ class Neg(Operator):
 
 ##### 1.1 Predefined Matrix Constructors ######
 class Constructor(Node):
-    matrix     = []
-    rows       = 0
-    cols       = 0
-
-    vector_var = None
-
     def __init__(self):
-        raise AbstractClassError('Constructor')
-
-    def __store_matrix_vector__(self, symbol_table):
-        # we're iterating over the matrix in the appropriate-major order and
-        # storing that as a vector in the symbol table
-        tmp        = NewTmp( rows * cols )
-        vector_var = tmp.var
-        iseq = [tmp]
-
-
+        raise NotImplementedError()
 
 class MatrixRow(Constructor):
     def __init__(self, values):
