@@ -6,7 +6,12 @@ Structure
  - Lists for each of the "$" variables
  - Dictionary (Symbol Table) for symbols assigned with template or define
 
-$-indexed Names
+ $-address variables are compiled and included in program output
+
+ Defined variables (symbol table) are not; they merely get rewritten
+ inline as icode instructions
+
+$-addressed Names
 ---------------
 
   Scalars

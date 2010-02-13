@@ -28,18 +28,6 @@ class Vector(Variable):
     self.size = size
     self.scalars = [Scalar()] * size #initialize vector to have a given size
 
-class Expression(Variable):
-  """Represents an SPL Expression tree"""
-  input_size = 0
-  output_size = 0
-  spl_expression = None
-
-  def __init__(self, spl_expression):
-    self.spl_expression = spl_expression
-
-  def generate_icode(input, output):
-    return spl_expression.generate_icode(input, output)
-
 class SymbolCollection:
   def __init__(self, input_size, output_size):
     self.r       = []
