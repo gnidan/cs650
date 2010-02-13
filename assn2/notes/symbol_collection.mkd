@@ -1,0 +1,15 @@
+Symbol Collection
+============
+
+Structure
+---------
+
+ - Lists for each of the variable naming schemes for vectors/scalars
+
+ - Dictionary (Symbol Table) for symbols assigned with template or define
+
+
+Variable Types:
+    - vector
+    - scalar
+    - spl expression

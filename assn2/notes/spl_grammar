@@ -1,0 +1,63 @@
+% work in progress so far. 
+%
+% (TOKENs in uppercase, nonterminals in lower)
+
+program            ->  stmt_list
+
+stmt_list          ->  stmt "\n" stmt_list
+                   |   stmt "\n"
+
+stmt               ->  let_list expression
+                   |   expression
+
+let_list           ->  directive "\n" let_list
+                   |   assignment "\n" let_list
+                   |   comment "\n" let_list
+                   |   directive "\n"
+                   |   assignment "\n"
+                   |   comment "\n"
+
+directive          -> "#" directive_action
+
+directive_action   -> SUBNAME NAME      % define a subroutine name
+                   |  DATATYPE TYPE     % data/code type is real or complex
+                   |  CODETYPE TYPE
+                   |  UNROLL BOOL       % unrolling can be on or off
+                   |  VERBOSE BOOL
+                   |  DEBUG BOOL
+                   |  INTERNAL BOOL
+
+assignment         -> "(" DEFINE NAME expression ")"
+                   |  "(" UNDEFINE NAME ")"
+
+comment            -> ";" CMT_STRING "\n"
+                   |  ";;" CMT_STRING "\n"
+
+expresion          -> "(" expr_list ")"   % do we need to support zero-element
+                                          %   lists?
+
+expr_list          -> expr_element expr_list
+                   |  expr_element
+
+expr_element       -> expression
+                   |  atom
+
+atom               -> NAME
+                   |  NUMBER
+
+NAME               -> [A-Za-z]+           % maybe make this more robust
+NUMBER             -> [0-9]+              % and this is gonna need complex 
+CMT_STRING         -> [^\n]*              %   number support
+
+TYPE               -> [rR][eE][aA][lL] | [cC][oO][mM][pP][lL][eE][xX]
+BOOL               -> [oO][nN] | [oO][fF][fF]
+
+SUBNAME            -> [sS][uU][bB][nN][aA][mM][eE]
+DATATYPE           -> [dD][aA][tT][aA][tT][yY][pP][eE]
+CODETYPE           -> [cC][oO][dD][eE][tT][yY][pP][eE]
+UNROLL             -> [uU][nN][rR][oO][lL][lL]
+VERBOSE            -> [vV][eE][rR][bB][oO][sS][eE]
+DEBUG              -> [dD][eE][bB][uU][gG]
+INTERNAL           -> [iI][nN][tT][eE][rR][nN][aA][lL]
+DEFINE             -> [dD][eE][fF][iI][nN][eE]
+UNDEFINE           -> [uU][nN][dD][eE][fF][iI][nN][eE]
