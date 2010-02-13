@@ -1,15 +1,41 @@
 Symbol Collection
-============
+=================
 
 Structure
 ---------
-
- - Lists for each of the variable naming schemes for vectors/scalars
-
+ - Lists for each of the "$" variables
  - Dictionary (Symbol Table) for symbols assigned with template or define
 
+$-indexed Names
+---------------
 
-Variable Types:
-    - vector
-    - scalar
-    - spl expression
+  Scalars
+
+  r0, r1, ... 
+    int; vector subscript
+
+  f0, f1, ...
+    real/complex values
+
+  i0, i1, ...
+    int; loop index
+
+  p0, p1, ...
+    struct pattern; pattern variables
+
+  Vectors
+
+  t0, t1, ...
+    temporary vectors
+
+  x, y
+    input, output (not in an array, just stored as globals)
+
+Symbol Table
+------------
+
+name :: scalar
+name :: template
+name :: definition
+
+
