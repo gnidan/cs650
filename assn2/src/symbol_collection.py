@@ -18,9 +18,13 @@ class Int(Scalar):
   def __init__(self):
     self.value = 0
 
-class Float(Scalar):
+class RealComplex(Scalar):
   def __init__(self):
     self.value = 0
+
+class Pattern(Variable):
+  def __init__(self):
+    self.Value = None     # TODO fill this in later for struct
 
 class Vector(Variable):
   """Represents a vector of scalars"""
@@ -38,6 +42,31 @@ class SymbolCollection:
     self.x       = Vector(input_size)
     self.y       = Vector(output_size)
     self.sym_tab = SymbolTable()
+
+  def new_r(self):
+    r = Int()
+    self.r.append(r)
+    return r
+
+  def new_f(self):
+    f = RealComplex()
+    self.f.append(f)
+    return f
+
+  def new_i(self):
+    i = Int()
+    self.i.append(i)
+    return i
+
+  def new_p(self):
+    p = new Pattern()
+    self.p.append(p)
+    return p
+
+  def new_t(self, size):
+    t = new Vector(size)
+    self.t.append(t)
+    return t
 
 class SymbolTable:
   def __init__(self):
