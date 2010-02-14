@@ -43,14 +43,6 @@ class SymbolCollection:
     self.y       = Vector(output_size)
     self.sym_tab = SymbolTable()
 
-  def __getitem__(self, var):
-    list, index = var
-    try:
-      return list[index]
-    except IndexError:
-      if index == len(list):
-        
-
   def r(self, index):
     try:
       return self.r[index]
