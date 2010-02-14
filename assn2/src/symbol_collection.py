@@ -86,9 +86,8 @@ class SymbolCollection:
         raise inst
 
   def new_t(self, size):
-    t = new Vector(size)
-    self.t.append(t)
-    return t
+    self.t.append(Vector(size))
+    return len(self.t) - 1
 
   def t(self, index, subscript=None):
     if(subscript):
