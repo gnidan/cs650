@@ -43,30 +43,66 @@ class SymbolCollection:
     self.y       = Vector(output_size)
     self.sym_tab = SymbolTable()
 
-  def new_r(self):
-    r = Int()
-    self.r.append(r)
-    return r
+  def __getitem__(self, var):
+    list, index = var
+    try:
+      return list[index]
+    except IndexError:
+      if index == len(list):
+        
 
-  def new_f(self):
-    f = RealComplex()
-    self.f.append(f)
-    return f
+  def r(self, index):
+    try:
+      return self.r[index]
+    except IndexError as inst:
+      if index == len(self.r):
+        self.r.append(Int())
+        return self.r[index]
+      else
+        raise inst
 
-  def new_i(self):
+  def f(self, index):
+    try:
+      return self.f[index]
+    except IndexError as inst:
+      if index == len(self.f):
+        self.f.append(RealComplex())
+        return self.f[index]
+      else
+        raise inst
+
+  def append_loop(self):
     i = Int()
     self.i.append(i)
-    return i
 
-  def new_p(self):
-    p = new Pattern()
-    self.p.append(p)
-    return p
+  def pop_loop(self):
+    self.i.pop()
+
+  def i(self, index):
+    # i0 is the last element
+    index = len(self.i) - index - 1
+    return self.i[index]
+
+  def p(self, index):
+    try:
+      return self.p[index]
+    except IndexError as inst:
+      if index == len(self.p):
+        self.p.append(Pattern())
+        return self.p[index]
+      else
+        raise inst
 
   def new_t(self, size):
     t = new Vector(size)
     self.t.append(t)
     return t
+
+  def t(self, index, subscript=None):
+    if(subscript):
+      return self.t[index][subscript]
+    else
+      return self.t[index]
 
 class SymbolTable:
   def __init__(self):

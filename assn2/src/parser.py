@@ -367,7 +367,7 @@ class SPLParser:
         'rpermutation : LPAREN RPERMUTATION number_list RPAREN'
         p[0] = ast.RPermutation(p[3])
 
-    def p_spare(self, p):
+    def p_sparse(self, p):
         'sparse : LPAREN SPARSE triple_list RPAREN'
         p[0] = ast.Sparse(p[3])
 
