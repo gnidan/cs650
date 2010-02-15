@@ -89,6 +89,10 @@ class Vector(Variable):
     self.scalars = [Scalar()] * size #initialize vector to have a given size
 
 class SymbolCollection:
+  # notes: actually, maybe the behavior with setting up all the variables,
+  #   in particular, the i varible stack, should be behavior to put in C and
+  #   not at all in the compiler python code. Instead, perhaps we should just
+  #   be tracking usage?
   def __init__(self, input_size, output_size):
     self.r       = []
     self.f       = []
@@ -98,14 +102,6 @@ class SymbolCollection:
     self.x       = Vector(input_size)
     self.y       = Vector(output_size)
     self.sym_tab = SymbolTable()
-
-  def __getitem__(self, var):
-    list, index = var
-    try:
-      return list[index]
-    except IndexError:
-      if index == len(list):
-        pass
 
   def r(self, index):
     try:
@@ -135,11 +131,12 @@ class SymbolCollection:
     self.i.pop()
 
   def i(self, index):
-    # i0 is the last element
+    # i0 -> i[len(i)-1]
     index = len(self.i) - index - 1
     return self.i[index]
 
   def p(self, index):
+    # pattern varible behavior is probably different in a bunch of ways
     try:
       return self.p[index]
     except IndexError as inst:
@@ -150,9 +147,8 @@ class SymbolCollection:
         raise inst
 
   def new_t(self, size):
-    t = Vector(size)
-    self.t.append(t)
-    return t
+    self.t.append(Vector(size))
+    return len(self.t) - 1
 
   def t(self, index, subscript=None):
     if(subscript):
