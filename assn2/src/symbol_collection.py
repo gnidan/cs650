@@ -53,7 +53,7 @@ class IntegerConst(Variable):
   def __init__(self, value=0):
     self.value = int(value)
 
-class DoubleConst(Variable):
+class RealConst(Variable):
   """Represents a Double constant value"""
   def __init__(self, value):
     self.value = float(value=0)
