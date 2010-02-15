@@ -14,6 +14,8 @@ PLY SPL compiler.
 
 import sys
 import getopt
+from symbol_collection import SymbolTable
+from flags import Flags
 
 from parser import SPLParser
 
@@ -89,6 +91,10 @@ def main(argv=None):
     if verbose:
         print "\n** Printing the AST"
         print t
+
+    if verbose:
+        print "\n** Evaluating the AST"
+        t.evaluate(symtab=SymbolTable(), flags=Flags())
 
     if t is None:
         return

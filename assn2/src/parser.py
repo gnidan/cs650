@@ -201,9 +201,9 @@ class SPLParser:
         p[0] = ast.StmtList(p[1])
 
     def p_stmt(self, p):
-        """stmt : formula
+        """stmt : definition
+                | formula
                 | directive
-                | definition
                 | comment
                 | INVISIBLE_COMMENT"""
         p[0] = p[1]
@@ -559,5 +559,5 @@ class SPLParser:
             print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
         return None
 
-#Unimplemented: templates, DEFINE_ , PRIMITIVE ,
-#OPERATION , DIRECT , ALIAS , size_rule, shape, root_of_one
+#Unimplemented: templates DEFINE_ PRIMITIVE OPERATION DIRECT ALIAS
+#               size_rule shape root_of_one
