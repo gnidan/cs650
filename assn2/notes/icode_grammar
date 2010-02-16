@@ -1,0 +1,29 @@
+program            -> stmt_list
+
+stmt_list          -> stmt "\n" stmt_list
+
+stmt               -> add
+                      sub
+                      mul
+                      div
+                      mod
+                      assn
+                      call
+                      do
+                      newtmp
+
+add                -> VAR EQUALS VAL PLUS VAL
+sub                -> VAR EQUALS VAL MINUS VAL
+mul                -> VAR EQUALS VAL TIMES VAL
+div                -> VAR EQUALS VAL DIVIDES VAL
+mod                -> VAR EQUALS VAL MODULUS VAL
+assn               -> VAR EQUALS VAL
+
+call               -> VAR EQUALS CALL SPLNAME 
+                   |  VAR EQUALS CALL SPLNAME VAR
+
+do                 -> DO VAL stmt_list END DO
+
+newtmp             -> NEWTMP VAL
+
+
