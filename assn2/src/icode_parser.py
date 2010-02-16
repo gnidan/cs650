@@ -153,7 +153,7 @@ class ICodeParser:
     p[0] = iast.Symbol(p[1])
 
   def p_symbol_subscript(self, p):
-    'symbol : VECTOR subscript'
+    'symbol : DOLLAR VECTOR subscript'
     p[0] = iast.Symbol(p[1], p[2])
 
   def p_subscript(self, p):
