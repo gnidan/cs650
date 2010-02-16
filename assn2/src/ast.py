@@ -39,8 +39,7 @@ class Node:
         raise NotImplementedError
 
 class Formula(Node):
-    def definition(self, *args, **kwargs):
-        symtab = kwargs.get('symtab', None)
+    def definition(self, symtab=None):
         if directives.unroll:
             pass #TODO gen_code
         else:
@@ -484,7 +483,6 @@ class Define(Assignment):
         return symtab.isConst(self.value)
 
     def evaluate(self, symtab=None, directives=None, lang=C99):
-        symtab = kwargs.get('symtab', None)
         #Maybe this should call evaluate?
         print "Symbol: %s" % self.symbol
         print "Value: %s" % self.value
@@ -498,7 +496,6 @@ class Undefine(Assignment):
         self.symbol = symbol
 
     def evaluate(self, symtab=None, directives=None, lang=C99):
-        symtab = kwargs.get('symtab', None)
         del symtab[self.symbol]
 
     def __repr__(self):
