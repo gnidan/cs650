@@ -280,9 +280,12 @@ class SPLParser:
                    | j
                    | l
                    | o
-                   | t
-                   | SYMBOL"""
+                   | t"""
         p[0] = p[1]
+
+    def p_formula_symbol(self, p):
+        'formula : SYMBOL'
+        p[0] = ast.Symbol(p[1])
 
     def p_formula_paren(self, p):
         'formula : LPAREN formula RPAREN'
@@ -456,6 +459,10 @@ class SPLParser:
                   | complex
                   | intrinsic"""
         p[0] = p[1]
+
+    def p_number_symbol(self, p):
+        'number : SYMBOL'
+        p[0] = ast.Symbol(p[1])
 
     def p_scalar(self,p):
         """scalar : integer

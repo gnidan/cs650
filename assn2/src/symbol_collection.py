@@ -39,6 +39,8 @@
 # FORMULA   		 a SPL formula defined by "define"
 # CODE      		 a piece of straight-line code defined by "define_"
 
+import numbers
+
 class Variable:
   """Maintains the record for a particular variable in our symbol table"""
   def __init__(self):
@@ -177,7 +179,10 @@ class SymbolTable(dict):
       raise AlreadyDefinedError(key)
     super(SymbolTable,self).__setitem__(key, value)
 
-  def isConst(self, value):
+  def isConst(self, key):
     if self.has_key(key):
-      return super(SymbolTable,self).__getitem__(key).isConst
+      val = super(SymbolTable,self).__getitem__(key)
+      if isinstance(val, numbers.Number):
+        return True
+      return val.isConst()
     return KeyError
