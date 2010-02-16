@@ -1,0 +1,17 @@
+DO $p1
+  $y[$i0] = 0
+  DO $p1
+    $r0 = $i0 * $i1
+
+    NEWTMP 2
+    $t0[0] = $p1
+    $t0[1] = $r0
+
+    $f0 = CALL W $t0
+
+    $f1 = $f0 * $x[$i0]
+
+    $y[$i1] = $y[$i1] * $f1
+  END DO
+END DO
+
