@@ -48,9 +48,12 @@ class ICodeParser:
       'NEWTMP', 'COMMENT', 'LBRACKET', 'RBRACKET', 'DOLLAR'
       )
 
-  RESERVED = {
-      "do"        : "DO"
-      }
+  KEYWORDS = {
+      "do"        : "DO",
+      "end"       : "END",
+      "newtmp"    : "NEWTMP",
+      "call"      : "CALL",
+  }
 
   t_EQUALS = r'='
   t_MINUS = r'-'
@@ -68,7 +71,7 @@ class ICodeParser:
     return t
 
   def t_DOUBLE(self,t):
-    r"""(\d+(\.\d*)|\.\d+)([eE][-+]?\d+)?""" #This is a much better decimal 
+    r"""(\d+(\.\d*)|\.\d+)([eE][-+]?\d+)?""" #This is a much better decimal
     try:
       t.value = float(t.value)
     except ValueError:
@@ -85,10 +88,6 @@ class ICodeParser:
       t.value = 0
     return t
 
-  def t_SPLNAME(self, t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
-    return t
-
   def t_SCALAR(self, t):
     r'[rfip]\d+'
     return t
@@ -96,12 +95,16 @@ class ICodeParser:
   def t_VECTOR(self, t):
     r'[xy]|t\d+'
     return t
-  
+
+  def t_SYMBOL(self, t):
+    r'[a-zA-Z_][a-zA-Z0-9_]*'
+    t.type = self.KEYWORDS.get(t.value.lower(), "SPLNAME")
+    return t
 
   # Define a rule so we can track line numbers
   def t_newline(self,t):
-      r'\n'
-      t.lexer.lineno += len(t.value)
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
   t_ignore = ' \t'
 
@@ -126,16 +129,16 @@ class ICodeParser:
     p[0] = iast.StmtList(p[1])
 
   def p_stmt(self, p):
-    """stmt : add \n
-            | sub \n
-            | mul \n
-            | div \n
-            | mod \n
-            | assn \n
-            | call \n
-            | do \n
-            | newtmp \n
-            | comment \n"""
+    """stmt : add
+            | sub
+            | mul
+            | div
+            | mod
+            | assn
+            | call
+            | do
+            | newtmp
+            | comment"""
     p[0] = p[1]
 
   def p_value(self, p):
@@ -203,15 +206,17 @@ class ICodeParser:
 
   def p_error(self, p):
     if p is not None:
-      print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
+      print "Line %s: Syntax error at '%s' (type = %s)" % (p.lineno, p.value, p.type)
     return None
 
 def main():
   data = sys.stdin.read()
-  parser = ICodeParser(False)
+  parser = ICodeParser(debug=True)
+
+  parser.lexer_test(data)
+
   t = parser.parse(data)
   print t
 
 if __name__ == "__main__":
   sys.exit(main())
-
