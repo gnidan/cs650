@@ -1,8 +1,46 @@
 #!/usr/bin/python
 
+#SPL Symbols can be one of the following:
+# PRIMITIVE      name of parameterized special matrix defined by "primitive"
+#   (primitive F SPL_SHAPE_SQUARE)
+#   (primitive I SPL_SHAPE_RECTDIAG)
+#   (primitive O SPL_SHAPE_RECTDIAG)
+#   (primitive T SPL_SHAPE_DIAG)
+#   (primitive L SPL_SHAPE_SQUARE)
+#   (primitive J SPL_SHAPE_SQUARE)
+
+# OPERATION      name of matrix operation defined by "operation"
+#   (operation compose    SPL_SIZE_COMPOSE)
+#   (operation tensor     SPL_SIZE_TENSOR)
+#   (operation direct_sum SPL_SIZE_SUM)
+#   (operation conjugate  SPL_SIZE_COMPOSE)
+#   (operation scale      SPL_SIZE_TENSOR)
+
+# DIRECT    		 name of a direct matrix defined by "direct"
+#   (direct matrix       SPL_SIZE_MATRIX)
+#   (direct diagonal     SPL_SIZE_VECTOR)
+#   (direct permutation  SPL_SIZE_VECTOR)
+#   (direct rpermutation SPL_SIZE_VECTOR)
+#   (direct sparse       SPL_SIZE_SPARSE)
+
+# ALIAS     		 an alias of another symbol defined by "alias"
+#   (alias comp compose)
+#   (alias tens tensor)
+#   (alias dsum direct_sum)
+#   (alias conj conjugate)
+#   (alias matx matrix)
+#   (alias diag diagonal)
+#   (alias perm permutation)
+#   (alias rperm rpermutation)
+
+# ICONST    		 an integer constant defined by "define"
+# DCONST    		 a double constant defined by "define"
+# CCONST    		 a complex constant defined by "define"
+# FORMULA   		 a SPL formula defined by "define"
+# CODE      		 a piece of straight-line code defined by "define_"
+
 class Variable:
   """Maintains the record for a particular variable in our symbol table"""
-
   def __init__(self):
     self.access = []
 
@@ -10,17 +48,35 @@ class Variable:
     """Record when a particular icode expression access this variable"""
     self.access.append(icode)
 
-class Scalar(Variable):
-  """Represents a scalar value"""
-  pass
+class IntegerConst(Variable):
+  """Represents an Integer constant value"""
+  def __init__(self, value=0):
+    self.value = int(value)
 
-class Int(Scalar):
-  def __init__(self):
-    self.value = 0
+class RealConst(Variable):
+  """Represents a Double constant value"""
+  def __init__(self, value):
+    self.value = float(value=0)
 
-class RealComplex(Scalar):
-  def __init__(self):
-    self.value = 0
+class ComplexConst(Variable):
+  """Represents a Complex constant value"""
+  def __init__(self, value=0):
+    self.value = complex(0)
+
+class Formula(Variable):
+  """Represents a definition of a formula"""
+  def __init__(self, value=None):
+    self.value = value
+
+class Code(Formula):
+  """Represents a definition of a formula with icode"""
+  def __init__(self, value=None, icode=None):
+    self.value = value
+    self.icode = icode
+
+
+
+
 
 class Pattern(Variable):
   def __init__(self):
@@ -54,7 +110,7 @@ class SymbolCollection:
       if index == len(self.r):
         self.r.append(Int())
         return self.r[index]
-      else
+      else:
         raise inst
 
   def f(self, index):
@@ -64,7 +120,7 @@ class SymbolCollection:
       if index == len(self.f):
         self.f.append(RealComplex())
         return self.f[index]
-      else
+      else:
         raise inst
 
   def append_loop(self):
@@ -87,7 +143,7 @@ class SymbolCollection:
       if index == len(self.p):
         self.p.append(Pattern())
         return self.p[index]
-      else
+      else:
         raise inst
 
   def new_t(self, size):
@@ -97,33 +153,21 @@ class SymbolCollection:
   def t(self, index, subscript=None):
     if(subscript):
       return self.t[index][subscript]
-    else
+    else:
       return self.t[index]
 
-class SymbolTable:
-  def __init__(self):
-    dict = {} # TODO redefine this to be set to the dict containing all
-              # the predefined values
-    self.depth = 0
-    self.table = [dict]
 
-  def __getitem__(self, key):
-    dict = self.table[self.depth]
-    return dict[key]
 
+
+class AlreadyDefinedError(Exception):
+  def __init__(self, name):
+    self.msg = "%s is already defined" % (name)
+
+class SymbolTable(dict):
+  """We don't really need a scope. So the symbol table is just a dictionary.
+  Python keeps track of it all for us!"""
   def __setitem__(self, key, value):
-    dict = self.table[self.depth]
-    dict[name] = value
-
-  def __delitem__(self, key):
-    dict = self.table[self.depth]
-    del dict[name]
-
-  def append_scope(self):
-    dict = self.table[self.depth]
-    self.table.append(dict.copy())
-    depth += 1
-
-  def pop_scope(self):
-    self.table.pop()
-    depth -= 1
+    """SPL does not allow redefinitions. It must be undefined first"""
+    if self.has_key(key):
+      raise AlreadyDefinedError(key)
+    super(SymbolTable,self).__setitem__(key, value)

@@ -13,6 +13,8 @@ Contains all of the AST Node classes.
 
 import math
 import cmath
+import symbol_collection as symbols
+from flags import Flags
 
 class Node:
     def __init__(self):
@@ -28,12 +30,24 @@ class Node:
         '''prints the AST in an ATerm like format'''
         raise NotImplementedError
 
+class Formula(Node):
+    def definition(self, *args, **kwargs):
+        symtab = kwargs.get('symtab', None)
+        if kwargs.get('flags', Flags()).unroll:
+            pass #TODO gen_code
+        else:
+            return symbols.Formula(self.value)
+
+    def evaluate(*args, **kwargs):
+        print "Must implement Formula"
+
+
 class Program(Node):
     def __init__(self, stmts):
         self.stmts = stmts
 
     def evaluate(self, *args, **kwargs):
-        raise NotImplementedError
+        self.stmts.evaluate(args, kwargs)
 
     def __repr__(self):
         return "Program(%s)" % (self.stmts)
@@ -47,6 +61,10 @@ class StmtList(Node):
 
     def prepend(self, stmt):
         self.stmts.insert(0, stmt)
+
+    def evaluate(self, *args, **kwargs):
+        for stmt in self.stmts:
+            stmt.evaluate(args, kwargs)
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -228,7 +246,7 @@ class Neg(Operator):
         return "Neg(%s)" % (self.value)
 
 ##### 1.1 Predefined Matrix Constructors ######
-class Constructor(Node):
+class Constructor(Formula):
     def __init__(self):
         raise NotImplementedError()
 
@@ -329,7 +347,7 @@ class Index(Node):
         return "Index(%s, %s, %s)" % (self.start, self.stride, self.stop)
 
 ##### 1.2 Predefined Parametrized Matrices ######
-class ParametrizedMatrix(Node):
+class ParametrizedMatrix(Formula):
     pass
 
 class F(ParametrizedMatrix):
@@ -404,7 +422,7 @@ class L(ParametrizedMatrix):
         return "(L %s %s)" % (self.mn, self.n)
 
 ##### 1.3 Predefined Matrix Operations ######
-class Operation(Node):
+class Operation(Formula):
     pass
 
 class Compose(Operation):
@@ -454,12 +472,22 @@ class Define(Assignment):
         self.symbol = symbol
         self.value = value
 
+    def evaluate(self, *args, **kwargs):
+        print "DEFINE"
+        symtab = kwargs.get('symtab', None)
+        #Maybe this should call evaluate?
+        symtab[self.symbol] = self.value.definition(args, kwargs)
+
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
 
 class Undefine(Assignment):
     def __init__(self, symbol, value):
         self.symbol = symbol
+
+    def evaluate(self, *args, **kwargs):
+        symtab = kwargs.get('symtab', None)
+        del symtab[self.symbol]
 
     def __repr__(self):
         return "Undefine(%s)" % (self.symbol)
@@ -471,6 +499,9 @@ class Directive(Node):
 class SubName(Directive):
     def __init__(self, symbol):
         self.symbol = symbol
+
+    def evaluate(self, *args, **kwargs):
+        kwargs.get('flags', Flags()).subname = self.symbol
 
     def __repr__(self):
         return "SubName(%s)" % (self.symbol)
@@ -493,12 +524,18 @@ class Optimize(Directive):
     def __init__(self, flag):
         self.flag = flag
 
+    def evaluate(self, *args, **kwargs):
+        kwargs.get('flags', Flags()).optimize = self.flag.evaluate(args, kwargs)
+
     def __repr__(self):
         return "Optimize(%s)" % (self.flag)
 
 class Unroll(Directive):
     def __init__(self, flag):
         self.flag = flag
+
+    def evaluate(self, *args, **kwargs):
+        kwargs.get('flags', Flags()).unroll = self.flag.evaluate(args, kwargs)
 
     def __repr__(self):
         return "Unroll(%s)" % (self.flag)
@@ -507,6 +544,9 @@ class Verbose(Directive):
     def __init__(self, flag):
         self.flag = flag
 
+    def evaluate(self, *args, **kwargs):
+        kwargs.get('flags', Flags()).verbose = self.flag.evaluate(args, kwargs)
+
     def __repr__(self):
         return "Verbose(%s)" % (self.flag)
 
@@ -514,12 +554,18 @@ class Debug(Directive):
     def __init__(self, flag):
         self.flag = flag
 
+    def evaluate(self, *args, **kwargs):
+        kwargs.get('flags', Flags()).debug = self.flag.evaluate(args, kwargs)
+
     def __repr__(self):
         return "Debug(%s)" % (self.flag)
 
 class Internal(Directive):
     def __init__(self, flag):
         self.flag = flag
+
+    def evaluate(self, *args, **kwargs):
+        kwargs.get('flags', Flags()).internal = self.flag.evaluate(args, kwargs)
 
     def __repr__(self):
         return "Inernal(%s)" % (self.flag)
@@ -550,12 +596,18 @@ class On(Flag):
     def __init__(self):
         pass
 
+    def evaluate(self, *args, **kwargs):
+        return True
+
     def __repr__(self):
         return "on"
 
 class Off(Flag):
     def __init__(self):
         pass
+
+    def evaluate(self, *args, **kwargs):
+        return False
 
     def __repr__(self):
         return "off"
@@ -564,6 +616,9 @@ class Off(Flag):
 class Comment(Node):
     def __init__(self, txt):
         self.txt = txt
+
+    def evaluate(self, *args, **kwargs):
+        print "//%s" % (self.txt)
 
     def __repr__(self):
         return "Comment(%s)" % (self.txt)
