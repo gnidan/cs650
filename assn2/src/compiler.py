@@ -15,7 +15,7 @@ PLY SPL compiler.
 import sys
 import getopt
 from symbol_collection import SymbolTable
-from directives import Directives
+from options import Options
 
 from parser import SPLParser
 
@@ -99,7 +99,7 @@ def main(argv=None):
     if verbose:
         print "\n** Evaluating the AST"
     symtab = SymbolTable()
-    t.evaluate(symtab=symtab, directives=Directives(), lang=C99)
+    t.evaluate(symtab=symtab, options=Options())
     print symtab
 
     if t is None:

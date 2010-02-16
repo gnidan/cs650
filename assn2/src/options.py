@@ -8,8 +8,10 @@ Keith Dailey
 
 options.py
 
-Contains all of the compile time evaluation options.
+Contains all of the compile time and runtime evaluation options.
 """
+
+import numbers
 
 class MajorOrder:
     ROW=1
@@ -31,3 +33,15 @@ class C99(OutputLanguage):
 
     def major_order():
         return MajorOrder.ROW
+
+class Options:
+    def __init__(self):
+        self.unroll = True
+        self.optimize = True
+        self.verbose = False
+        self.debug = False
+        self.internal = False
+        self.subname = "func"
+        self.codetype = numbers.Real
+        self.datatype = numbers.Complex
+        self.language = C99
