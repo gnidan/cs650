@@ -15,7 +15,7 @@ import math
 import cmath
 import numbers
 import symbol_collection as symbols
-from flags import Flags
+from options import Options
 
 class Node:
     def __init__(self):
@@ -25,7 +25,7 @@ class Node:
         '''Performs early optimizations on the AST such as Constant Folding'''
         pass
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         raise NotImplementedError
 
     def isConst(self,symtab=None):
@@ -39,13 +39,13 @@ class Node:
         raise NotImplementedError
 
 class Formula(Node):
-    def definition(self, symtab=None):
-        if directives.unroll:
+    def definition(self, symtab=None, options=None):
+        if options.unroll:
             pass #TODO gen_code
         else:
             return symbols.Formula(self.value)
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         print "Must implement Formula"
 
 
@@ -53,8 +53,8 @@ class Program(Node):
     def __init__(self, stmts):
         self.stmts = stmts
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        self.stmts.evaluate(symtab=symtab, directives=directives, lang=lang)
+    def evaluate(self, symtab=None, options=None):
+        self.stmts.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Program(%s)" % (self.stmts)
@@ -69,9 +69,9 @@ class StmtList(Node):
     def prepend(self, stmt):
         self.stmts.insert(0, stmt)
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         for stmt in self.stmts:
-            stmt.evaluate(symtab=symtab, directives=directives, lang=lang)
+            stmt.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -93,7 +93,7 @@ class Scalar(Number):
     def isConst():
         return True
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         return self.value
 
 class Integer(Scalar):
@@ -126,8 +126,8 @@ class Sin(Function):
     def __init__(self, number):
         self.number = number
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        return evalf(math.sin, cmath.sin, self.number.evaluate(symtab=symtab, directives=directives, lang=lang))
+    def evaluate(self, symtab=None, options=None):
+        return evalf(math.sin, cmath.sin, self.number.evaluate(symtab=symtab, options=options))
 
     def __repr__(self):
         return "Sin(%s)" % (self.number)
@@ -136,8 +136,8 @@ class Cos(Function):
     def __init__(self, number):
         self.number = number
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        return evalf(math.cos, cmath.cos, self.number.evaluate(symtab=symtab, directives=directives, lang=lang))
+    def evaluate(self, symtab=None, options=None):
+        return evalf(math.cos, cmath.cos, self.number.evaluate(symtab=symtab, options=options))
 
     def __repr__(self):
         return "Cos(%s)" % (self.number)
@@ -146,8 +146,8 @@ class Tan(Function):
     def __init__(self, number):
         self.number = number
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        return evalf(math.tan, cmath.tan, self.number.evaluate(symtab=symtab, directives=directives, lang=lang))
+    def evaluate(self, symtab=None, options=None):
+        return evalf(math.tan, cmath.tan, self.number.evaluate(symtab=symtab, options=options))
 
     def __repr__(self):
         return "Tan(%s)" % (self.number)
@@ -156,8 +156,8 @@ class Log(Function):
     def __init__(self, number):
         self.number = number
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        return evalf(math.log, cmath.log, self.number.evaluate(symtab=symtab, directives=directives, lang=lang))
+    def evaluate(self, symtab=None, options=None):
+        return evalf(math.log, cmath.log, self.number.evaluate(symtab=symtab, options=options))
 
     def __repr__(self):
         return "Log(%s)" % (self.number)
@@ -166,8 +166,8 @@ class Exp(Function):
     def __init__(self, number):
         self.number = number
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        return evalf(math.exp, cmath.exp, self.number.evaluate(symtab=symtab, directives=directives, lang=lang))
+    def evaluate(self, symtab=None, options=None):
+        return evalf(math.exp, cmath.exp, self.number.evaluate(symtab=symtab, options=options))
 
     def __repr__(self):
         return "Exp(%s)" % (self.number)
@@ -176,8 +176,8 @@ class Sqrt(Function):
     def __init__(self, number):
         self.number = number
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        return evalf(math.sqrt, cmath.sqrt, self.number.evaluate(symtab=symtab, directives=directives, lang=lang))
+    def evaluate(self, symtab=None, options=None):
+        return evalf(math.sqrt, cmath.sqrt, self.number.evaluate(symtab=symtab, options=options))
 
     def __repr__(self):
         return "Sqrt(%s)" % (self.number)
@@ -186,7 +186,7 @@ class Pi(Function):
     def __init__(self):
         pass
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         return math.pi
 
     def __repr__(self):
@@ -482,11 +482,11 @@ class Define(Assignment):
     def isConst(self,symtab=None):
         return symtab.isConst(self.value)
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         #Maybe this should call evaluate?
         print "Symbol: %s" % self.symbol
         print "Value: %s" % self.value
-        symtab[self.symbol] = self.value.evaluate(symtab=symtab, directives=directives, lang=lang)
+        symtab[self.symbol] = self.value.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
@@ -495,7 +495,7 @@ class Undefine(Assignment):
     def __init__(self, symbol, value):
         self.symbol = symbol
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         del symtab[self.symbol]
 
     def __repr__(self):
@@ -509,8 +509,8 @@ class SubName(Directive):
     def __init__(self, symbol):
         self.symbol = symbol
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        directives.subname = self.symbol
+    def evaluate(self, symtab=None, options=None):
+        options.subname = self.symbol
 
     def __repr__(self):
         return "SubName(%s)" % (self.symbol)
@@ -533,8 +533,8 @@ class Optimize(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        directives.optimize = self.flag.evaluate(symtab=symtab, directives=directives, lang=lang)
+    def evaluate(self, symtab=None, options=None):
+        options.optimize = self.flag.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Optimize(%s)" % (self.flag)
@@ -543,8 +543,8 @@ class Unroll(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        directives.unroll = self.flag.evaluate(symtab=symtab, directives=directives, lang=lang)
+    def evaluate(self, symtab=None, options=None):
+        options.unroll = self.flag.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Unroll(%s)" % (self.flag)
@@ -553,8 +553,8 @@ class Verbose(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        directives.verbose = self.flag.evaluate(symtab=symtab, directives=directives, lang=lang)
+    def evaluate(self, symtab=None, options=None):
+        options.verbose = self.flag.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Verbose(%s)" % (self.flag)
@@ -563,8 +563,8 @@ class Debug(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        directives.debug = self.flag.evaluate(symtab=symtab, directives=directives, lang=lang)
+    def evaluate(self, symtab=None, options=None):
+        options.debug = self.flag.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Debug(%s)" % (self.flag)
@@ -573,8 +573,8 @@ class Internal(Directive):
     def __init__(self, flag):
         self.flag = flag
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        directives.internal = self.flag.evaluate(symtab=symtab, directives=directives, lang=lang)
+    def evaluate(self, symtab=None, options=None):
+        options.internal = self.flag.evaluate(symtab=symtab, options=options)
 
     def __repr__(self):
         return "Inernal(%s)" % (self.flag)
@@ -605,7 +605,7 @@ class On(Flag):
     def __init__(self):
         pass
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         return True
 
     def __repr__(self):
@@ -615,7 +615,7 @@ class Off(Flag):
     def __init__(self):
         pass
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
+    def evaluate(self, symtab=None, options=None):
         return False
 
     def __repr__(self):
@@ -626,8 +626,8 @@ class Comment(Node):
     def __init__(self, txt):
         self.txt = txt
 
-    def evaluate(self, symtab=None, directives=None, lang=C99):
-        print "%s %s %s" % (lang.comment_begin(), self.txt, lang.comment_end())
+    def evaluate(self, symtab=None, options=None):
+        print "%s %s %s" % (options.lang.comment_begin(), self.txt, options.lang.comment_end())
 
     def __repr__(self):
         return "Comment(\"%s\")" % (self.txt)
