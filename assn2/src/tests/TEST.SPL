@@ -1,0 +1,149 @@
+;;/************************************************************************
+;; *                                                                      *
+;; *                   SPL Compiler Version 3.30                          *
+;; *                                                                      *
+;; *                         Jianxin Xiong                                *
+;; *                                                                      *
+;; *                  Department of Computer Science                      *
+;; *            University of Illinois at Urbana-Champaign                *
+;; *                                                                      *
+;; *  This software is copyrighted by the University of Illinois. You     *
+;; *  are granted a free license for non-commercial use. Please read      *
+;; *  the detailed license information in the file LICENSE.               *
+;; *                                                                      *
+;; *  Contact Information:                                                *
+;; *        URL:    http://polaris.cs.uiuc.edu/SPL                        *
+;; *        Email:  jxiong@cs.uiuc.edu                                    *
+;; *        Phone:  (217)333-6578,  Fax: (217)333-3501.                   *
+;; *                                                                      *
+;; *  Latest revision date: 04/10/2002                                    *
+;; *                                                                      *
+;; ************************************************************************/
+;;
+
+;; This is a test file to see if the compiler can generate right code
+;; for right SPL programs
+
+; predefined premitives
+
+#subname O4
+(O 4)
+
+#subname I4
+(I 8)
+
+#subname F4
+(F 4)
+
+#subname L82
+(L 8 2)
+
+#subname T84
+(T 8 4)
+(direct_sum (T 8 4, 0:2:6) (T 8 4, 1:2:7))
+
+; predefined operations
+
+#subname F2CF2
+(compose (F 2)(F 2))
+
+#subname I2TF2
+(tensor (I 2)(F 2))
+
+#subname F2TI2
+(tensor (F 2)(I 2))
+
+#subname F2_F2
+(direct_sum (F 2)(F 2))
+
+; explicit matrix
+
+#subname A
+(matrix (1 2 3)(4 5 6))
+
+#subname P
+(permutation ( 1 3 4 2 ))
+
+#subname D
+(diagonal (1 2 3 4))
+
+; rectangular matrix operations
+
+#subname AB
+(compose (matrix (1)(2))(matrix (1 2)))
+
+#subname BA
+(compose (matrix (1 2)) (matrix (1)(2)))
+
+#subname CTD
+(tensor (matrix (1 2)) (matrix (3 4)))
+
+; Iterative 8-point FFT
+
+#subname F8
+(define F8
+    (compose
+	 (tensor (F 2) (I 4))
+ 	 (T 8 4)
+	 (tensor (I 2)(F 2)(I 2))
+	 (tensor (I 2)(T 4 2))
+		 (tensor (F 2)(I 4))
+		 (tensor (I 2)(L 4 2))
+		 (L 8 2)))
+F8
+
+; Split radix FFT
+
+#subname F8_SPLIT_RADIX
+
+(define sigma
+	(matrix (1     0     1     1 )
+		(0     1 (0,-1) (0,1))
+		(1     0   (-1)   (-1) )
+		(0     1  (0,1)(0,-1))
+	))
+
+(define F4_SPLIT
+	(compose sigma
+		 (direct_sum (F 2) (I 2))
+		 (L 4 2)))
+
+(define F8_SPLIT
+	(compose (tensor sigma (I 2))
+		 (direct_sum (I 4)
+			     (diagonal (1 W(8 1)))
+			     (diagonal (1 W(8 3))))
+		 (direct_sum F4_SPLIT (F 2) (F 2))
+		 (direct_sum (I 4)(L 4 2))
+		 (L 8 2)))
+
+F8_SPLIT
+
+; directives
+
+#datatype real
+#subname F2_T_F2_real_data
+
+(tensor (F 2)(F 2))
+
+#subname F8_complex
+#datatype complex
+#codetype complex
+F8
+
+#subname F8_real
+#codetype real
+F8
+
+#subname F8_real_optimize
+#optimize on
+F8
+
+#optimize off
+
+;; partial unrolling
+;;(define_ F2_UNROLL (F 2))
+
+;;#unroll off
+;;#subname I2TF2_unroll
+;;(tensor (I 2) F2_UNROLL)

@@ -1,0 +1,641 @@
+
+;; SPL 3.2 Template Definition
+;; --------------------------------------------------------------------------
+;;
+;; parameters: $p0 is the node itself, $p1 is the first unknown, ...
+;;		appeared in depth first order (visually lexical order)
+;;		if the unknown is ANY (integer), $pn is the value
+;;		if the unknown is any (node), $pn is the pointer to the node,
+;;		***starting from version 3.25, a directly specified matrix is  
+;;		   also treated as an unknown (similar to 'any'). By doing this
+;;		   we can access matrix elements at any position.
+;;
+;; fields of parameters:
+;;		$pn.nx is the column (input) size, $pn.ny is the row (output)
+;;		size, $pn.nx_1 is ($pn.nx - 1), $pn.ny_1 is ($pn.ny - 1),
+;;		$pn.a(i j) is the matrix elements (if $pn is a directly 
+;;		specified matrix).
+;;		***starting from version 3.25, $pn.matrix_nrow and
+;;		   $pn.matrix_ncol are fields representing the definition size
+;;		   of the matrix. For example, a sparse matrix:
+;;		   (sparse (1 2 1.5)(2 2 2.3)) has definition size 2x3, but 
+;;		   represents a 2x2 matrix.				  
+;;
+;; loops:	$i0, $i1, ... are loop indices. $i0 is the index of the inner 
+;;		most loop relative to the current position.
+;;
+;; integers: 	$r0, $r1, ...
+;;
+;; floats: 	$f0, $f1, ...
+;;
+;; vectors: 	$x( a b c ... ) 
+;;           	$y( a b c ... ) 
+;;           	$t0( a b c ... ) means $t0(a+b*$i0+c*$i1+...)
+;;		***deftemp is used to declare a temporary vector
+;;
+;; matrix elements:
+;;		$p0.a(i j), $p1.a(i j), ...
+;;
+;; intrinsic functions: (parameters can be variables)
+;;		W( m k ), 1's mth root raised to power of k
+;;		WR( m k ), real part of W( m k )
+;;		WI( m k ), image part of W( m k )
+;;		TW( m n k ), 1's mth root raised to power of n*k 
+;;		TWR( m n k ), real part of TW( m n k ) 
+;;		TWI( m n k ), image part of TW( m n k ) 
+;;		C( m k ), cos(2*pi*k/m)
+;;		S( m k ), sin(2*pi*k/m)
+;;
+;; scalar functions: (parameters can only be constant expressions)
+;;		sin(a), cos(a), tan(a), log(a), exp(a), sqrt(a), pi
+;;		w(n): 1's nth root
+;;		w(n,k): 1's nth root raised to the power of k
+;;
+;; --------------------------------------------------------------------------
+;;
+;; operations:	result = src1 op src2
+;;		---- op could be +, -, *, /
+;;
+;; loops: 	do n 
+;;		  ......
+;;		end
+;;		---- loop from 0 to n-1
+;;
+;;        	dounroll n 
+;;		  ......
+;;		end
+;;		---- this loop and the loops inside it will always be unrolled
+;;
+;; call:	result = call node ( src )
+;;		---- execute the function defined by node, with src as 
+;;		     result as output
+;;
+;; temporary:	deftemp n
+;;		---- define a temporary vector with size of n
+;;
+;; --------------------------------------------------------------------------
+;;
+;; template guarding conditions: C-like syntax, enclosed by brackets
+;;
+;; boolean operator:      &&, ||, !
+;; relation operator:     ==, !=, >, <, >=, <=
+;; arithmetic operator:   +, -, *, /, %, (, )
+;; operands:              $pn, $pn.nx, $pn,ny, $pn.nx_1, $pn.ny_1
+;; 		           integer expression (if take an operation between 
+;;			   an integer and a prameter, the integer should be    
+;;			   in the second place).
+;;
+;; --------------------------------------------------------------------------
+
+#internal on
+
+(define SPL_SHAPE_SQUARE    0)
+(define SPL_SHAPE_RECT      1)
+(define SPL_SHAPE_DIAG      2)
+(define SPL_SHAPE_RECTDIAG  3)
+
+(define SPL_SIZE_IDENT	     0)
+(define SPL_SIZE_TRANSPOSE  1)
+(define SPL_SIZE_COMPOSE    2)
+(define SPL_SIZE_SUM        3)
+(define SPL_SIZE_TENSOR     4)
+(define SPL_SIZE_MATRIX     5)
+(define SPL_SIZE_VECTOR     6)
+(define SPL_SIZE_SPARSE     7)
+
+(primitive F SPL_SHAPE_SQUARE)
+(primitive I SPL_SHAPE_RECTDIAG)
+(primitive O SPL_SHAPE_RECTDIAG)
+(primitive T SPL_SHAPE_DIAG)
+(primitive L SPL_SHAPE_SQUARE)
+(primitive J SPL_SHAPE_SQUARE)
+
+(operation compose    SPL_SIZE_COMPOSE)
+(operation tensor     SPL_SIZE_TENSOR)
+(operation direct_sum SPL_SIZE_SUM)
+(operation conjugate  SPL_SIZE_COMPOSE)
+(operation scale      SPL_SIZE_TENSOR)
+
+(direct matrix       SPL_SIZE_MATRIX)
+(direct diagonal     SPL_SIZE_VECTOR)
+(direct permutation  SPL_SIZE_VECTOR)
+(direct rpermutation SPL_SIZE_VECTOR)
+(direct sparse       SPL_SIZE_SPARSE)
+
+(alias comp compose)
+(alias tens tensor)
+(alias dsum direct_sum)
+(alias conj conjugate)
+(alias matx matrix)
+(alias diag diagonal)
+(alias perm permutation)
+(alias rperm rpermutation)
+
+(template (F ANY)		;; ---- F(n) parameters: self(ny,nx), n
+       [$p1>=1]
+	(
+		do $p1
+		  $y(0 1) = 0
+		  do $p1
+		    $r0 = $i0 * $i1
+		    $r1 = $r0 / $p1
+		    $r2 = $r1 * $p1
+		    $r3 = $r0 - $r2
+		    $f0 = W($p1 $r3) * $x(0 1 0)
+		    $y(0 0 1) = $y(0 0 1) + $f0
+		  end
+		end
+	))
+
+(template (F ANY)		;; ---- F(n) parameters: self(ny,nx), n
+	[$p1>=1 && $p1<=16]
+	(
+		dounroll $p1
+		  $y(0 1) = 0
+		  do $p1
+		    $r0 = $i0 * $i1
+		    $r1 = $r0 / $p1
+		    $r2 = $r1 * $p1
+		    $r3 = $r0 - $r2
+		    $f0 = W($p1 $r3) * $x(0 1 0)
+		    $y(0 0 1) = $y(0 0 1) + $f0
+		  end
+		end
+	))
+
+(template (F 2)		;; ---- F(2) 
+	(
+		$y(1) = $x(0) - $x(1)
+		$y(0) = $x(0) + $x(1)
+	))
+
+(template (I ANY)		;; ---- I(n) parameters: self(ny,nx), n
+       [$p1>=1]
+	(
+		do $p1
+		  $y(0 1) = $x(0 1)
+		end
+	))
+
+(template (I ANY)		;; ---- I(n) parameters: self(ny,nx), n
+	[$p1>=1 && $p1<=16]
+	(
+		dounroll $p1
+		  $y(0 1) = $x(0 1)
+		end
+	))
+
+(template (I ANY ANY)		;; ---- I(m,n) parameters: self(ny,nx), m,n
+       [$p1>=1 && $p1<=$p2]
+	(
+		do $p1
+		  $y(0 1) = $x(0 1)
+		end
+	))
+
+(template (I ANY ANY)		;; ---- I(m,n) parameters: self(ny,nx), m,n
+       [$p1>=1 && $p1<=$p2 && $p1<=16]
+	(
+		dounroll $p1
+		  $y(0 1) = $x(0 1)
+		end
+	))
+
+(template (I ANY ANY)		;; ---- I(m,n) parameters: self(ny,nx), m,n
+       [$p1>=1 && $p1>$p2]
+	(
+		do $p2
+		  $y(0 1) = $x(0 1)
+		end
+		$r0 = $p1-$p2
+		do $r0
+		  $y($p2 1) = 0
+		end
+	))
+
+(template (I ANY ANY)		;; ---- I(m,n) parameters: self(ny,nx), m,n
+       [$p1>=1 && $p1>$p2 && $p1<=16]
+	(
+		dounroll $p2
+		  $y(0 1) = $x(0 1)
+		end
+		$r0 = $p1-$p2
+		dounroll $r0
+		  $y($p2 1) = 0
+		end
+	))
+
+(template (J ANY)		;; ---- J(n) parameters: self(ny,nx), n
+       [$p1>=1]
+	(
+		do $p1
+                 $r0 = $p1-1              
+		  $y(0 1) = $x($r0 (-1))
+		end
+	))
+
+(template (J ANY)		;; ---- J(n) parameters: self(ny,nx), n
+	[$p1>=1 && $p1<=16]
+	(
+		dounroll $p1
+                 $r0 = $p1-1              
+		  $y(0 1) = $x($r0 (-1))
+		end
+	))
+
+(template (O ANY)		;; ---- O(n) parameters: self(ny,nx), n
+       [$p1>=1]
+	(
+		do $p1
+		  $y(0 1) = 0
+		end
+	))
+
+(template (O ANY)		;; ---- O(n) parameters: self(ny,nx), n
+	[$p1>=1 && $p1<=16]
+	(
+		dounroll $p1
+		  $y(0 1) = 0
+		end
+	))
+
+(template (T ANY ANY) 		;; ---- T(mn n) parameters: self(ny,nx), mn, n
+	[$p1>=1 && $p2>=1 && $p1%$p2==0]
+	(
+		do $p1
+		  $r0 = $i0
+	          $y(0 1) = TW($p1 $p2 $r0) * $x(0 1)
+		end
+	))
+
+(template (T ANY ANY)		;; ---- T(mn n) parameters: self(ny,nx), mn, n
+	[$p1>=1 && $p2>=1 && $p1%$p2==0 && $p1<=16]
+	(
+		dounroll $p1
+		  $r0 = $i0
+	          $y(0 1) = TW($p1 $p2 $r0) * $x(0 1)
+		end
+	))
+
+(template (T ANY ANY, ANY:ANY:ANY) 
+		;; ---- T(mn n,i:j:k) parameters: self(ny,nx), mn, n, i, j, k 
+	[$p1>=1 && $p2>=1 && $p1%$p2==0]
+	(
+		$r0 = $p5 - $p3
+		$r0 = $r0 / $p4
+		$r0 = $r0 + 1
+		do $r0
+		  $r1 = $i0 * $p4
+		  $r1 = $r1 + $p3
+	          $y(0 1) = TW($p1 $p2 $r1) * $x(0 1)
+		end
+	))
+
+(template (T ANY ANY, ANY:ANY:ANY)
+		;; ---- T(mn n,i:j:k) parameters: self(ny,nx), mn, n, i, j, k 
+	[$p1>=1 && $p2>=1 && $p1%$p2==0 && ($p5-$p3)/$p4+1<=16]
+	(
+		$r0 = $p5 - $p3
+		$r0 = $r0 / $p4
+		$r0 = $r0 + 1
+		dounroll $r0
+		  $r1 = $i0 * $p4
+		  $r1 = $r1 + $p3
+	          $y(0 1) = TW($p1 $p2 $r1) * $x(0 1)
+		end
+	))
+
+(template (L ANY ANY)		;; ---- L(mn n) parameters: self(ny,nx), mn, n
+	[$p1>=1 && $p2>=1 && $p1%$p2==0]
+	(
+		$r0 = $p1 / $p2
+		do $p2
+		  do $r0
+		    $y(0 1 $r0) = $x(0 $p2 1)
+		  end
+		end
+	))
+
+(template (L ANY ANY)		;; ---- L(mn n) parameters: self(ny,nx), mn, n
+	[$p1>=1 && $p2>=1 && $p1%$p2==0 && $p1<=16]
+	(
+		$r0 = $p1 / $p2
+		dounroll $p2
+		  do $r0
+		    $y(0 1 $r0) = $x(0 $p2 1)
+		  end
+		end
+	))
+
+(template (compose any any) 
+		;; ---- Amn * Bpq parameters: self(ny,nx), A(m,n), B(p,q)
+	(			 
+		deftemp $p2.ny
+		$t0(0:1:$p2.ny_1) = call $p2( $x(0:1:$p2.nx_1) )
+		$y(0:1:$p1.ny_1)  = call $p1( $t0(0:1:$p1.nx_1) )
+	))
+
+(template (tensor any any)
+		;; ---- Amn x Bpq parameters: self(ny,nx), A(m,n), B(p,q)
+	(
+		$r0 = $p1.nx * $p2.ny
+		$r1 = $r0 - 1
+		deftemp $r0
+		do $p1.nx
+		  $t0(0:1:$p2.ny_1 $p2.ny) = call $p2( $x(0:1:$p2.nx_1 $p2.nx) )
+		end
+		do $p2.ny
+		  $y(0:$p2.ny:$p0.ny_1 1) = call $p1( $t0(0:$p2.ny:$r1 1) )
+		end
+	))
+
+(template (tensor (I ANY) any)
+		;; ---- Imm x Bpq parameters: self(ny,nx), m,B(p,q)
+	(
+		do $p1
+		  $y(0:1:$p2.ny_1 $p2.ny) = call $p2( $x(0:1:$p2.nx_1 $p2.nx) )
+		end
+	))
+
+(template (tensor any (I ANY))
+		;; ---- Amn x Ipp parameters: self(ny,nx), A(m,n), p
+	(
+		do $p2
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $x(0:$p2:$p1.nx_1 1) )
+		end
+	))
+
+(template (direct_sum any any)  
+		;; ---- Amn + Bpq parameters: self(ny,nx), A(mn,n), B(p,q)
+	(
+		$y(0:1:$p1.ny_1) = call $p1( $x(0:1:$p1.nx_1) )
+		$y($p1.ny:1:$p0.ny_1) = call $p2( $x($p1.nx:1:$p0.nx_1) )
+	)) 
+
+(template (matrix (0))		;; ---- matrix parameters: self(ny,nx), matrix
+       ;; format: (matrix (a11 ... a1n) ... (am1 ... amn))
+	(
+		dounroll $p1.ny
+		  $y(0 1) = 0
+		  do $p1.nx
+		    $f0 = $p1.a($i1 $i0) * $x(0 1 0)
+		    $y(0 0 1) = $y(0 0 1) + $f0
+		  end
+		end
+	))
+
+(template (diagonal (0))	;; ---- diagonal parameters: self(ny,nx), diag
+       ;; format: (diagonal (a11 ... amm))
+	(
+		dounroll $p1.ny
+		  $y(0 1) = $p1.a(0 $i0) * $x(0 1)
+		end
+	))
+
+(template (permutation (0))	;; ---- permutation parameters: self(ny,nx), perm
+       ;; format: (permutation (p1 ... pn)), 1<=pi<=n
+	(
+		dounroll $p1.ny
+		  $r0 = $p1.a(0 $i0) - 1
+		  $y(0 1) = $x($r0 0)
+		end
+	))
+
+(template (rpermutation (0))	;; ---- rpermutation parameters: self(ny,nx),rperm
+       ;; format: (rpermutation (p1 ... pn)), 1<=pi<=n
+	(
+		dounroll $p1.ny
+		  $r0 = $p1.a(0 $i0) - 1
+		  $y($r0 0) = $x(0 1)
+		end
+	))
+
+(template (sparse (0))		;; ---- sparse parameters: self(ny,nx), sp-matrix
+       ;; format: (sparse (i j aij) ... ), 1<=i<=ny, 1<=j<=nx
+	(
+		dounroll $p1.ny
+		  $y(0 1) = 0
+		end
+		dounroll $p1.matrix_nrow
+		  $r0 = $p1.a($i0 0)-1
+		  $r1 = $p1.a($i0 1)-1
+		  $f1 = $p1.a($i0 2)*$x($r1 0)
+		  $y($r0 0) = $y($r0 0)+$f1	 
+		end
+	))
+
+(template (conjugate any (permutation (0)))
+	[ $p1.nx==$p1.ny && $p1.ny==$p2.ny ]
+			;; ---- (conjugate A P) parameters: self(ny,nx), A, P
+	(
+		deftemp $p2.ny
+		deftemp $p2.ny
+		dounroll $p2.ny
+		  $r0 = $p2.a(0 $i0) - 1
+		  $t0(0 1) = $x($r0 0)
+		end
+		$t1(0:1:$p1.ny) = call $p1($t0(0:1:$p1.nx))
+		dounroll $p2.ny
+		  $r0 = $p2.a(0 $i0) - 1
+		  $y($r0 0) = $t1(0 1)
+		end
+	))
+
+(template (conjugate any (L ANY ANY))
+	[ $p1.nx==$p1.ny && $p1.ny==$p2 && $p2>=1 && $p3>=1 && $p2%$p3==0 ]
+	(
+		deftemp $p2
+		deftemp $p2
+		$r0 = $p2 / $p3
+		do $p3
+		  do $r0
+		    $t0(0 1 $r0) = $x(0 $p3 1)
+		  end
+		end
+		$t1(0:1:$p1.ny) = call $p1($t0(0:1:$p1.nx))
+		$r0 = $p2 / $p3
+		do $r0
+		  do $p3
+		    $y(0 1 $p3) = $t1(0 $r0 1)
+		  end
+		end
+	))
+
+(template (scale ANY any)
+	;; ---- (scale a B) parameters: self(ny,nx), a, B
+	;; ---- a is written as a scalar value, while internally representd
+	;; ---- as an 1x1 matrix, that's why we use $p1.a(0 0) instead of $p1
+	[$p1.nx==1 && $p1.ny==1]
+	(
+		deftemp $p2.ny
+		$t0(0:1:$p2.ny_1) = call $p2( $x(0:1:$p2.nx_1) )
+		do $p2.ny
+		  $y(0 1) = $p1.a(0 0) * $t0(0 1)
+		end
+	))
+
+(template (scale ANY any)
+	;; ---- (scale a B) parameters: self(ny,nx), a, B
+	;; ---- a is written as a scalar value, while internally representd
+	;; ---- as an 1x1 matrix, that's why we use $p1.a(0 0) instead of $p1
+	[$p1.nx==1 && $p1.ny==1 && $p2.ny<=16]
+	(
+		deftemp $p2.ny
+		$t0(0:1:$p2.ny_1) = call $p2( $x(0:1:$p2.nx_1) )
+		dounroll $p2.ny
+		  $y(0 1) = $p1.a(0 0) * $t0(0 1)
+		end
+	))
+
+(template 			;; ---- (In x Apq)(L nq n)
+	(compose (tensor (I ANY) any) (L ANY ANY)) 
+	[ $p1==$p4 && $p1*$p2.nx==$p3 && $p1>=1 && $p3%$p4==0]
+	(
+		do $p1
+		  $y(0:1:$p2.ny_1 $p2.ny) = call $p2( $x(0:$p1:$p0.nx_1 1 ))
+		end
+	))
+
+(template			;; ---- (Amm x In)(T mn n)
+	(compose (tensor any (I ANY)) (T ANY ANY))
+	[ $p2==$p4 && $p1.nx==$p1.ny && $p1.nx*$p2==$p3 && $p2>=1 && $p3%$p4==0]
+	(
+		deftemp $p1.nx
+		do $p2
+		  $t0(0) = $x(0 1)
+		  do $p1.nx_1
+		    $r0 = $i0 + 1   
+		    $r0 = $r0 * $p2
+		    $r0 = $r0 + $i1
+		    $t0(1 1) = TW($p3 $p4 $r0) * $x($p2 $p2 1)
+		  end
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $t0(0:1:$p1.nx_1 0) )
+		end
+	))
+
+(template			;; ---- (Amm x In)(T mn n)
+	(compose (tensor any (I ANY)) (T ANY ANY))
+	[ $p2==$p4 && $p1.nx==$p1.ny && $p1.nx*$p2==$p3 && $p2>=1 && $p3%$p4==0 && $p1.nx<=64 ]
+	(
+		deftemp $p1.nx
+		do $p2
+		  $t0(0) = $x(0 1)
+		  dounroll $p1.nx_1
+		    $r0 = $i0 + 1   
+		    $r0 = $r0 * $p2
+		    $r0 = $r0 + $i1
+		    $t0(1 1) = TW($p3 $p4 $r0) * $x($p2 $p2 1)
+		  end
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $t0(0:1:$p1.nx_1 0) )
+		end
+	))
+
+;; More templates for FFT only
+
+;; To elliminate temporary vectors for:
+;; (Am x In)(T mn n)(Im x Bn)(L mn m)
+
+(template
+        (compose 
+	    (tensor any (I ANY)) 
+           (T ANY ANY)
+	    (tensor (I ANY) any) 
+           (L ANY ANY) )
+	[ $p2==$p4 && $p1.nx==$p1.ny && $p1.nx*$p2==$p3 &&
+         $p5==$p8 && $p5*$p6.nx==$p7 && $p7==$p3 ]
+	(
+		deftemp $p1.nx
+		do $p5
+		  $y(0:1:$p6.ny_1 $p6.ny) = call $p6( $x(0:$p5:$p0.nx_1 1 ))
+		end
+		do $p2
+		  $t0(0) = $y(0 1)
+		  do $p1.nx_1
+		    $r0 = $i0 + 1  
+		    $r0 = $r0 * $p2
+		    $r0 = $r0 + $i1
+                    $f0 = TW($p3 $p4 $r0) * $y($p2 $p2 1)
+		    $t0(1 1) = $f0
+		  end
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $t0(0:1:$p1.nx_1 0) )
+		end
+	))
+
+(template
+        (compose 
+	    (tensor any (I ANY)) 
+           (T ANY ANY)
+	    (tensor (I ANY) any) 
+           (L ANY ANY) )
+	[ $p2==$p4 && $p1.nx==$p1.ny && $p1.nx*$p2==$p3 &&
+         $p5==$p8 && $p5*$p6.nx==$p7 && $p7==$p3 && $p1.nx<=64 ]
+	(
+		deftemp $p1.nx
+		do $p5
+		  $y(0:1:$p6.ny_1 $p6.ny) = call $p6( $x(0:$p5:$p0.nx_1 1 ))
+		end
+		do $p2
+		  $t0(0) = $y(0 1)
+		  dounroll $p1.nx_1
+		    $r0 = $i0 + 1  
+		    $r0 = $r0 * $p2
+		    $r0 = $r0 + $i1
+                    $f0 = TW($p3 $p4 $r0) * $y($p2 $p2 1)
+		    $t0(1 1) = $f0
+		  end
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $t0(0:1:$p1.nx_1 0) )
+		end
+	))
+
+;; A variation
+
+(template
+        (compose 
+	    (compose (tensor any (I ANY)) (T ANY ANY))
+	    (tensor (I ANY) any)
+           (L ANY ANY) )
+	[ $p2==$p4 && $p1.nx==$p1.ny && $p1.nx*$p2==$p3 &&
+         $p5==$p8 && $p5*$p6.nx==$p7 && $p7==$p3 ]
+	(
+		deftemp $p1.nx
+		do $p5
+		  $y(0:1:$p6.ny_1 $p6.ny) = call $p6( $x(0:$p5:$p0.nx_1 1 ))
+		end
+		do $p2
+		  $t0(0) = $y(0 1)
+		  do $p1.nx_1
+		    $r0 = $i0 + 1  
+		    $r0 = $r0 * $p2
+		    $r0 = $r0 + $i1
+                    $f0 = TW($p3 $p4 $r0) * $y($p2 $p2 1)
+		    $t0(1 1) = $f0
+		  end
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $t0(0:1:$p1.nx_1 0) )
+		end
+	))
+
+(template
+        (compose 
+	    (compose (tensor any (I ANY)) (T ANY ANY))
+	    (tensor (I ANY) any)
+           (L ANY ANY) )
+	[ $p2==$p4 && $p1.nx==$p1.ny && $p1.nx*$p2==$p3 &&
+         $p5==$p8 && $p5*$p6.nx==$p7 && $p7==$p3 && $p1.nx<=64]
+	(
+		deftemp $p1.nx
+		do $p5
+		  $y(0:1:$p6.ny_1 $p6.ny) = call $p6( $x(0:$p5:$p0.nx_1 1 ))
+		end
+		do $p2
+		  $t0(0) = $y(0 1)
+		  dounroll $p1.nx_1
+		    $r0 = $i0 + 1  
+		    $r0 = $r0 * $p2
+		    $r0 = $r0 + $i1
+                    $f0 = TW($p3 $p4 $r0) * $y($p2 $p2 1)
+		    $t0(1 1) = $f0
+		  end
+		  $y(0:$p2:$p1.ny_1 1) = call $p1( $t0(0:1:$p1.nx_1 0) )
+		end
+	))
+#internal off
