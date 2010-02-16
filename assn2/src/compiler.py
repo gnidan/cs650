@@ -38,7 +38,8 @@ def main(argv=None):
     filename = None
     verbose = False
     debug = False
-    sign = 1
+
+    options = Options()
 
     try:
         try:
@@ -54,9 +55,9 @@ def main(argv=None):
                 debug = 1
             if option == "-x":
               if value == "posw":
-                  sign = 1
+                  options['sign'] = 1
               elif value == "negw":
-                  sign = -1
+                  options['sign'] = -1
               else:
                   raise Usage("Invalid option for -x\n\n" + help_message)
             if option in ("-h", "--help"):
@@ -94,13 +95,16 @@ def main(argv=None):
 
     if verbose:
         print "\n** Optimising the AST (Constant Propagation)"
-    t.optimize(SymbolTable())
+    t.optimize(SymbolTable(), options)
+    if debug:
+        print "\n Optimized AST:"
+        print t
 
-    if verbose:
-        print "\n** Evaluating the AST"
-    symtab = SymbolTable()
-    t.evaluate(symtab=symtab, options=Options())
-    print symtab
+    #if verbose:
+    #    print "\n** Evaluating the AST"
+    #symtab = SymbolTable()
+    #t.evaluate(symtab=symtab, directives=Directives(), lang=C99)
+    #print symtab
 
     if t is None:
         return

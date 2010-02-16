@@ -21,9 +21,9 @@ class Node:
     def __init__(self):
         raise NotImplementedError
 
-    def optimize(self, symtab):
+    def optimize(self, symtab=None, options=None):
         '''Performs early optimizations on the AST such as Constant Folding'''
-        pass
+        pass #raise NotImplementedError #TODO Should be pass
 
     def evaluate(self, symtab=None, options=None):
         raise NotImplementedError
@@ -36,7 +36,7 @@ class Node:
 
     def __repr__(self):
         '''prints the AST in an ATerm like format'''
-        raise NotImplementedError
+        return self.__class__.__name__
 
 class Formula(Node):
     def definition(self, symtab=None, options=None):
@@ -54,7 +54,7 @@ class Program(Node):
         self.stmts = stmts
 
     def evaluate(self, symtab=None, options=None):
-        self.stmts.evaluate(symtab=symtab, options=options)
+        self.stmts.evaluate(symtab, options)
 
     def __repr__(self):
         return "Program(%s)" % (self.stmts)
@@ -71,7 +71,7 @@ class StmtList(Node):
 
     def evaluate(self, symtab=None, options=None):
         for stmt in self.stmts:
-            stmt.evaluate(symtab=symtab, options=options)
+            stmt.evaluate(symtab, options)
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -102,6 +102,16 @@ class Integer(Scalar):
 class Double(Scalar):
     pass
 
+class Pi(Double):
+    def __init__(self):
+        pass
+
+    def evaluate(self, symtab=None, options=None):
+        return math.pi
+
+    def __repr__(self):
+        return "pi"
+
 class Complex(Number):
     def __init__(self, real, imaginary):
         self.real = real
@@ -115,82 +125,37 @@ class ConstantError(ValueError):
         self.msg = "'%s' is not a constant" % (msg)
 
 class Function(Node):
-    def evalf(sclr, cmplx, val):
+    def __init__(self, number):
+        self.number = number
+
+    def calc(self, arg, symtab=None):
+        fname = self.__class__.__name__.lower()
         if isinstance(val, complex):
-            return cmplx(val)
+            module = cmath
         elif isinstance(val, numbers.Real):
-            return sclr(val)
-        raise ConstantError(val)
+            module = math
+        else:
+            raise ConstantError(val)
+        if hasattr(module, fname):
+                return getattr(module, fname)(arg)
 
-class Sin(Function):
-    def __init__(self, number):
-        self.number = number
-
-    def evaluate(self, symtab=None, options=None):
-        return evalf(math.sin, cmath.sin, self.number.evaluate(symtab=symtab, options=options))
-
-    def __repr__(self):
-        return "Sin(%s)" % (self.number)
-
-class Cos(Function):
-    def __init__(self, number):
-        self.number = number
-
-    def evaluate(self, symtab=None, options=None):
-        return evalf(math.cos, cmath.cos, self.number.evaluate(symtab=symtab, options=options))
+    def optimize(self, symtab=None, options=None):
+        return calc(self.number.evaluate(symtab, options))
 
     def __repr__(self):
-        return "Cos(%s)" % (self.number)
+        return "%s(%s)" % (self.__class__.__name__, self.number)
 
-class Tan(Function):
-    def __init__(self, number):
-        self.number = number
+class Sin(Function): pass
 
-    def evaluate(self, symtab=None, options=None):
-        return evalf(math.tan, cmath.tan, self.number.evaluate(symtab=symtab, options=options))
+class Cos(Function): pass
 
-    def __repr__(self):
-        return "Tan(%s)" % (self.number)
+class Tan(Function): pass
 
-class Log(Function):
-    def __init__(self, number):
-        self.number = number
+class Log(Function): pass
 
-    def evaluate(self, symtab=None, options=None):
-        return evalf(math.log, cmath.log, self.number.evaluate(symtab=symtab, options=options))
+class Exp(Function): pass
 
-    def __repr__(self):
-        return "Log(%s)" % (self.number)
-
-class Exp(Function):
-    def __init__(self, number):
-        self.number = number
-
-    def evaluate(self, symtab=None, options=None):
-        return evalf(math.exp, cmath.exp, self.number.evaluate(symtab=symtab, options=options))
-
-    def __repr__(self):
-        return "Exp(%s)" % (self.number)
-
-class Sqrt(Function):
-    def __init__(self, number):
-        self.number = number
-
-    def evaluate(self, symtab=None, options=None):
-        return evalf(math.sqrt, cmath.sqrt, self.number.evaluate(symtab=symtab, options=options))
-
-    def __repr__(self):
-        return "Sqrt(%s)" % (self.number)
-
-class Pi(Function):
-    def __init__(self):
-        pass
-
-    def evaluate(self, symtab=None, options=None):
-        return math.pi
-
-    def __repr__(self):
-        return "pi"
+class Sqrt(Function): pass
 
 class w(Function):
     def __init__(self, n, k=None):
@@ -202,60 +167,39 @@ class w(Function):
 
 ##### Operators #####
 class Operator:
-    pass
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
 
 class Add(Operator):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def __repr__(self):
-        return "Add(%s, %s)" % (self.left, self.right)
+    pass
 
 class Sub(Operator):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def __repr__(self):
-        return "Sub(%s, %s)" % (self.left, self.right)
+    pass
 
 class Mul(Operator):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def __repr__(self):
-        return "Mul(%s, %s)" % (self.left, self.right)
+    pass
 
 class Div(Operator):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def __repr__(self):
-        return "Div(%s, %s)" % (self.left, self.right)
-
+    pass
 
 class Mod(Operator):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def __repr__(self):
-        return "Mod(%s, %s)" % (self.left, self.right)
+    pass
 
 class Neg(Operator):
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
-        return "Neg(%s)" % (self.value)
+        return "%s(%s)" % (self.__class__.__name__, self.value)
 
 ##### 1.1 Predefined Matrix Constructors ######
 class Constructor(Formula):
     def __init__(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 class MatrixRow(Constructor):
     def __init__(self, values):
@@ -486,7 +430,7 @@ class Define(Assignment):
         #Maybe this should call evaluate?
         print "Symbol: %s" % self.symbol
         print "Value: %s" % self.value
-        symtab[self.symbol] = self.value.evaluate(symtab=symtab, options=options)
+        symtab[self.symbol] = self.value.evaluate(symtab, options)
 
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
@@ -503,123 +447,81 @@ class Undefine(Assignment):
 
 ##### 2.2 Directive ######
 class Directive(Node):
-    pass
-
-class SubName(Directive):
-    def __init__(self, symbol):
-        self.symbol = symbol
+    def __init__(self, value):
+        self.value = value
 
     def evaluate(self, symtab=None, options=None):
-        options.subname = self.symbol
+        options[self.__class__.__name__.lower()] = self.value.value()
 
     def __repr__(self):
-        return "SubName(%s)" % (self.symbol)
+        return "%s(%s)" % (self.__class__.__name__, self.value)
 
-class DataType(Directive):
-    def __init__(self, t):
-        self.t = t
+class SubName(Directive): pass
 
-    def __repr__(self):
-        return "DataType(%s)" % (self.t)
+class DataType(Directive): pass
 
-class CodeType(Directive):
-    def __init__(self, t):
-        self.t = t
+class CodeType(Directive): pass
 
-    def __repr__(self):
-        return "CodeType(%s)" % (self.t)
+class Optimize(Directive): pass
 
-class Optimize(Directive):
-    def __init__(self, flag):
-        self.flag = flag
+class Unroll(Directive): pass
+
+class Verbose(Directive): pass
+
+class Debug(Directive): pass
+
+class Internal(Directive): pass
+
+#### DirectiveParams ####
+class DirectiveParam(Node):
+    def __init__(self):
+        pass
 
     def evaluate(self, symtab=None, options=None):
-        options.optimize = self.flag.evaluate(symtab=symtab, options=options)
+        return value()
+
+    def value(self):
+        raise NotImplementedError
 
     def __repr__(self):
-        return "Optimize(%s)" % (self.flag)
+        return self.__class__.__name__
 
-class Unroll(Directive):
-    def __init__(self, flag):
-        self.flag = flag
-
-    def evaluate(self, symtab=None, options=None):
-        options.unroll = self.flag.evaluate(symtab=symtab, options=options)
-
-    def __repr__(self):
-        return "Unroll(%s)" % (self.flag)
-
-class Verbose(Directive):
-    def __init__(self, flag):
-        self.flag = flag
-
-    def evaluate(self, symtab=None, options=None):
-        options.verbose = self.flag.evaluate(symtab=symtab, options=options)
-
-    def __repr__(self):
-        return "Verbose(%s)" % (self.flag)
-
-class Debug(Directive):
-    def __init__(self, flag):
-        self.flag = flag
-
-    def evaluate(self, symtab=None, options=None):
-        options.debug = self.flag.evaluate(symtab=symtab, options=options)
-
-    def __repr__(self):
-        return "Debug(%s)" % (self.flag)
-
-class Internal(Directive):
-    def __init__(self, flag):
-        self.flag = flag
-
-    def evaluate(self, symtab=None, options=None):
-        options.internal = self.flag.evaluate(symtab=symtab, options=options)
-
-    def __repr__(self):
-        return "Inernal(%s)" % (self.flag)
-
-#### Type ####
-class Type(Node):
+### Type ###
+class Type(DirectiveParam):
     pass
 
 class RealType(Type):
-    def __init__(self):
-        pass
+    def value(self):
+        return numerics.Real
 
     def __repr__(self):
         return "real"
 
 class ComplexType(Type):
-    def __init__(self):
-        pass
+    def value(self):
+        return numerics.Complex
 
     def __repr__(self):
         return "complex"
 
-#### Flag ####
-class Flag(Node):
+### Flag ###
+class Flag(DirectiveParam):
     pass
 
 class On(Flag):
-    def __init__(self):
-        pass
-
-    def evaluate(self, symtab=None, options=None):
+    def value(self):
         return True
 
-    def __repr__(self):
-        return "on"
-
 class Off(Flag):
-    def __init__(self):
-        pass
-
-    def evaluate(self, symtab=None, options=None):
+    def value(self):
         return False
 
-    def __repr__(self):
-        return "off"
+### SubName ###
+class Name(DirectiveParam):
+    def __init__(self, value):
+        self.value = value
+    def value(self):
+        return self.value
 
 ##### 2.3 Comments ######
 class Comment(Node):

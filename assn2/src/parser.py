@@ -214,7 +214,7 @@ class SPLParser:
 
     def p_directive_subname(self, p):
         'directive : HASH SUBNAME SYMBOL'
-        p[0] = ast.SubName(p[3])
+        p[0] = ast.SubName(ast.Name(p[3]))
 
     def p_directive_codetype(self, p):
         'directive : HASH CODETYPE type'

@@ -45,3 +45,18 @@ class Options:
         self.codetype = numbers.Real
         self.datatype = numbers.Complex
         self.language = C99
+        self.sign = 1
+
+    def __getitem__(self, key):
+        try:
+            getattr(self, key)
+        except:
+            raise KeyError
+
+    def __setitem__(self, key, value):
+        if hasattr(self, key):
+            setattr(self, key, value)
+        raise KeyError
+
+    def __delitem__(self, key):
+        raise KeyError
