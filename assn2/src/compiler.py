@@ -15,7 +15,7 @@ PLY SPL compiler.
 import sys
 import getopt
 from symbol_collection import SymbolTable
-from flags import Flags
+from directives import Directives
 
 from parser import SPLParser
 
@@ -93,8 +93,14 @@ def main(argv=None):
         print t
 
     if verbose:
+        print "\n** Optimising the AST (Constant Propagation)"
+    t.optimize(SymbolTable())
+
+    if verbose:
         print "\n** Evaluating the AST"
-        t.evaluate(symtab=SymbolTable(), flags=Flags())
+    symtab = SymbolTable()
+    t.evaluate(symtab=symtab, directives=Directives(), lang=C99)
+    print symtab
 
     if t is None:
         return

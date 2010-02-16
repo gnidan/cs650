@@ -6,12 +6,14 @@ Kevin Lynch
 Nick D'Andrea
 Keith Dailey
 
-flags.py
+directives.py
 
-Contains all of the runtime flags that can be set.
+Contains all of the runtime directives that can be set.
 """
 
-class Flags:
+import numbers
+
+class Directives:
     def __init__(self):
         self.unroll = False
         self.optimize = False
@@ -19,3 +21,5 @@ class Flags:
         self.debug = False
         self.internal = False
         self.subname = "func"
+        self.codetype = numbers.Real
+        self.datatype = numbers.Real

@@ -51,26 +51,31 @@ class Variable:
 class IntegerConst(Variable):
   """Represents an Integer constant value"""
   def __init__(self, value=0):
+    self.const = True
     self.value = int(value)
 
 class RealConst(Variable):
   """Represents a Double constant value"""
   def __init__(self, value):
+    self.const = True
     self.value = float(value=0)
 
 class ComplexConst(Variable):
   """Represents a Complex constant value"""
   def __init__(self, value=0):
+    self.const = True
     self.value = complex(0)
 
 class Formula(Variable):
   """Represents a definition of a formula"""
   def __init__(self, value=None):
+    self.const = False
     self.value = value
 
 class Code(Formula):
   """Represents a definition of a formula with icode"""
   def __init__(self, value=None, icode=None):
+    self.const = False
     self.value = value
     self.icode = icode
 
@@ -171,3 +176,8 @@ class SymbolTable(dict):
     if self.has_key(key):
       raise AlreadyDefinedError(key)
     super(SymbolTable,self).__setitem__(key, value)
+
+  def isConst(self, value):
+    if self.has_key(key):
+      return super(SymbolTable,self).__getitem__(key).isConst
+    return KeyError
