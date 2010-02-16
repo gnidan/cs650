@@ -150,11 +150,11 @@ class ICodeParser:
   def p_symbol(self, p):
     """symbol : DOLLAR SCALAR
               | DOLLAR VECTOR"""
-    p[0] = iast.Symbol(p[1])
+    p[0] = iast.Symbol(p[2])
 
   def p_symbol_subscript(self, p):
     'symbol : DOLLAR VECTOR subscript'
-    p[0] = iast.Symbol(p[1], p[2])
+    p[0] = iast.Symbol(p[2], p[3])
 
   def p_subscript(self, p):
     'subscript : LBRACKET value RBRACKET'
