@@ -1,2 +1,2 @@
 clean:
-	@$(RM) -rf *_parsetab.py *.pyc *~
+	@$(RM) -rf *.dbg *_parsetab.py *.pyc *~
