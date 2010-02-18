@@ -202,6 +202,7 @@ class SPLParser:
 
     def p_stmt(self, p):
         """stmt : definition
+                | template
                 | formula
                 | directive
                 | comment
@@ -263,6 +264,15 @@ class SPLParser:
     def p_definition_formula(self, p):
         'definition : LPAREN DEFINE SYMBOL formula RPAREN'
         p[0] = ast.Define(p[3], p[4])
+
+    def p_template_formula(self, p):
+        'template : LPAREN TEMPLATE LBRACKET condition RBRACKET pattern 
+            icode-list RPAREN'
+        p[0] = ast.Template(p[6], p[7], p[4])
+
+    def p_template_formula(self, p):
+        'template : LPAREN TEMPLATE pattern icode-list RPAREN'
+        p[0] = ast.Template(p[3], p[4])
 
     def p_formula(self, p):
         """formula : matrix

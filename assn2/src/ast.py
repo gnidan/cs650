@@ -680,6 +680,22 @@ class Scale(Operation):
 class Assignment(Node):
     pass
 
+class Template(Assignment):
+    def __init__(self, pattern, icode_list, condition=None):
+        self.pattern = pattern
+        self.condition = condition
+        self.icode_list = icode_list
+
+    def isConst(self, symbtab=None):
+        return False
+
+    def evaluate(self, symtab, options):
+        # buhh gotta think about this one :) TODO
+        symtab[self.pattern.symbol] = (
+            self.pattern.evaluate(symtab, options), 
+            self.icode_list.evaluate(symtab, options
+              )
+
 class Define(Assignment):
     def __init__(self, symbol, value, const=False):
         self.symbol = symbol
