@@ -491,30 +491,6 @@ class F(ParametrizedMatrix):
     def __repr__(self):
         return "(F %s)" % (self.n)
 
-    def __icode__(self, out_v, in_v, symbol_table):
-        out_loop = Do(n)
-        in_loop =  Do(n)
-        i0 = out_loop.var
-        i1 = in_loop.var
-        symbol_table.add_index(i0)
-        symbol_table.add_index(i1)
-
-        r  = symbol_table.get_new_int()
-        f0 = symbol_table.get_new_scalar()
-        f1 = symbol_table.get_new_scalar()
-
-        icode = [
-            out_loop,
-            Assn(out_v[i0]),
-            in_loop,
-            Mult(r, i0, i1),
-            Call(f0, W(n, r)),
-            Mult(f1, f0, in_v[i1]),
-            Mult(out_v[i0], out_v[i0], f1),
-            EndDo(),
-            EndDo()]
-        return icode
-
 
 class I(ParametrizedMatrix):
     def __init__(self, m, n=None):
@@ -680,21 +656,6 @@ class Scale(Operation):
 class Assignment(Node):
     pass
 
-class Template(Assignment):
-    def __init__(self, pattern, icode_list, condition=None):
-        self.pattern = pattern
-        self.condition = condition
-        self.icode_list = icode_list
-
-    def isConst(self, symbtab=None):
-        return False
-
-    def evaluate(self, symtab, options):
-        # buhh gotta think about this one :) TODO
-        symtab[self.pattern.symbol] = (
-            self.pattern.evaluate(symtab, options), 
-            self.icode_list.evaluate(symtab, options
-              )
 
 class Define(Assignment):
     def __init__(self, symbol, value, const=False):
@@ -748,6 +709,7 @@ class Symbol(Node):
 
     def __repr__(self):
         return "Symbol(%s)" % (self.symbol)
+
 
 ##### 2.2 Directive ######
 class Directive(Node):
@@ -917,6 +879,35 @@ class S(Intrinsic):
 
     def __repr__(self):
         return "S(%s %s)" % (self.m, self.k)
+
+##### 3.2 Templates ######
+class Template(Assignment):
+    def __init__(self, pattern, icode_list, condition=None):
+        self.pattern = pattern
+        self.condition = condition
+        self.icode_list = icode_list
+
+    def isConst(self, symbtab=None):
+        return False
+
+    def evaluate(self, symtab, options):
+        # buhh gotta think about this one :) TODO
+        symtab[self.pattern.symbol] = (
+            self.pattern.evaluate(symtab, options), 
+            self.icode_list.evaluate(symtab, options)
+              )
+
+class Condition(Node):
+  pass
+
+class Pattern(Symbol):
+    def __init__(self, symbol, formulas):
+      self.symbol = symbol
+      self.formulas = formulas
+
+class Wildcard(Symbol):
+  pass
+
 
 ##### A.1 Errors #####
 class ConstantError(ValueError):

@@ -50,8 +50,9 @@ class SPLParser:
         'I', 'J', 'O', 'F', 'L', 'T',
         'COMPOSE', 'TENSOR', 'DIRECT_SUM', 'CONJUGATE', 'SCALE',
         'DEFINE', 'UNDEFINE',
-        'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 'INTERNAL', 'OPTIMIZE',
-        'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH', 'COLON',
+        'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 
+        'INTERNAL', 'OPTIMIZE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 
+        'RPAREN', 'LPAREN', 'RBRACKET', 'LBRACKET', 'HASH', 'COLON',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
@@ -132,6 +133,8 @@ class SPLParser:
     t_MULT = r'\*'
     t_DIV = r'/'
     t_LPAREN = r'\('
+    t_RPAREN = r'\)'
+    t_LPAREN = r'\['
     t_RPAREN = r'\)'
     t_HASH = r'\#'
     t_COMMA = r','
@@ -265,33 +268,26 @@ class SPLParser:
         'definition : LPAREN DEFINE SYMBOL formula RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
-    def p_template_formula(self, p):
-        'template : LPAREN TEMPLATE LBRACKET condition RBRACKET pattern 
-            icode-list RPAREN'
-        p[0] = ast.Template(p[6], p[7], p[4])
+#    def p_template_formula_condition(self, p):
+#        'template : LPAREN TEMPLATE LBRACKET condition RBRACKET pattern 
+#            icode_list RPAREN'
+#        p[0] = ast.Template(p[6], p[7], p[4])
 
     def p_template_formula(self, p):
-        'template : LPAREN TEMPLATE pattern icode-list RPAREN'
+        'template : LPAREN TEMPLATE pattern icode_list RPAREN'
         p[0] = ast.Template(p[3], p[4])
 
+    def p_pattern(self, p):
+        'pattern : LPAREN SYMBOL formulas RPAREN'
+        p[0] = ast.Pattern(p[2], p[3])
+
     def p_formula(self, p):
-        """formula : matrix
-                   | diagonal
-                   | permutation
-                   | rpermutation
-                   | sparse
-                   | compose
-                   | tensor
-                   | direct_sum
-                   | conjugate
-                   | scale
-                   | f
-                   | i
-                   | j
-                   | l
-                   | o
-                   | t"""
+        """formula : generic"""
         p[0] = p[1]
+
+    def p_formula_anynode(self, p):
+        'formula : ANYNODE'
+        p[0] = ast.Wildcard(p[1])
 
     def p_formula_symbol(self, p):
         'formula : SYMBOL'
@@ -301,45 +297,13 @@ class SPLParser:
         'formula : LPAREN formula RPAREN'
         p[0] = p[2]
 
-    def p_f(self, p):
-        'f : LPAREN F number RPAREN'
-        p[0] = ast.F(p[3])
-
-    def p_i(self, p):
-        'i : LPAREN I number RPAREN'
-        p[0] = ast.I(p[3], p[3])
-
-    def p_i2(self, p):
-        'i : LPAREN I number number RPAREN'
-        p[0] = ast.I(p[3], p[4])
-
-    def p_j(self, p):
-        'j : LPAREN J number RPAREN'
-        p[0] = ast.J(p[3])
-
-    def p_l(self, p):
-        'l : LPAREN L number number RPAREN'
-        p[0] = ast.L(p[3], p[4])
-
-    def p_o(self, p):
-        'o : LPAREN O number RPAREN'
-        p[0] = ast.O(p[3])
-
     def p_index(self, p):
         'index : number COLON number COLON number'
         p[0] = ast.Index(p[1], p[3], p[5])
 
-    def p_t(self, p):
-        't : LPAREN T number number RPAREN'
+    def p_generic(self, p):
+        'generic : LPAREN SYMBOL formulas RPAREN'
         p[0] = ast.T(p[3], p[4])
-
-    def p_t_idx(self, p):
-        't : LPAREN T number number COMMA index RPAREN'
-        p[0] = ast.T(p[3], p[4], p[6])
-
-    def p_matrix(self, p):
-        'matrix : LPAREN MATRIX matrix_row_list RPAREN'
-        p[0] = p[3]
 
     def p_matrix_row_list(self, p):
         'matrix_row_list : matrix_row matrix_row_list'
@@ -368,21 +332,6 @@ class SPLParser:
         'nums : number'
         p[0] = [p[1]]
 
-    def p_diagonal(self, p):
-        'diagonal : LPAREN DIAGONAL number_list RPAREN'
-        p[0] = ast.Diagonal(p[3])
-
-    def p_permutation(self, p):
-        'permutation : LPAREN PERMUTATION number_list RPAREN'
-        p[0] = ast.Permutation(p[3])
-
-    def p_rpermutation(self, p):
-        'rpermutation : LPAREN RPERMUTATION number_list RPAREN'
-        p[0] = ast.RPermutation(p[3])
-
-    def p_sparse(self, p):
-        'sparse : LPAREN SPARSE triple_list RPAREN'
-        p[0] = ast.Sparse(p[3])
 
     def p_triple_list(self, p):
         'triple_list : triple triple_list'
@@ -397,25 +346,6 @@ class SPLParser:
         'triple : LPAREN number number number RPAREN'
         p[0] = ast.SparseElement(p[2], p[3], p[4])
 
-    def p_compose(self, p):
-        'compose : LPAREN COMPOSE formulas RPAREN'
-        p[0] = ast.Compose(p[3])
-
-    def p_tensor(self, p):
-        'tensor : LPAREN TENSOR formulas RPAREN'
-        p[0] = ast.Tensor(p[3])
-
-    def p_direct_sum(self, p):
-        'direct_sum : LPAREN DIRECT_SUM formulas RPAREN'
-        p[0] = ast.DirectSum(p[3])
-
-    def p_conjugate(self, p):
-        'conjugate : LPAREN CONJUGATE formula formula RPAREN'
-        p[0] = ast.Conjugate(A, P)
-
-    def p_scale(self, p):
-        'scale : LPAREN SCALE number formula RPAREN'
-        p[0] = ast.Scale(a, B)
 
     def p_formulas(self, p):
         'formulas : formula formulas'
