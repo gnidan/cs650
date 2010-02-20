@@ -836,71 +836,71 @@ class Intrinsic(Node):
     pass
 
 class W(Intrinsic):
-    def __init__(self, m, k):
-        self.m = m
+    def __init__(self, n, k):
+        self.n = n
         self.k = k
 
     def __repr__(self):
-        return "W(%s %s)" % (self.m, self.k)
+        return "W(%s %s)" % (self.n, self.k)
 
 class WR(Intrinsic):
-    def __init__(self, m, k):
-        self.m = m
+    def __init__(self, n, k):
+        self.n = n
         self.k = k
 
     def __repr__(self):
-        return "WR(%s %s)" % (self.m, self.k)
+        return "WR(%s %s)" % (self.n, self.k)
 
 class WI(Intrinsic):
-    def __init__(self, m, k):
-        self.m = m
+    def __init__(self, n, k):
+        self.n = n
         self.k = k
 
     def __repr__(self):
-        return "WI(%s %s)" % (self.m, self.k)
+        return "WI(%s %s)" % (self.n, self.k)
 
 class TW(Intrinsic):
-    def __init__(self, m, n, k):
-        self.m = m
+    def __init__(self, mn, n, k):
+        self.mn = mn
         self.n = n
         self.k = k
 
     def __repr__(self):
-        return "TW(%s %s %s)" % (self.m, self.n, self.k)
+        return "TW(%s %s %s)" % (self.mn, self.n, self.k)
 
 class TWR(Intrinsic):
-    def __init__(self, m, n, k):
-        self.m = m
+    def __init__(self, mn, n, k):
+        self.mn = mn
         self.n = n
         self.k = k
 
     def __repr__(self):
-        return "TWR(%s %s %s)" % (self.m, self.n, self.k)
+        return "TWR(%s %s %s)" % (self.mn, self.n, self.k)
 
 class TWI(Intrinsic):
-    def __init__(self, m, n, k):
-        self.m = m
+    def __init__(self, mn, n, k):
+        self.mn = mn
         self.n = n
         self.k = k
 
     def __repr__(self):
-        return "TWI(%s %s %s)" % (self.m, self.n, self.k)
+        return "TWI(%s %s %s)" % (self.mn, self.n, self.k)
 
 class C(Intrinsic):
-    def __init__(self, m, k):
-        self.m = m
+    def __init__(self, n, k):
+        self.n = n
         self.k = k
 
     def __repr__(self):
-        return "C(%s %s)" % (self.m, self.k)
+        return "C(%s %s)" % (self.n, self.k)
 
 class S(Intrinsic):
-    def __init__(self, m, k):
-        self.m = m
+    def __init__(self, n, k):
+        self.n = n
         self.k = k
 
     def __repr__(self):
-        return "S(%s %s)" % (self.m, self.k)
+        return "S(%s %s)" % (self.n, self.k)
 
 ##### A.1 Errors #####
 class ConstantError(ValueError):
