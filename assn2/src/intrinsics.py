@@ -14,18 +14,29 @@ Contains all of the intrinsic scalar functions
 import math
 import cmath
 
+import numbers
+
+def num(val):
+  if isinstance(val, numbers.Number):
+    return val
+  else:
+    return val.num()
+  #raise NameError
+
+def Wf(n, k):
+  return cmath.exp(2 * cmath.pi * complex(0,1) / n) ** k
+
+def TWf(mn, n, k):
+  return Wf(mn, (k/n) * (k % n))
+
+def Cf(n, k):
+  return math.cos(2 * k * math.pi / n)
+
+def Sf(n, k):
+  return math.sin(2 * k * math.pi / n)
+
 class Intrinsic:
-  def Wf(n, k):
-    return cmath.exp(2 * cmath.pi * complex(0,1) / n) ** k
-
-  def TWf(mn, n, k):
-    return Wf(mn, (k/n) * (k % n))
-
-  def Cf(n, k):
-    return math.cos(2 * k * math.pi / n)
-
-  def Sf(n, k):
-    return math.sin(2 * k * math.pi / n)
+  pass
 
 class W(Intrinsic):
   '''Return \omega_n^k'''
@@ -33,11 +44,11 @@ class W(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
-    return Wf(n,k)
+  def num(self):
+    return Wf(num(self.n),num(self.k))
 
-  def __repr__(self):
-    return "W(%s %s)" % (self.n, self.k)
+  def __str__(self):
+    return "W(%s %s)" % (num(self.n), num(self.k))
 
 class WR(Intrinsic):
   '''Return the real part of \omega_n^k'''
@@ -45,10 +56,10 @@ class WR(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return Wf(n,k).real
 
-  def __repr__(self):
+  def __str__(self):
     return "WR(%s %s)" % (self.n, self.k)
 
 class WI(Intrinsic):
@@ -57,10 +68,10 @@ class WI(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return Wf(n,k).imag
 
-  def __repr__(self):
+  def __str__(self):
     return "WI(%s %s)" % (self.n, self.k)
 
 class TW(Intrinsic):
@@ -70,10 +81,10 @@ class TW(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return TWf(mn,n,k)
 
-  def __repr__(self):
+  def __str__(self):
     return "TW(%s %s %s)" % (self.mn, self.n, self.k)
 
 class TWR(Intrinsic):
@@ -82,10 +93,10 @@ class TWR(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return TWf(mn,n,k).real
 
-  def __repr__(self):
+  def __str__(self):
     return "TWR(%s %s %s)" % (self.mn, self.n, self.k)
 
 class TWI(Intrinsic):
@@ -94,10 +105,10 @@ class TWI(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return TWf(mn,n,k).imag
 
-  def __repr__(self):
+  def __str__(self):
     return "TWI(%s %s %s)" % (self.mn, self.n, self.k)
 
 class C(Intrinsic):
@@ -105,10 +116,10 @@ class C(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return Cf(n,k)
 
-  def __repr__(self):
+  def __str__(self):
     return "C(%s %s)" % (self.n, self.k)
 
 class S(Intrinsic):
@@ -116,8 +127,8 @@ class S(Intrinsic):
     self.n = n
     self.k = k
 
-  def evaluate(self):
+  def num(self):
     return Sf(n,k)
 
-  def __repr__(self):
+  def __str__(self):
     return "S(%s %s)" % (self.n, self.k)

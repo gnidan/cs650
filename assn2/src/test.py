@@ -9,5 +9,7 @@ il = ICodeList(icode)
 
 il.unroll()
 
+il.constprop()
+
 for i in il.icodes:
     print i

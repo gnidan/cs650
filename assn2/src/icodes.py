@@ -117,8 +117,18 @@ class DefTmp(ICode):
   def __repr__(self):
     return "deftmp(%s)" % (self.src1)
 
-# Need to keep track of a LoopIdx stack
-# Need to keep track of a Temp stack
+#TODO Need to keep track of a LoopIdx stack
+#TODO Need to keep track of a Temp stack
+
+def num(val):
+  if isinstance(val, numbers.Number):
+    return val
+  else:
+    return val.num()
+  #raise NameError
+
+def isnumeric(val):
+  return isinstance(val, numbers.Number)
 
 class ICodeList:
   def __init__(self, icodes):
@@ -127,11 +137,23 @@ class ICodeList:
   def varunroll(self, old, stack, varmap, outvar=False):
     if isinstance(old, numbers.Number):
       return old
+    elif isinstance(old, Intrinsic):
+      #n, k, mn
+      if hasattr(old, 'n'):
+        old.n = self.varunroll(old.n, stack, varmap, False)
+      if hasattr(old, 'k'):
+        old.k = self.varunroll(old.k, stack, varmap, False)
+      if hasattr(old, 'mn'):
+        old.mn = self.varunroll(old.mn, stack, varmap, False)
+      return old
     elif isinstance(old, Vec):
       return old
     elif isinstance(old, Index):
+      if isinstance(old.vec, Vec):
+        if isinstance(old.exp, list):
+          return Index(old.vec, old.exp, stack)
       return old
-    if isinstance(old, DoVar):
+    elif isinstance(old, DoVar):
       raise TypeError
     elif isinstance(old, IRef):
       return stack[old.val].val
@@ -187,9 +209,71 @@ class ICodeList:
     self.icodes = unrolled
 
   def constprop(self):
-    #TODO
-    pass
+    i = 0
+    while i < len(self.icodes):
+      inst = self.icodes[i]
 
+      if isinstance(inst, OpICode):
+        src1 = num(inst.src1)
+        src2 = num(inst.src2)
+        if src1:
+          inst.src1 = src1
+        if src2:
+          inst.src2 = src2
+        if isinstance(inst, Add):
+          if isnumeric(src1) and isnumeric(src2):
+            inst.dest.val = src1 + src2
+            self.icodes[i] = None
+          elif src1 == 0:
+            inst.dest.val = src2
+            self.icodes[i] = None
+          elif src2 == 0:
+            inst.dest.val = src1
+            self.icodes[i] = None
+
+        elif isinstance(inst, Sub):
+          if isnumeric(src1) and isnumeric(src2):
+            inst.dest.val = src1 - src2
+            self.icodes[i] = None
+          elif src2 == 0:
+            inst.dest.val = src1
+            self.icodes[i] = None
+
+        elif isinstance(inst, Mul):
+          if isnumeric(src1) and isnumeric(src2):
+            inst.dest.val = src1 * src2
+            self.icodes[i] = None
+          elif src1 == 0 or src2 == 0:
+            inst.dest.val = 0
+            self.icodes[i] = None
+
+        elif isinstance(inst, Div):
+          if isnumeric(src1) and isnumeric(src2):
+            inst.dest.val = src1 / src2
+            self.icodes[i] = None
+          elif src1 == 0:
+            inst.dest.val = 0
+            self.icodes[i] = None
+          elif src2 == 0:
+            raise ZeroDivisionError
+
+        elif isinstance(inst, Mod):
+          if isnumeric(src1) and isnumeric(src2):
+            inst.dest.val = src1 % src2
+            self.icodes[i] = None
+          elif src1 == 0:
+            inst.dest.val = 0
+            self.icodes[i] = None
+          elif src2 == 0:
+            raise ZeroDivisionError
+
+      elif isinstance(inst, Copy):
+        src1 = num(inst.src1)
+        if src1:
+          inst.dest.val = src1.val
+
+      i+=1
+    self.icodes = [i for i in self.icodes if i]
 
 #loop stack is just a list with the first element being the top
 

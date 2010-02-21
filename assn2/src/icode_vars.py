@@ -11,33 +11,39 @@ icode_vars.py
 Contains all of the variable types referenced at various stages of ICode.
 """
 
-global_var_numbers = {'r' : 0, 'f' : 0, 'x':0, 'y':0}
-
+import numbers
 
 class Var:
+  var_type = 'v'
+  next_val = 0
+
   def __init__(self,val=None,name=None):
     self.val = None
     self.name = None
 
-  def __int__(self):
-    return self.val
+  def num(self):
+    if self.val is None:
+      return None
+    elif isinstance(self.val, numbers.Number):
+      return self.val
+    else:
+      return self.val.num()
 
   def __str__(self):
-    return "%s" % (self.__class__.__name__)
+    if self.val:
+      return str(self.val.num())
+    if not self.name:
+      self.name = "$%s%d" % (self.__class__.var_type, self.__class__.next_val)
+      self.__class__.next_val += 1
+    return self.name
 
 class VarR(Var):
-  def __str__(self):
-    if self.name is None:
-      self.name = global_var_numbers['r']
-      global_var_numbers['r'] += 1
-    return "$r%d" % (self.name)
+  var_type = 'r'
+  next_val = 0
 
 class VarF(Var):
-  def __str__(self):
-    if self.name is None:
-      self.name = global_var_numbers['f']
-      global_var_numbers['f'] += 1
-    return "$f%d" % (self.name)
+  var_type = 'f'
+  next_val = 0
 
 class DoVar(Var):
   """This is used in Do Loops to indicate the current loop value"""
@@ -59,26 +65,57 @@ class IRef(Var):
 
 class Index:
   """This is used to store the index in icode."""
-  def __init__(self, vec, exp):
+  def __init__(self, vec, exp, stack=None):
     self.vec = vec
     self.exp = exp
+
+    if stack:
+      self.exp = self.idx(vec, exp, stack)
+
+  def idx(self, vec, exp, stack):
+    accum = exp[0]
+    idxs = []
+    e = exp[1:]
+    for e,i in zip(exp[1:], stack):
+      if isinstance(i.val, numbers.Integral):
+        accum += e * i.val
+      elif isinstance(i, Var):
+        idxs.append("%d*%s" % (e, i.val))
+      else:
+        raise TypeError
+    if not idxs:
+      return accum
+    idxs.append(str(accum))
+    return '+'.join(idxs)
+
+  def num(self):
+    return self
 
   def __str__(self):
     return "Index(%s, %s)" % (self.vec, self.exp)
 
 class Vec:
+  var_type = 't'
+  next_val = 0
+
   def __init__(self):
     self.name = None
 
-  def idx(self, exp, i_stack):
+  def __str__(self):
+    if not self.name:
+      self.name = "$%s%d" % (self.__class__.var_type, self.__class__.next_val)
+      self.__class__.next_val += 1
+    return self.name
+
+  def idx(self, exp, stack):
     accum = exp[0]
     idxs = []
     e = exp[1:]
-    for e,i,n in zip(exp[1:], i_stack, xrange(len(e)-1)):
-      if isinstance(i, numbers.Integral):
-        accum += e * i
+    for e,i,n in zip(exp[1:], stack, xrange(len(e)-1)):
+      if isinstance(i.val, numbers.Integral):
+        accum += e * i.val
       elif isinstance(i, Var):
-        idxs.append("%d*%s", e, i.name)
+        idxs.append("%d*%s" % (e, i.val))
       else:
         raise TypeError
     if not idxs:
@@ -87,15 +124,9 @@ class Vec:
     return '+'.join(idxs)
 
 class VarIn(Vec):
-  def __str__(self):
-    if self.name is None:
-      self.name = global_var_numbers['x']
-      global_var_numbers['x'] += 1
-    return "$x%d" % (self.name)
+  var_type = 'x'
+  next_val = 0
 
 class VarOut(Vec):
-  def __str__(self):
-    if self.name is None:
-      self.name = global_var_numbers['y']
-      global_var_numbers['y'] += 1
-    return "$y%d" % (self.name)
+  var_type = 'y'
+  next_val = 0
