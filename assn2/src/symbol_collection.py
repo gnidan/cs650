@@ -186,3 +186,7 @@ class SymbolTable(dict):
         return True
       return val.isConst()
     return KeyError
+
+class TemplateCollection:
+  def __init__:
+

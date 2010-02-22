@@ -303,7 +303,7 @@ class SPLParser:
 
     def p_generic(self, p):
         'generic : LPAREN SYMBOL formulas RPAREN'
-        p[0] = ast.T(p[3], p[4])
+        p[0] = ast.Formula(p[3], *p[4])
 
     def p_matrix_row_list(self, p):
         'matrix_row_list : matrix_row matrix_row_list'

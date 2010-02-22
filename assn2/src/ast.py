@@ -41,6 +41,13 @@ class Node:
         return self.__class__.__name__
 
 class Formula(Node):
+    def __init__(*args):
+        if(len(args) == 0):
+            raise IndexError
+
+        self.list = args
+        self.symbol = args[0]
+
     def definition(self, symtab, options):
         if options.unroll:
             pass #TODO gen_code
