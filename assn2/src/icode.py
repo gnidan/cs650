@@ -17,8 +17,7 @@ from ivars import *
 from symbol_collection import SymbolCollection
 
 class ICode:
-  def __str__(self):
-    return repr(self)
+  pass
 
 class OpICode(ICode):
   """This is used to better categorize all of the Arithmetic Operation
@@ -31,7 +30,7 @@ class Add(OpICode):
     self.src2 = src2
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "add(%s, %s, %s)" % (self.src1, self.src2, self.dest)
 
 class Sub(OpICode):
@@ -40,7 +39,7 @@ class Sub(OpICode):
     self.src2 = src2
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "sub(%s, %s, %s)" % (self.src1, self.src2, self.dest)
 
 class Mul(OpICode):
@@ -49,7 +48,7 @@ class Mul(OpICode):
     self.src2 = src2
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "mul(%s, %s, %s)" % (self.src1, self.src2, self.dest)
 
 class Div(OpICode):
@@ -58,7 +57,7 @@ class Div(OpICode):
     self.src2 = src2
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "div(%s, %s, %s)" % (self.src1, self.src2, self.dest)
 
 class Mod(OpICode):
@@ -67,7 +66,7 @@ class Mod(OpICode):
     self.src2 = src2
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "mod(%s, %s, %s)" % (self.src1, self.src2, self.dest)
 
 class Copy(ICode):
@@ -75,7 +74,7 @@ class Copy(ICode):
     self.src1 = src1
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "copy(%s, %s)" % (self.src1, self.dest)
 
 class Call(ICode):
@@ -84,32 +83,32 @@ class Call(ICode):
     self.src2 = src2
     self.dest = dest
 
-  def __repr__(self):
+  def __str__(self):
     return "call(%s, %s, %s)" % (self.src1, self.src2, self.dest)
 
 class DoUnroll(ICode):
   def __init__(self, src1):
     self.src1 = src1
 
-  def __repr__(self):
+  def __str__(self):
     return "dounroll(%s)" % (self.src1)
 
 class Do(ICode):
   def __init__(self, src1):
     self.src1 = src1
 
-  def __repr__(self):
+  def __str__(self):
     return "do(%s)" % (self.src1)
 
 class End(ICode):
-  def __repr__(self):
+  def __str__(self):
     return "end()"
 
 class DefTmp(ICode):
   def __init__(self, src1):
     self.src1 = src1
 
-  def __repr__(self):
+  def __str__(self):
     return "deftmp(%s)" % (self.src1)
 
 #TODO Need to keep track of a LoopIdx stack
