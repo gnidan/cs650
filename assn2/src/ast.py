@@ -17,14 +17,14 @@ import numbers
 import symbol_collection as symbols
 from options import Options
 
-class Node:
+class Node(object):
     def __init__(self):
         raise NotImplementedError
 
     def optimize(self, symtab, options):
         '''Performs early optimizations on the AST such as Constant Folding'''
-        print self.__class__.__name__
-        raise NotImplementedError
+        print "OPTIMIZING: %s" % (self.__class__.__name__)
+        return None, False
 
     def evaluate(self, symtab, options):
         print self.__class__.__name__
@@ -41,15 +41,33 @@ class Node:
         return self.__class__.__name__
 
 class Formula(Node):
-    def definition(self, symtab, options):
-        if options.unroll:
-            pass #TODO gen_code
-        else:
-            return symbols.Formula(self.value)
+    def __init__(self, values):
+        self.values = values
+
+    # def definition(self, symtab, options):
+    #     if options.unroll:
+    #         pass #TODO gen_code
+    #     else:
+    #         return symbols.Formula(self.value)
 
     def evaluate(self, symtab, options):
         print "Must implement Formula evaluate"
 
+    def __init__(self, values):
+        self.values = values
+
+    def optimize(self, symtab, options):
+        for i in xrange(len(self.values)):
+            node, opt = self.values[i].optimize(symtab, options)
+            if opt:
+                self.values[i] = node
+        return None, False
+
+    def __len__(self):
+        return len(self.values)
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, self.values)
 
 class Program(Node):
     def __init__(self, stmts):
@@ -190,18 +208,6 @@ class Function(Node):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.number)
 
-class Sin(Function): pass
-
-class Cos(Function): pass
-
-class Tan(Function): pass
-
-class Log(Function): pass
-
-class Exp(Function): pass
-
-class Sqrt(Function): pass
-
 class w(Function):
     def __init__(self, n, k=None):
         self.n = n
@@ -220,79 +226,76 @@ class w(Function):
 
 ##### Operators #####
 class Operator(Node):
-    def __init__(self, left, right):
+    """func is one of 'add', 'sub', 'mul', 'div' and calls
+    the respective __func__ python functions"""
+    def __init__(self, left, func, right=None):
         self.left = left
         self.right = right
-
-    def calc(self):
-        '''This performs the actual operation'''
-        raise NotImplementedError
+        self.func = func
 
     def isConst(self):
+        if hasattr(self.left, 'isConst') and (self.right is None or hasattr(self.right, 'isConst')):
+            return self.left.isConst() and (self.right is None or self.right.isConst())
         return False
+
+    def calc(self):
+        """This performs the actual operation. If __%s__ returns
+        NotImplemented, then we have to try __r%s__"""
+        #print type(self.left), self.func, type(self.right)
+        val = NotImplemented
+
+        f = '__%s__' % (self.func.lower())
+        fl = None
+        if hasattr(self.left, f):
+            fl = getattr(self.left, f)
+            if self.right is None:
+                val = fl()
+            else:
+                val = fl(self.right)
+            if val is not NotImplemented:
+                return val
+
+        rf ='__r%s__' % (self.func.lower())
+        rfr = None
+        if hasattr(self.right, rf):
+            rfr = getattr(self.right, rf)
+            val = rfr(self.left)
+            if val is not NotImplemented:
+                return val
+
+        t = self.left.__coerce__(self.right)
+        if t is not NotImplemented and fl:
+            val = fl(t[1])
+            if val is not NotImplemented:
+                return val
+
+        t = self.right.__coerce__(self.left)
+        if t is not NotImplemented and rfr:
+            val = rfr(t[1])
+            if val is not NotImplemented:
+                return val
+        return NotImplemented
 
     def optimize(self, symtab, options):
         node, optL = self.left.optimize(symtab, options)
         if optL:
             self.left = node
 
-        node, optR = self.right.optimize(symtab, options)
-        if optR:
-            self.right = node
+        optR = True
+        if self.right:
+            node, optR = self.right.optimize(symtab, options)
+            if optR:
+                self.right = node
 
         if optL and optR:
             return self.calc(), True
-
         return None, False
 
-    def evaluate(self, symtab, options):
-        raise NotImplementedError #TODO
-
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
-
-class Add(Operator):
-    def calc(self):
-        return self.left + self.right
-
-class Sub(Operator):
-    def calc(self):
-        return self.left - self.right
-
-class Mul(Operator):
-    def calc(self):
-        return self.left * self.right
-
-class Div(Operator):
-    def calc(self):
-        return self.left / self.right
-
-class Mod(Operator):
-    def calc(self):
-        return self.left % self.right
-
-class Neg(Operator):
-    def __init__(self, val):
-        self.val = val
-
-    def isConst(self, symtab=None):
-        return self.val.isConst(symtab)
-
-    def optimize(self, symtab, options):
-        node, opt = self.val.optimize(symtab, options)
-        if opt:
-            self.val = node
-            return (-node, True)
-
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.val)
+        return "%s(%s, %s)" % (self.func, self.left, self.right)
 
 ##### 1.1 Predefined Matrix Constructors ######
-class Constructor(Formula):
-    def __init__(self):
-        raise NotImplementedError
-
-class MatrixRow(Constructor):
+class MatrixRow(Formula):
     def __init__(self, values):
         self.n = len(values)
         self.values = values
@@ -306,7 +309,7 @@ class MatrixRow(Constructor):
             node, opt = self.values[i].optimize(symtab, options)
             if opt:
                 self.values[i] = node
-        return None, False
+        return self.values, True
 
     def size(self):
         return len(self)
@@ -317,7 +320,7 @@ class MatrixRow(Constructor):
     def __repr__(self):
         return "MatrixRow(%s)" % (self.values)
 
-class Matrix(Constructor):
+class Matrix(Formula):
     def __init__(self):
         self.m = 0
         self.n = 0
@@ -344,63 +347,7 @@ class Matrix(Constructor):
     def __repr__(self):
         return "Matrix(%s)" % (self.rows)
 
-class Diagonal(Constructor):
-    def __init__(self, values):
-        self.n = len(values)
-        self.values = values
-
-    def optimize(self, symtab, options):
-        for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
-
-    def __len__(self):
-        return len(self.values)
-
-    def __repr__(self):
-        return "Diagonal(%s)" % (self.values)
-
-class Permutation(Constructor):
-    def __init__(self, values):
-        self.n = len(values)
-        self.values = values
-
-
-    def optimize(self, symtab, options):
-        for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
-
-    def __len__(self):
-        return len(self.values)
-
-    def __repr__(self):
-        return "Permutation(%s)" % (self.values)
-
-class RPermutation(Constructor):
-    def __init__(self, values):
-        self.n = len(values)
-        self.values = values
-
-
-    def optimize(self, symtab, options):
-        for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
-
-    def __len__(self):
-        return len(self.values)
-
-    def __repr__(self):
-        return "RPermutation(%s)" % (self.values)
-
-class SparseElement(Constructor):
+class SparseElement(Formula):
     def __init__(self, i, j, a):
         self.i = i
         self.j = j
@@ -425,7 +372,7 @@ class SparseElement(Constructor):
     def __repr__(self):
         return "SparesElement(%s %s %s)" % (self.i, self.j, self.a)
 
-class Sparse(Constructor):
+class Sparse(Formula):
     def __init__(self, values):
         self.m = 0
         self.n = 0
@@ -475,91 +422,7 @@ class Index(Node):
         return "Index(%s, %s, %s)" % (self.start, self.stride, self.stop)
 
 ##### 1.2 Predefined Parametrized Matrices ######
-class ParametrizedMatrix(Formula):
-    pass
-
-class F(ParametrizedMatrix):
-    def __init__(self, n):
-        self.n = n
-
-    def optimize(self, symtab, options):
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
-
-    def __repr__(self):
-        return "(F %s)" % (self.n)
-
-    def __icode__(self, out_v, in_v, symbol_table):
-        out_loop = Do(n)
-        in_loop =  Do(n)
-        i0 = out_loop.var
-        i1 = in_loop.var
-        symbol_table.add_index(i0)
-        symbol_table.add_index(i1)
-
-        r  = symbol_table.get_new_int()
-        f0 = symbol_table.get_new_scalar()
-        f1 = symbol_table.get_new_scalar()
-
-        icode = [
-            out_loop,
-            Assn(out_v[i0]),
-            in_loop,
-            Mult(r, i0, i1),
-            Call(f0, W(n, r)),
-            Mult(f1, f0, in_v[i1]),
-            Mult(out_v[i0], out_v[i0], f1),
-            EndDo(),
-            EndDo()]
-        return icode
-
-
-class I(ParametrizedMatrix):
-    def __init__(self, m, n=None):
-        self.m = m
-        self.n = n
-
-    def optimize(self, symtab, options):
-        node, optM = self.m.optimize(symtab, options)
-        if optM:
-            self.m = node
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
-
-    def __repr__(self):
-        return "(I %s %s)" % (self.m, self.n)
-
-class J(ParametrizedMatrix):
-    def __init__(self, n):
-        self.n = n
-
-    def optimize(self, symtab, options):
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
-
-    def __repr__(self):
-        return "(J %s)" % (self.n)
-
-class O(ParametrizedMatrix):
-    def __init__(self, n):
-        self.n = n
-
-    def optimize(self, symtab, options):
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
-
-    def __repr__(self):
-        return "(O %s)" % (self.n)
-
-class T(ParametrizedMatrix):
+class T(Formula):
     def __init__(self, mn, n, index=None):
         self.mn = mn
         self.n = n
@@ -577,89 +440,9 @@ class T(ParametrizedMatrix):
     def __repr__(self):
         return "(T %s %s %s)" % (self.mn, self.n, self.index)
 
-class L(ParametrizedMatrix):
-    def __init__(self, mn, n):
-        self.mn = mn
-        self.n = n
-
-    def optimize(self, symtab, options):
-        node, optMN = self.mn.optimize(symtab, options)
-        if optMN:
-            self.mn = node
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
-
-    def __repr__(self):
-        return "(L %s %s)" % (self.mn, self.n)
-
 ##### 1.3 Predefined Matrix Operations ######
-class Operation(Formula):
-    pass
 
-class Compose(Operation):
-    def __init__(self, formulas):
-        self.formulas = formulas
-
-
-    def optimize(self, symtab, options):
-        for i in xrange(len(self.formulas)):
-            node, opt = self.formulas[i].optimize(symtab, options)
-            if opt:
-                self.formulas[i] = node
-        return None, False
-
-    def __repr__(self):
-        return "Compose(%s)" % (self.formulas)
-
-class Tensor(Operation):
-    def __init__(self, formulas):
-        self.formulas = formulas
-
-    def optimize(self, symtab, options):
-        for i in xrange(len(self.formulas)):
-            node, opt = self.formulas[i].optimize(symtab, options)
-            if opt:
-                self.formulas[i] = node
-        return None, False
-
-    def __repr__(self):
-        return "Tensor(%s)" % (self.formulas)
-
-
-class DirectSum(Operation):
-    def __init__(self, formulas):
-        self.formulas = formulas
-
-    def optimize(self, symtab, options):
-        for i in xrange(len(self.formulas)):
-            node, opt = self.formulas[i].optimize(symtab, options)
-            if opt:
-                self.formulas[i] = node
-        return None, False
-
-    def __repr__(self):
-        return "DirectSum(%s)" % (self.formulas)
-
-class Conjugate(Operation):
-    def __init__(self, A, P):
-        self.A = A
-        self.P = P
-
-    def optimize(self, symtab, options):
-        node, optA = self.A.optimize(symtab, options)
-        if optA:
-            self.A = node
-        node, optP = self.P.optimize(symtab, options)
-        if optP:
-            self.P = node
-        return None, False
-
-    def __repr__(self):
-        return "Conjugate(%s %s)" % (self.A, self.P)
-
-class Scale(Operation):
+class Scale(Formula):
     def __init__(self, a, A):
         self.a = a
         self.A = A
@@ -735,85 +518,18 @@ class Symbol(Node):
 
 ##### 2.2 Directive ######
 class Directive(Node):
-    def __init__(self, value):
+    def __init__(self, value=None):
         self.value = value
 
-    def evaluate(self, symtab, options):
-        options[self.__class__.__name__.lower()] = self.value.value()
-
-    #REFACTOR
+    #TODO eliminate
     def optimize(self, symtab, options):
         return None, False
 
+    def evaluate(self, symtab, options):
+        options[self.__class__.__name__.lower()] = self.value
+
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.value)
-
-class SubName(Directive): pass
-
-class DataType(Directive): pass
-
-class CodeType(Directive): pass
-
-class Optimize(Directive): pass
-
-class Unroll(Directive): pass
-
-class Verbose(Directive): pass
-
-class Debug(Directive): pass
-
-class Internal(Directive): pass
-
-#### DirectiveParams ####
-class DirectiveParam(Node):
-    def __init__(self):
-        pass
-
-    def evaluate(self, symtab, options):
-        return self.value()
-
-    def value(self):
-        raise NotImplementedError
-
-    def __repr__(self):
-        return self.__class__.__name__
-
-### Type ###
-class Type(DirectiveParam):
-    pass
-
-class RealType(Type):
-    def value(self):
-        return numerics.Real
-
-    def __repr__(self):
-        return "real"
-
-class ComplexType(Type):
-    def value(self):
-        return numerics.Complex
-
-    def __repr__(self):
-        return "complex"
-
-### Flag ###
-class Flag(DirectiveParam):
-    pass
-
-class On(Flag):
-    def value(self):
-        return True
-
-class Off(Flag):
-    def value(self):
-        return False
-
-### SubName ###
-class Name(DirectiveParam):
-    def __init__(self, value):
-        self.value = value
-    def value(self):
-        return self.value
 
 ##### 2.3 Comments ######
 class Comment(Node):

@@ -15,6 +15,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 import ast
+import numbers
 
 class SPLParser:
     def __init__(self,debug=False):
@@ -22,6 +23,7 @@ class SPLParser:
         modname = self.__class__.__name__
         self.debugfile = modname + ".dbg"
         self.tabmodule = modname + "_parsetab"
+        self.types = {}
 
         #Build the lexer and parser
         self.lexer = lex.lex(module=self, debug=self.debug)
@@ -35,6 +37,11 @@ class SPLParser:
         self.lexer.input(data)
         for tok in self.lexer:
             print tok
+
+    def create_or_get(self, name, subclass=object):
+        if name not in self.types:
+            self.types[name] = type(name, (subclass,), {})
+        return self.types[name]
 
     ##### LEX #################################################################
 
@@ -60,6 +67,14 @@ class SPLParser:
         'ON', 'OFF',
         'SYMBOL'
     )
+
+    binop_alias = {
+        '+'  : 'add',
+        '-' : 'sub',
+        '*'  : 'mul',
+        '/'   : 'div',
+        '%'   : 'mod',
+        }
 
     # dictionary of reserved words
     RESERVED = {
@@ -208,78 +223,48 @@ class SPLParser:
                 | INVISIBLE_COMMENT"""
         p[0] = p[1]
 
-    def p_comment(self, p):
-        'comment : COMMENT'
-        p[0] = ast.Comment(p[1])
-
-    def p_directive_subname(self, p):
-        'directive : HASH SUBNAME SYMBOL'
-        p[0] = ast.SubName(ast.Name(p[3]))
-
-    def p_directive_codetype(self, p):
-        'directive : HASH CODETYPE type'
-        p[0] = ast.CodeType(p[3])
-
-    def p_directive_datatype(self, p):
-        'directive : HASH DATATYPE type'
-        p[0] = ast.DataType(p[3])
-
-    def p_directive_optimize(self, p):
-        'directive : HASH OPTIMIZE flag'
-        p[0] = ast.Optimize(p[3])
-
-    def p_directive_unroll(self, p):
-        'directive : HASH UNROLL flag'
-        p[0] = ast.Unroll(p[3])
-
-    def p_directive_debug(self, p):
-        'directive : HASH DEBUG flag'
-        p[0] = ast.Debug(p[3])
-
-    def p_directive_verbose(self, p):
-        'directive : HASH VERBOSE flag'
-        p[0] = ast.Verbose(p[3])
-
-    def p_directive_internal(self, p):
-        'directive : HASH INTERNAL flag'
-        p[0] = ast.Internal(p[3])
+    def p_directive(self, p):
+        """directive : HASH SUBNAME SYMBOL
+                     | HASH CODETYPE type
+                     | HASH DATATYPE type
+                     | HASH OPTIMIZE flag
+                     | HASH UNROLL flag
+                     | HASH VERBOSE flag
+                     | HASH INTERNAL flag
+                     | HASH DEBUG flag"""
+        p[0] = self.create_or_get(p[2], ast.Directive)(p[3])
 
     def p_type_real(self, p):
         'type : REAL'
-        p[0] = ast.RealType()
+        p[0] = numbers.Real
 
     def p_type_complex(self, p):
         'type : COMPLEX'
-        p[0] = ast.ComplexType()
+        p[0] = numbers.Complex
 
     def p_flag_on(self, p):
         'flag : ON'
-        p[0] = ast.On()
+        p[0] = True
 
     def p_flag_off(self, p):
         'flag : OFF'
-        p[0] = ast.Off()
+        p[0] = False
+
+    def p_comment(self, p):
+        'comment : COMMENT'
+        p[0] = ast.Comment(p[1])
 
     def p_definition_formula(self, p):
         'definition : LPAREN DEFINE SYMBOL formula RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
     def p_formula(self, p):
-        """formula : matrix
-                   | diagonal
-                   | permutation
-                   | rpermutation
+        """formula : constructor
+                   | matrix
                    | sparse
-                   | compose
-                   | tensor
-                   | direct_sum
-                   | conjugate
+                   | operation
                    | scale
-                   | f
-                   | i
-                   | j
-                   | l
-                   | o
+                   | param_matrix
                    | t"""
         p[0] = p[1]
 
@@ -291,34 +276,51 @@ class SPLParser:
         'formula : LPAREN formula RPAREN'
         p[0] = p[2]
 
-    def p_f(self, p):
-        'f : LPAREN F number RPAREN'
-        p[0] = ast.F(p[3])
+    #TODO should add SCALE
+    def p_operation_name(self, p):
+        """operation_name : COMPOSE
+                          | TENSOR
+                          | DIRECT_SUM
+                          | CONJUGATE"""
+        p[0] = p[1]
 
-    def p_i(self, p):
-        'i : LPAREN I number RPAREN'
-        p[0] = ast.I(p[3], p[3])
+    #TODO should add MATRIX and SPARSE
+    def p_constructor_name(self, p):
+        """constructor_name : DIAGONAL
+                            | PERMUTATION
+                            | RPERMUTATION"""
+        p[0] = p[1]
 
-    def p_i2(self, p):
-        'i : LPAREN I number number RPAREN'
-        p[0] = ast.I(p[3], p[4])
+    #TODO should include T
+    def p_param_matrix_name(self, p):
+        """param_matrix_name : F
+                             | I
+                             | J
+                             | L
+                             | O"""
+        p[0] = p[1]
 
-    def p_j(self, p):
-        'j : LPAREN J number RPAREN'
-        p[0] = ast.J(p[3])
+    def p_constructor(self, p):
+        'constructor : LPAREN constructor_name number_list RPAREN'
+        p[0] = self.create_or_get(p[2], ast.Formula)(p[3])
 
-    def p_l(self, p):
-        'l : LPAREN L number number RPAREN'
-        p[0] = ast.L(p[3], p[4])
+    def p_operation(self, p):
+        'operation : LPAREN operation_name formulas RPAREN'
+        p[0] = self.create_or_get(p[2], ast.Formula)(p[3])
 
-    def p_o(self, p):
-        'o : LPAREN O number RPAREN'
-        p[0] = ast.O(p[3])
+    def p_param_matrix(self, p):
+        """param_matrix : LPAREN param_matrix_name nums RPAREN"""
+        p[0] = self.create_or_get(p[2], ast.Formula)(p[3])
+
+    def p_scale(self, p):
+        'scale : LPAREN SCALE number formula RPAREN'
+        p[0] = ast.Scale(a, B)
 
     def p_index(self, p):
         'index : number COLON number COLON number'
         p[0] = ast.Index(p[1], p[3], p[5])
 
+    #TODO ELIMINATE!
     def p_t(self, p):
         't : LPAREN T number number RPAREN'
         p[0] = ast.T(p[3], p[4])
@@ -358,17 +360,14 @@ class SPLParser:
         'nums : number'
         p[0] = [p[1]]
 
-    def p_diagonal(self, p):
-        'diagonal : LPAREN DIAGONAL number_list RPAREN'
-        p[0] = ast.Diagonal(p[3])
+    def p_formulas(self, p):
+        'formulas : formula formulas'
+        p[2].insert(0, p[1])
+        p[0] = p[2]
 
-    def p_permutation(self, p):
-        'permutation : LPAREN PERMUTATION number_list RPAREN'
-        p[0] = ast.Permutation(p[3])
-
-    def p_rpermutation(self, p):
-        'rpermutation : LPAREN RPERMUTATION number_list RPAREN'
-        p[0] = ast.RPermutation(p[3])
+    def p_formulas_end(self, p):
+        'formulas : formula'
+        p[0] = [ p[1] ]
 
     def p_sparse(self, p):
         'sparse : LPAREN SPARSE triple_list RPAREN'
@@ -387,35 +386,6 @@ class SPLParser:
         'triple : LPAREN number number number RPAREN'
         p[0] = ast.SparseElement(p[2], p[3], p[4])
 
-    def p_compose(self, p):
-        'compose : LPAREN COMPOSE formulas RPAREN'
-        p[0] = ast.Compose(p[3])
-
-    def p_tensor(self, p):
-        'tensor : LPAREN TENSOR formulas RPAREN'
-        p[0] = ast.Tensor(p[3])
-
-    def p_direct_sum(self, p):
-        'direct_sum : LPAREN DIRECT_SUM formulas RPAREN'
-        p[0] = ast.DirectSum(p[3])
-
-    def p_conjugate(self, p):
-        'conjugate : LPAREN CONJUGATE formula formula RPAREN'
-        p[0] = ast.Conjugate(A, P)
-
-    def p_scale(self, p):
-        'scale : LPAREN SCALE number formula RPAREN'
-        p[0] = ast.Scale(a, B)
-
-    def p_formulas(self, p):
-        'formulas : formula formulas'
-        p[2].insert(0, p[1])
-        p[0] = p[2]
-
-    def p_formulas_end(self, p):
-        'formulas : formula'
-        p[0] = [ p[1] ]
-
     def p_definition_value(self, p):
         'definition : LPAREN DEFINE SYMBOL number RPAREN'
         p[0] = ast.Define(p[3], p[4])
@@ -424,29 +394,18 @@ class SPLParser:
         'definition : LPAREN UNDEFINE SYMBOL RPAREN'
         p[0] = ast.Undefine(p[3])
 
-    def p_number_add(self, p):
-        'number : number PLUS number'
-        p[0] = ast.Add(p[1], p[3])
-
-    def p_number_sub(self, p):
-        'number : number MINUS number'
-        p[0] = ast.Sub(p[1], p[3])
-
-    def p_number_mul(self, p):
-        'number : number MULT number'
-        p[0] = ast.Mul(p[1], p[3])
-
-    def p_number_div(self, p):
-        'number : number DIV number'
-        p[0] = ast.Div(p[1], p[3])
-
-    def p_number_mod(self, p):
-        'number : number MOD number'
-        p[0] = ast.Mod(p[1], p[3])
+##### Operators #####
+    def p_bin_op(self, p):
+        """number : number PLUS number
+                  | number MINUS number
+                  | number MULT number
+                  | number DIV number
+                  | number MOD number"""
+        p[0] = ast.Operator(p[1], self.binop_alias[p[2]], p[3])
 
     def p_number_neg(self, p):
         'number : MINUS number %prec UMINUS'
-        p[0] = ast.Neg(p[2])
+        p[0] = ast.Operator(p[2], 'neg')
 
     def p_number_paren(self, p):
         'number : LPAREN number RPAREN'
@@ -525,29 +484,18 @@ class SPLParser:
         p[0] = ast.S(p[3], p[4])
 
 ##### Functions #####
+    def p_function_name(self, p):
+        """function_name : SIN
+                         | COS
+                         | TAN
+                         | LOG
+                         | EXP
+                         | SQRT"""
+        p[0] = p[1]
+
     def p_function_sin(self, p):
-        'function : SIN LPAREN number RPAREN'
-        p[0] = ast.Sin(p[3])
-
-    def p_function_cos(self, p):
-        'function : COS LPAREN number RPAREN'
-        p[0] = ast.Cos(p[3])
-
-    def p_function_tan(self, p):
-        'function : TAN LPAREN number RPAREN'
-        p[0] = ast.Tan(p[3])
-
-    def p_function_log(self, p):
-        'function : LOG LPAREN number RPAREN'
-        p[0] = ast.Log(p[3])
-
-    def p_function_exp(self, p):
-        'function : EXP LPAREN number RPAREN'
-        p[0] = ast.Exp(p[3])
-
-    def p_function_sqrt(self, p):
-        'function : SQRT LPAREN number RPAREN'
-        p[0] = ast.Sqrt(p[3])
+        'function : function_name LPAREN number RPAREN'
+        p[0] = self.create_or_get(p[1], ast.Function)(p[3])
 
     def p_function_pi(self, p):
         'function : PI'
@@ -557,7 +505,7 @@ class SPLParser:
         'function : WSCALAR LPAREN number RPAREN'
         p[0] = ast.w(p[3])
 
-    def p_function_w2(self, p):
+    def p_function_w_exp(self, p):
         'function : WSCALAR LPAREN number COMMA number RPAREN'
         p[0] = ast.w(p[3], p[5])
 
