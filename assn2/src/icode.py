@@ -10,8 +10,9 @@ icode.py represents the icode
 
 """
 
-class ICode:
-  pass
+class ICode(object):
+  def __repr__(self):
+    return str(self)
 
 class OpICode(ICode):
   """This is used to better categorize all of the Arithmetic Operation
@@ -19,6 +20,7 @@ class OpICode(ICode):
   pass
 
 class Add(OpICode):
+  op = '+'
   def __init__(self, src1, src2, dest):
     self.src1 = src1
     self.src2 = src2

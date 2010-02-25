@@ -6,12 +6,21 @@ Kevin Lynch
 Nick D'Andrea
 Keith Dailey
 
-icode_vars.py
-
-Contains all of the variable types referenced at various stages of ICode.
+symbols.py Contains all of the variable types referenced at various stages of ICode.
 """
 
 import numbers
+
+class NextVarSet:
+    def __init__(self):
+        self.vars = {}
+
+    def __getitem__(self, key):
+        if key not in self.vars:
+            self.vars[key] = 0
+        i = self.vars[key]
+        self.vars[key] += 1
+        return "%s%d" % (key, i)
 
 class Var:
   var_type = 'v'
@@ -20,6 +29,7 @@ class Var:
   def __init__(self,val=None,name=None):
     self.val = None
     self.name = None
+    self.out_name = None
 
   def num(self):
     if self.val is None:
@@ -33,9 +43,9 @@ class Var:
     if self.val:
       return str(self.val.num())
     if not self.name:
-      self.name = "$%s%d" % (self.__class__.var_type, self.__class__.next_val)
+      self.name = "%s%d" % (self.__class__.var_type, self.__class__.next_val)
       self.__class__.next_val += 1
-    return self.name
+    return '$%s' % (self.name)
 
 class VarR(Var):
   var_type = 'r'

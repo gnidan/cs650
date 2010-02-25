@@ -1,6 +1,8 @@
 from icode import *
-from ivars import *
+from symbols import *
 from options import *
+from templates import *
+from icodelist import *
 
 x = VarIn()
 y = VarOut()
@@ -12,5 +14,10 @@ il.unroll()
 
 il.constprop()
 
-for i in il.icodes:
+for i in il.icode:
     print i
+
+opt = Options()
+lang = opt.language()
+
+func = lang.write_function(opt, il)

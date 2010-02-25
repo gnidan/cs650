@@ -12,8 +12,9 @@ icodelist.py represents the icodelist and optimizations
 
 import numbers
 
+from icode import *
+from symbols import *
 from intrinsics import *
-from ivars import *
 from symbol_collection import SymbolCollection
 
 #TODO Need to keep track of a LoopIdx stack
