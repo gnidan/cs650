@@ -6,7 +6,7 @@ Kevin Lynch
 Nick D'Andrea
 Keith Dailey
 
-icode.py represents the icodes and icodelist
+icode.py represents the icode and icodelist
 
 """
 
@@ -126,8 +126,8 @@ def isnumeric(val):
   return isinstance(val, numbers.Number)
 
 class ICodeList:
-  def __init__(self, icodes):
-    self.icodes = icodes
+  def __init__(self, icode):
+    self.icode = icode
 
   def varunroll(self, old, stack, varmap, outvar=False):
     if isinstance(old, numbers.Number):
@@ -167,8 +167,8 @@ class ICodeList:
     stack = []
     varmap = {}
     i = 0
-    while i < len(self.icodes):
-      inst = self.icodes[i]
+    while i < len(self.icode):
+      inst = self.icode[i]
 
       #LOOPS
       if isinstance(inst, Do):
@@ -201,12 +201,12 @@ class ICodeList:
         unrolled.append(Copy(src1, dest))
       i+=1
 
-    self.icodes = unrolled
+    self.icode = unrolled
 
   def constprop(self):
     i = 0
-    while i < len(self.icodes):
-      inst = self.icodes[i]
+    while i < len(self.icode):
+      inst = self.icode[i]
 
       if isinstance(inst, OpICode):
         src1 = num(inst.src1)
@@ -218,47 +218,47 @@ class ICodeList:
         if isinstance(inst, Add):
           if isnumeric(src1) and isnumeric(src2):
             inst.dest.val = src1 + src2
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src1 == 0:
             inst.dest.val = src2
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src2 == 0:
             inst.dest.val = src1
-            self.icodes[i] = None
+            self.icode[i] = None
 
         elif isinstance(inst, Sub):
           if isnumeric(src1) and isnumeric(src2):
             inst.dest.val = src1 - src2
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src2 == 0:
             inst.dest.val = src1
-            self.icodes[i] = None
+            self.icode[i] = None
 
         elif isinstance(inst, Mul):
           if isnumeric(src1) and isnumeric(src2):
             inst.dest.val = src1 * src2
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src1 == 0 or src2 == 0:
             inst.dest.val = 0
-            self.icodes[i] = None
+            self.icode[i] = None
 
         elif isinstance(inst, Div):
           if isnumeric(src1) and isnumeric(src2):
             inst.dest.val = src1 / src2
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src1 == 0:
             inst.dest.val = 0
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src2 == 0:
             raise ZeroDivisionError
 
         elif isinstance(inst, Mod):
           if isnumeric(src1) and isnumeric(src2):
             inst.dest.val = src1 % src2
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src1 == 0:
             inst.dest.val = 0
-            self.icodes[i] = None
+            self.icode[i] = None
           elif src2 == 0:
             raise ZeroDivisionError
 
@@ -268,6 +268,8 @@ class ICodeList:
           inst.dest.val = src1.val
 
       i+=1
-    self.icodes = [i for i in self.icodes if i]
+
+    #Remove any None placeholders
+    self.icode = [i for i in self.icode if i]
 
 #loop stack is just a list with the first element being the top

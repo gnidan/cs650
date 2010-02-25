@@ -12,7 +12,7 @@ Contains all of the compile time and runtime evaluation options.
 """
 
 import numbers
-import icodes
+import icode
 import sys
 
 class MajorOrder:
@@ -59,27 +59,27 @@ class C99(OutputLanguage):
 
         nxt = NextVarSet()
         for i in icode:
-            if isinstance(i, icodes.Add):
+            if isinstance(i, icode.Add):
                 printop(file, i.dest, i.src1, '+', i.src2)
-            elif isinstance(i, icodes.Sub):
+            elif isinstance(i, icode.Sub):
                 printop(file, i.dest, i.src1, '-', i.src2)
-            elif isinstance(i, icodes.Mul):
+            elif isinstance(i, icode.Mul):
                 printop(file, i.dest, i.src1, '*', i.src2)
-            elif isinstance(i, icodes.Div):
+            elif isinstance(i, icode.Div):
                 printop(file, i.dest, i.src1, '/', i.src2)
-            elif isinstance(i, icodes.Mod):
+            elif isinstance(i, icode.Mod):
                 printop(file, i.dest, i.src1, '%', i.src2)
-            elif isinstance(i, icodes.Copy):
+            elif isinstance(i, icode.Copy):
                 pass
-            elif isinstance(i, icodes.Call):
+            elif isinstance(i, icode.Call):
                 pass
-            elif isinstance(i, icodes.DoUnroll):
+            elif isinstance(i, icode.DoUnroll):
                 pass
-            elif isinstance(i, icodes.Do):
+            elif isinstance(i, icode.Do):
                 pass
-            elif isinstance(i, icodes.End):
+            elif isinstance(i, icode.End):
                 pass
-            elif isinstance(i, icodes.DefTmp):
+            elif isinstance(i, icode.DefTmp):
                 pass
 
         print >>file, "}"

@@ -1,4 +1,5 @@
-from icodes import *
+from icode import *
+from ivars import *
 from options import *
 
 x = VarIn()
