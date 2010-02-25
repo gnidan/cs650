@@ -58,7 +58,7 @@ class SPLParser:
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
         'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'WSCALAR',
         'REAL', 'COMPLEX',
-        'ON', 'OFF',
+        'ON', 'OFF', 'TEMPLATE', 'ANY',
         'SYMBOL'
     )
 
@@ -73,7 +73,7 @@ class SPLParser:
         "WI"           :	"WI",
         "WR"           :	"WR",
         "alias"        :	"ALIAS",
-        "any"          :	"ANYNODE",
+        "any"          :	"ANY",
         "call"         :	"CALL",
         "codetype"     :	"CODETYPE",
         "complex"      :	"COMPLEX",
@@ -132,8 +132,8 @@ class SPLParser:
     t_PLUS = r'\+'
     t_MULT = r'\*'
     t_DIV = r'/'
-    t_LPAREN = r'\('
-    t_RPAREN = r'\)'
+    t_LBRACKET = r'\('
+    t_RBRACKET = r'\)'
     t_LPAREN = r'\['
     t_RPAREN = r'\)'
     t_HASH = r'\#'
@@ -274,8 +274,10 @@ class SPLParser:
 #        p[0] = ast.Template(p[6], p[7], p[4])
 
     def p_template_formula(self, p):
-        'template : LPAREN TEMPLATE pattern icode_list RPAREN'
+        'template : LPAREN TEMPLATE pattern RPAREN'
+        self.TEMPLATE_MODE = True
         p[0] = ast.Template(p[3], p[4])
+        self.TEMPLATE_MODE = False
 
     def p_pattern(self, p):
         'pattern : LPAREN SYMBOL formulas RPAREN'
@@ -286,7 +288,9 @@ class SPLParser:
         p[0] = p[1]
 
     def p_formula_anynode(self, p):
-        'formula : ANYNODE'
+        'formula : ANY'
+        if self.TEMPLATE_MODE == False:
+          raise Exception("Wildcard not allowed except in template")
         p[0] = ast.Wildcard(p[1])
 
     def p_formula_symbol(self, p):

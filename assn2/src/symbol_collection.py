@@ -188,5 +188,5 @@ class SymbolTable(dict):
     return KeyError
 
 class TemplateCollection:
-  def __init__:
+  pass
 

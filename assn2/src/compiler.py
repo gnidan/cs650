@@ -93,9 +93,9 @@ def main(argv=None):
         print "\n** Printing the AST"
         print t
 
-    if verbose:
-        print "\n** Optimising the AST (Constant Propagation)"
-    t.optimize(SymbolTable(), options)
+#    if verbose:
+#        print "\n** Optimising the AST (Constant Propagation)"
+#    t.optimize(SymbolTable(), options)
     if debug:
         print "\n Optimized AST:"
         print t
