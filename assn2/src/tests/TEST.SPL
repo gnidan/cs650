@@ -38,9 +38,9 @@
 #subname L82
 (L 8 2)
 
-#subname T84
-(T 8 4)
-(direct_sum (T 8 4, 0:2:6) (T 8 4, 1:2:7))
+;;#subname T84
+;;(T 8 4)
+;;(direct_sum (T 8 4, 0:2:6) (T 8 4, 1:2:7))
 
 ; predefined operations
 

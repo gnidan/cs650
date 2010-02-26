@@ -46,13 +46,11 @@ class SPLParser:
 
     # List of token names.	 This is always required
     tokens = (
-        'MATRIX', 'DIAGONAL', 'PERMUTATION', 'RPERMUTATION', 'SPARSE',
-        'I', 'J', 'O', 'F', 'L', 'T',
-        'COMPOSE', 'TENSOR', 'DIRECT_SUM', 'CONJUGATE', 'SCALE',
         'DEFINE', 'UNDEFINE',
         'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 
         'INTERNAL', 'OPTIMIZE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 
-        'RPAREN', 'LPAREN', 'RBRACKET', 'LBRACKET', 'HASH', 'COLON',
+        'RPAREN', 'LPAREN', 'HASH', #'COLON',
+#        'LBRACKET', 'RBRACKET',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
@@ -132,13 +130,13 @@ class SPLParser:
     t_PLUS = r'\+'
     t_MULT = r'\*'
     t_DIV = r'/'
-    t_LBRACKET = r'\('
-    t_RBRACKET = r'\)'
-    t_LPAREN = r'\['
+#    t_LBRACKET = r'\['
+#    t_RBRACKET = r'\]'
+    t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_HASH = r'\#'
     t_COMMA = r','
-    t_COLON = r':'
+#    t_COLON = r':'
 
     t_WSCALAR = r'w'
 
@@ -171,12 +169,12 @@ class SPLParser:
 
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value, "SYMBOL")
+        t.value = self.RESERVED.get(t.value, "SYMBOL")
         return t
 
     # Define a rule so we can track line numbers
     def t_newline(self,t):
-        r'\n+'
+        r'\n'
         t.lexer.lineno += len(t.value)
 
     # A string containing ignored characters (spaces and tabs)
@@ -268,24 +266,28 @@ class SPLParser:
         'definition : LPAREN DEFINE SYMBOL formula RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
+    def p_definition_value(self, p):
+        'definition : LPAREN DEFINE SYMBOL number RPAREN'
+        p[0] = ast.Define(p[3], p[4])
+
+    def p_undefine(self, p):
+        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
+        p[0] = ast.Undefine(p[3])
+
 #    def p_template_formula_condition(self, p):
 #        'template : LPAREN TEMPLATE LBRACKET condition RBRACKET pattern 
 #            icode_list RPAREN'
 #        p[0] = ast.Template(p[6], p[7], p[4])
 
     def p_template_formula(self, p):
-        'template : LPAREN TEMPLATE pattern RPAREN'
+        'template : LPAREN TEMPLATE formula RPAREN'
         self.TEMPLATE_MODE = True
         p[0] = ast.Template(p[3], p[4])
         self.TEMPLATE_MODE = False
 
-    def p_pattern(self, p):
-        'pattern : LPAREN SYMBOL formulas RPAREN'
-        p[0] = ast.Pattern(p[2], p[3])
-
-    def p_formula(self, p):
-        """formula : generic"""
-        p[0] = p[1]
+    def p_formula_sexp(self, p):
+        'formula : LPAREN formulas RPAREN'
+        p[0] = ast.Formula(p[3], *p[4])
 
     def p_formula_anynode(self, p):
         'formula : ANY'
@@ -297,60 +299,6 @@ class SPLParser:
         'formula : SYMBOL'
         p[0] = ast.Symbol(p[1])
 
-    def p_formula_paren(self, p):
-        'formula : LPAREN formula RPAREN'
-        p[0] = p[2]
-
-    def p_index(self, p):
-        'index : number COLON number COLON number'
-        p[0] = ast.Index(p[1], p[3], p[5])
-
-    def p_generic(self, p):
-        'generic : LPAREN SYMBOL formulas RPAREN'
-        p[0] = ast.Formula(p[3], *p[4])
-
-    def p_matrix_row_list(self, p):
-        'matrix_row_list : matrix_row matrix_row_list'
-        p[2].prepend(p[1])
-        p[0] = p[2]
-
-    def p_matrix_row_list_row(self, p):
-        'matrix_row_list : matrix_row'
-        p[0] = ast.Matrix()
-        p[0].prepend(p[1])
-
-    def p_matrix_row(self, p):
-        'matrix_row : number_list'
-        p[0] = ast.MatrixRow(p[1])
-
-    def p_number_list(self, p):
-        'number_list : LPAREN nums RPAREN'
-        p[0] = p[2]
-
-    def p_numbers(self, p):
-        'nums : number nums'
-        p[2].insert(0, p[1])
-        p[0] = p[2]
-
-    def p_numbers_end(self, p):
-        'nums : number'
-        p[0] = [p[1]]
-
-
-    def p_triple_list(self, p):
-        'triple_list : triple triple_list'
-        p[2].insert(0, p[1])
-        p[0] = p[1]
-
-    def p_triple_list_end(self, p):
-        'triple_list : triple'
-        p[0] = [ p[1] ]
-
-    def p_triple(self, p):
-        'triple : LPAREN number number number RPAREN'
-        p[0] = ast.SparseElement(p[2], p[3], p[4])
-
-
     def p_formulas(self, p):
         'formulas : formula formulas'
         p[2].insert(0, p[1])
@@ -359,14 +307,6 @@ class SPLParser:
     def p_formulas_end(self, p):
         'formulas : formula'
         p[0] = [ p[1] ]
-
-    def p_definition_value(self, p):
-        'definition : LPAREN DEFINE SYMBOL number RPAREN'
-        p[0] = ast.Define(p[3], p[4])
-
-    def p_undefine(self, p):
-        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
-        p[0] = ast.Undefine(p[3])
 
     def p_number_add(self, p):
         'number : number PLUS number'
