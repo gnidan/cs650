@@ -174,7 +174,7 @@ class SPLParser:
 
     # Define a rule so we can track line numbers
     def t_newline(self,t):
-        r'\n'
+        r'\n+'
         t.lexer.lineno += len(t.value)
 
     # A string containing ignored characters (spaces and tabs)
@@ -286,7 +286,7 @@ class SPLParser:
         self.TEMPLATE_MODE = False
 
     def p_formula_sexp(self, p):
-        'formula : LPAREN formulas RPAREN'
+        'formula : LPAREN SYMBOL formulas RPAREN'
         p[0] = ast.Formula(p[3], *p[4])
 
     def p_formula_anynode(self, p):
@@ -294,10 +294,6 @@ class SPLParser:
         if self.TEMPLATE_MODE == False:
           raise Exception("Wildcard not allowed except in template")
         p[0] = ast.Wildcard(p[1])
-
-    def p_formula_symbol(self, p):
-        'formula : SYMBOL'
-        p[0] = ast.Symbol(p[1])
 
     def p_formulas(self, p):
         'formulas : formula formulas'
