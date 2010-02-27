@@ -41,7 +41,7 @@ class Node:
         return self.__class__.__name__
 
 class Formula(Node):
-    def __init__(*args):
+    def __init__(self, *args):
         if(len(args) == 0):
             raise IndexError
 
