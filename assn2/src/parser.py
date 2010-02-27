@@ -29,19 +29,20 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
+        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
         self.lexer.input(data)
         for tok in self.lexer:
-            print tok
+            print tok.type, tok.value
 
     ##### LEX #################################################################
 
     precedence = (
         ('left', 'PLUS', 'MINUS'),
         ('left', 'MULT', 'DIV', 'MOD'),
-        ('right','UMINUS')
+#        ('right','UMINUS')
     )
 
     # List of token names.	 This is always required
@@ -110,20 +111,6 @@ class SPLParser:
         "undefine"     :	"UNDEFINE",
         "unroll"       :	"UNROLL",
         "verbose"      :	"VERBOSE",
-        "w"            :	"WSCALAR",
-        "F"            : "F",
-        "I"            : "I",
-        "J"            : "J",
-        "L"            : "L",
-        "O"            : "O",
-        "T"            : "T",
-        "direct_sum"   :	"DIRECT_SUM",
-        "compose"      :  "COMPOSE",
-        "tensor"       :  "TENSOR",
-        "matrix"       :  "MATRIX",
-        "permutation"  :  "PERMUTATION",
-        "rpermutation" :  "RPERMUTATION",
-        "diagonal"     :  "DIAGONAL",
     }
 
     t_MINUS = r'-'
@@ -169,7 +156,7 @@ class SPLParser:
 
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.value = self.RESERVED.get(t.value, "SYMBOL")
+        t.type = self.RESERVED.get(t.value, "SYMBOL")
         return t
 
     # Define a rule so we can track line numbers
@@ -204,11 +191,12 @@ class SPLParser:
         p[0] = ast.StmtList(p[1])
 
     def p_stmt(self, p):
-        """stmt : formula
-                | comment
+        """stmt : formula 
+                | comment 
                 | directive
                 | definition
                 | template"""
+        print p[1]
         p[0] = p[1]
 
 ##### Formulas #####
@@ -332,10 +320,11 @@ class SPLParser:
         p[0] = p[2]
 
     def p_number(self, p):
-        """number : function
-                  | scalar
+        """number : scalar
                   | complex
-                  | intrinsic"""
+                  | expression
+                  | intrinsic
+                  | function"""
         p[0] = p[1]
 
     def p_scalar(self,p):
@@ -355,7 +344,35 @@ class SPLParser:
         'complex : LPAREN number COMMA number RPAREN'
         p[0] = ast.Complex(p[2], p[4])
 
-##### Intrinsics #####
+    def p_expression_add(self, p):
+        'expression : number PLUS number'
+        p[0] = ast.Add(p[1], p[3])
+
+    def p_expression_sub(self, p):
+        'expression : number MINUS number'
+        p[0] = ast.Sub(p[1], p[3])
+
+    def p_expression_mul(self, p):
+        'expression : number MULT number'
+        p[0] = ast.Mul(p[1], p[3])
+
+    def p_expression_div(self, p):
+        'expression : number DIV number'
+        p[0] = ast.Div(p[1], p[3])
+
+    def p_expression_mod(self, p):
+        'expression : number MOD number'
+        p[0] = ast.Div(p[1], p[3])
+
+#    def p_expression_neg(self, p):
+#        'expression : MINUS number %prec UMINUS' 
+#        p[0] = ast.Neg(p[2])
+
+#    def p_expression_paren(self, p):
+#        'expression : LPAREN expression RPAREN'
+#        p[0] = p[2]
+
+##### Intrinsics and Functions #####
 
     def p_intrinsic(self, p):
         """intrinsic : i_W
@@ -400,7 +417,6 @@ class SPLParser:
         'i_S : S LPAREN number number RPAREN'
         p[0] = ast.S(p[3], p[4])
 
-##### Functions #####
     def p_function_sin(self, p):
         'function : SIN LPAREN number RPAREN'
         p[0] = ast.Sin(p[3])
