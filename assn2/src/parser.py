@@ -29,7 +29,7 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
-        self.lexer_test(data)
+#        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
@@ -202,7 +202,7 @@ class SPLParser:
 ##### Formulas #####
 
     def p_formula_sexp(self, p):
-        'formula : LPAREN SYMBOL formulas RPAREN'
+        'formula : LPAREN SYMBOL values RPAREN'
         p[0] = ast.Formula(p[3], *p[4])
 
     def p_formula_anynode(self, p):
@@ -211,13 +211,19 @@ class SPLParser:
           raise Exception("Wildcard not allowed except in template")
         p[0] = ast.Wildcard(p[1])
 
-    def p_formulas(self, p):
-        'formulas : formula formulas'
-        p[2].insert(0, p[1])
+    def p_value(self, p):
+      """value : formula
+               | number"""
+      p[0] = p[1]
+            
+
+    def p_values(self, p):
+        'values : value values'
+        p[2].insert(0,p[1])
         p[0] = p[2]
 
-    def p_formulas_end(self, p):
-        'formulas : formula'
+    def p_values_end(self, p):
+        'values : value'
         p[0] = [ p[1] ]
 
 ##### Comments #####
@@ -315,9 +321,6 @@ class SPLParser:
         self.TEMPLATE_MODE = False
 
 ##### Numbers #####
-    def p_number_paren(self, p):
-        'number : LPAREN number RPAREN'
-        p[0] = p[2]
 
     def p_number(self, p):
         """number : scalar
@@ -368,9 +371,9 @@ class SPLParser:
 #        'expression : MINUS number %prec UMINUS' 
 #        p[0] = ast.Neg(p[2])
 
-#    def p_expression_paren(self, p):
-#        'expression : LPAREN expression RPAREN'
-#        p[0] = p[2]
+    def p_expression_paren(self, p):
+        'expression : LPAREN expression RPAREN'
+        p[0] = p[2]
 
 ##### Intrinsics and Functions #####
 
