@@ -800,6 +800,9 @@ class Name(DirectiveParam):
     def value(self):
         return self.value
 
+    def __repr__(self):
+      return self.value
+
 ##### 2.3 Comments ######
 class Comment(Node):
     def __init__(self, txt):
