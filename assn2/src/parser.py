@@ -188,6 +188,8 @@ class SPLParser:
 
     ##### YACC ################################################################
 
+##### Structure of Program #####
+
     def p_program(self, p):
         'program : stmt_list'
         p[0] = ast.Program(p[1])
@@ -202,88 +204,14 @@ class SPLParser:
         p[0] = ast.StmtList(p[1])
 
     def p_stmt(self, p):
-        """stmt : definition
-                | template
-                | formula
-                | directive
+        """stmt : formula
                 | comment
-                | INVISIBLE_COMMENT"""
+                | directive
+                | definition
+                | template"""
         p[0] = p[1]
 
-    def p_comment(self, p):
-        'comment : COMMENT'
-        p[0] = ast.Comment(p[1])
-
-    def p_directive_subname(self, p):
-        'directive : HASH SUBNAME SYMBOL'
-        p[0] = ast.SubName(ast.Name(p[3]))
-
-    def p_directive_codetype(self, p):
-        'directive : HASH CODETYPE type'
-        p[0] = ast.CodeType(p[3])
-
-    def p_directive_datatype(self, p):
-        'directive : HASH DATATYPE type'
-        p[0] = ast.DataType(p[3])
-
-    def p_directive_optimize(self, p):
-        'directive : HASH OPTIMIZE flag'
-        p[0] = ast.Optimize(p[3])
-
-    def p_directive_unroll(self, p):
-        'directive : HASH UNROLL flag'
-        p[0] = ast.Unroll(p[3])
-
-    def p_directive_debug(self, p):
-        'directive : HASH DEBUG flag'
-        p[0] = ast.Debug(p[3])
-
-    def p_directive_verbose(self, p):
-        'directive : HASH VERBOSE flag'
-        p[0] = ast.Verbose(p[3])
-
-    def p_directive_internal(self, p):
-        'directive : HASH INTERNAL flag'
-        p[0] = ast.Internal(p[3])
-
-    def p_type_real(self, p):
-        'type : REAL'
-        p[0] = ast.RealType()
-
-    def p_type_complex(self, p):
-        'type : COMPLEX'
-        p[0] = ast.ComplexType()
-
-    def p_flag_on(self, p):
-        'flag : ON'
-        p[0] = ast.On()
-
-    def p_flag_off(self, p):
-        'flag : OFF'
-        p[0] = ast.Off()
-
-    def p_definition_formula(self, p):
-        'definition : LPAREN DEFINE SYMBOL formula RPAREN'
-        p[0] = ast.Define(p[3], p[4])
-
-    def p_definition_value(self, p):
-        'definition : LPAREN DEFINE SYMBOL number RPAREN'
-        p[0] = ast.Define(p[3], p[4])
-
-    def p_undefine(self, p):
-        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
-        p[0] = ast.Undefine(p[3])
-
-#    def p_template_formula_condition(self, p):
-#        'template : LPAREN TEMPLATE LBRACKET condition RBRACKET pattern 
-#            icode_list RPAREN'
-#        p[0] = ast.Template(p[6], p[7], p[4])
-
-    def p_template_formula(self, p):
-        'template : LPAREN TEMPLATE formula RPAREN'
-        self.TEMPLATE_MODE = True
-        p[0] = ast.Template(p[3], p[4])
-        self.TEMPLATE_MODE = False
+##### Formulas #####
 
     def p_formula_sexp(self, p):
         'formula : LPAREN SYMBOL formulas RPAREN'
@@ -304,45 +232,111 @@ class SPLParser:
         'formulas : formula'
         p[0] = [ p[1] ]
 
-    def p_number_add(self, p):
-        'number : number PLUS number'
-        p[0] = ast.Add(p[1], p[3])
+##### Comments #####
 
-    def p_number_sub(self, p):
-        'number : number MINUS number'
-        p[0] = ast.Sub(p[1], p[3])
+    def p_comment(self, p):
+        'comment : COMMENT'
+        p[0] = ast.Comment(p[1])
 
-    def p_number_mul(self, p):
-        'number : number MULT number'
-        p[0] = ast.Mul(p[1], p[3])
+    def p_invisible_comment(self, p):
+        'comment : INVISIBLE_COMMENT'
 
-    def p_number_div(self, p):
-        'number : number DIV number'
-        p[0] = ast.Div(p[1], p[3])
+##### Directives #####
 
-    def p_number_mod(self, p):
-        'number : number MOD number'
-        p[0] = ast.Mod(p[1], p[3])
+    ##    #subname
+    def p_directive_subname(self, p):
+        'directive : HASH SUBNAME SYMBOL'
+        p[0] = ast.SubName(ast.Name(p[3]))
 
-    def p_number_neg(self, p):
-        'number : MINUS number %prec UMINUS'
-        p[0] = ast.Neg(p[2])
+    ##    #codetype / #datatype
+    def p_directive_codetype(self, p):
+        'directive : HASH CODETYPE type'
+        p[0] = ast.CodeType(p[3])
 
+    def p_directive_datatype(self, p):
+        'directive : HASH DATATYPE type'
+        p[0] = ast.DataType(p[3])
+
+    ##    types
+    def p_type_real(self, p):
+        'type : REAL'
+        p[0] = ast.RealType()
+
+    def p_type_complex(self, p):
+        'type : COMPLEX'
+        p[0] = ast.ComplexType()
+
+    ##    #optimize / #unroll
+    def p_directive_optimize(self, p):
+        'directive : HASH OPTIMIZE flag'
+        p[0] = ast.Optimize(p[3])
+
+    def p_directive_unroll(self, p):
+        'directive : HASH UNROLL flag'
+        p[0] = ast.Unroll(p[3])
+
+    ##    #debug / #verbose / #internal
+    def p_directive_debug(self, p):
+        'directive : HASH DEBUG flag'
+        p[0] = ast.Debug(p[3])
+
+    def p_directive_verbose(self, p):
+        'directive : HASH VERBOSE flag'
+        p[0] = ast.Verbose(p[3])
+
+    def p_directive_internal(self, p):
+        'directive : HASH INTERNAL flag'
+        p[0] = ast.Internal(p[3])
+
+    ##    flags
+    def p_flag_on(self, p):
+        'flag : ON'
+        p[0] = ast.On()
+
+    def p_flag_off(self, p):
+        'flag : OFF'
+        p[0] = ast.Off()
+
+##### Assignments #####
+
+    ##    define Symbol / define Value
+    def p_definition_formula(self, p):
+        'definition : LPAREN DEFINE SYMBOL formula RPAREN'
+        p[0] = ast.Define(p[3], p[4])
+
+    def p_definition_value(self, p):
+        'definition : LPAREN DEFINE SYMBOL number RPAREN'
+        p[0] = ast.Define(p[3], p[4])
+
+    def p_undefine(self, p):
+        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
+        p[0] = ast.Undefine(p[3])
+
+#    def p_template_formula_condition(self, p):
+#        'template : LPAREN TEMPLATE LBRACKET condition RBRACKET pattern 
+#            icode_list RPAREN'
+#        p[0] = ast.Template(p[6], p[7], p[4])
+
+##### Templates #####
+
+    ##    template
+    def p_template_formula(self, p):
+        'template : LPAREN TEMPLATE formula RPAREN'
+        self.TEMPLATE_MODE = True
+        p[0] = ast.Template(p[3], p[4])
+        self.TEMPLATE_MODE = False
+
+##### Numbers #####
     def p_number_paren(self, p):
         'number : LPAREN number RPAREN'
         p[0] = p[2]
 
-##### Numbers #####
     def p_number(self, p):
         """number : function
                   | scalar
                   | complex
                   | intrinsic"""
         p[0] = p[1]
-
-    def p_number_symbol(self, p):
-        'number : SYMBOL'
-        p[0] = ast.Symbol(p[1])
 
     def p_scalar(self,p):
         """scalar : integer
@@ -360,6 +354,8 @@ class SPLParser:
     def p_complex(self, p):
         'complex : LPAREN number COMMA number RPAREN'
         p[0] = ast.Complex(p[2], p[4])
+
+##### Intrinsics #####
 
     def p_intrinsic(self, p):
         """intrinsic : i_W
