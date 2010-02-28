@@ -196,14 +196,13 @@ class SPLParser:
                 | directive
                 | definition
                 | template"""
-        print p[1]
         p[0] = p[1]
 
 ##### Formulas #####
 
     def p_formula_sexp(self, p):
         'formula : LPAREN SYMBOL values RPAREN'
-        p[0] = ast.Formula(p[3], *p[4])
+        p[0] = ast.Formula(p[2], *p[3])
 
     def p_formula_anynode(self, p):
         'formula : ANY'
