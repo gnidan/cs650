@@ -124,6 +124,7 @@ class SPLParser:
         "spl_size_sparse"    : "SIZE_RULE",
 
         "newtmp"       :	"NEWTMP",
+        "deftemp"       :	"NEWTMP",
         "do"           :	"LOOP",
         "dounroll"     :	"LOOPUNROLL",
         "end"          :	"END",
