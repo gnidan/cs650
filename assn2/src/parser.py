@@ -58,19 +58,19 @@ class SPLParser:
         'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'WSCALAR',
         'REAL', 'COMPLEX',
         'ON', 'OFF', 'TEMPLATE', 'ANY',
-        'SYMBOL'
+        'SYMBOL', 'SHAPE', 'SIZE_RULE'
     )
 
     # dictionary of reserved words
     RESERVED = {
-        "C"            :	"C",
-        "S"            :	"S",
-        "TW"           :	"TW",
-        "TWI"          :	"TWI",
-        "TWR"          :	"TWR",
-        "W"            :	"W",
-        "WI"           :	"WI",
-        "WR"           :	"WR",
+        "c"            :	"C",
+        "s"            :	"S",
+        "tw"           :	"TW",
+        "twi"          :	"TWI",
+        "twr"          :	"TWR",
+        "w"            :	"W",
+        "wi"           :	"WI",
+        "wr"           :	"WR",
         "alias"        :	"ALIAS",
         "any"          :	"ANY",
         "call"         :	"CALL",
@@ -111,6 +111,19 @@ class SPLParser:
         "undefine"     :	"UNDEFINE",
         "unroll"       :	"UNROLL",
         "verbose"      :	"VERBOSE",
+
+        "spl_shape_square"   : "SHAPE",
+        "spl_shape_rect"     : "SHAPE",
+        "spl_shape_diag"     : "SHAPE",
+        "spl_shape_rectdiag" : "SHAPE",
+        "spl_size_ident"     : "SIZE_RULE",
+        "spl_size_transpose" : "SIZE_RULE",
+        "spl_size_compose"   : "SIZE_RULE",
+        "spl_size_sum"       : "SIZE_RULE",
+        "spl_size_tensor"    : "SIZE_RULE",
+        "spl_size_matrix"    : "SIZE_RULE",
+        "spl_size_vector"    : "SIZE_RULE",
+        "spl_size_sparse"    : "SIZE_RULE"
     }
 
     t_MINUS = r'-'
@@ -195,6 +208,7 @@ class SPLParser:
                 | comment 
                 | directive
                 | definition
+                | declaration
                 | template"""
         p[0] = p[1]
 
@@ -324,6 +338,20 @@ class SPLParser:
     def p_template_formula(self, p):
         'template : LPAREN TEMPLATE formula RPAREN'
         p[0] = ast.Template(p[3], p[4])
+
+    ##    declarations
+    def p_primitive_formula(self, p):
+        'declaration: LPAREN PRIMITIVE symbol shape RPAREN'
+        p[0] = ast.Primitve(p[3], p[4])
+
+    def p_primitive_formula(self, p):
+        'declaration: LPAREN OPERATION symbol size_rule RPAREN'
+        p[0] = ast.Operation(p[3], p[4])
+
+    def p_primitive_formula(self, p):
+        'declaration: LPAREN DIRECT symbol size_rule RPAREN'
+        p[0] = ast.Direct(p[3], p[4])
+
 
 ##### Numbers #####
 
@@ -466,5 +494,5 @@ class SPLParser:
           print "Line %d: Syntax error at '%s'" % (p.lineno, p.value)
         return None
 
-#Unimplemented: templates DEFINE_ PRIMITIVE OPERATION DIRECT ALIAS
+#Unimplemented: DEFINE_ ALIAS
 #               size_rule shape root_of_one

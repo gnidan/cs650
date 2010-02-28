@@ -911,6 +911,22 @@ class S(Intrinsic):
     def __repr__(self):
         return "S(%s %s)" % (self.m, self.k)
 
+##### 3.1 Symbol Declaration #####
+class Primitive(Assignment):
+    def __init__(self, symbol, shape):
+        self.symbol = symbol
+        self.shape  = shape
+
+class Operation(Assignment):
+    def __init__(self, symbol, size_rule):
+        self.symbol = symbol
+        self.size_rule  = size_rule
+
+class Direct(Assignment):
+    def __init__(self, symbol, size_rule):
+        self.symbol = symbol
+        self.size_rule  = size_rule
+
 ##### 3.2 Templates ######
 class Template(Assignment):
     def __init__(self, pattern, icode_list, condition=None):
