@@ -29,7 +29,7 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
-#        self.lexer_test(data)
+        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
@@ -42,7 +42,7 @@ class SPLParser:
     precedence = (
         ('left', 'PLUS', 'MINUS'),
         ('left', 'MULT', 'DIV', 'MOD'),
-#        ('right','UMINUS')
+        ('right','UMINUS')
     )
 
     # List of token names.	 This is always required
@@ -156,7 +156,7 @@ class SPLParser:
 
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value, "SYMBOL")
+        t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
         return t
 
     # Define a rule so we can track line numbers
@@ -198,23 +198,31 @@ class SPLParser:
                 | template"""
         p[0] = p[1]
 
+    def p_symbol(self, p):
+        'symbol : SYMBOL'
+        p[0] = ast.Name(p[1])
+
 ##### Formulas #####
 
     def p_formula_sexp(self, p):
-        'formula : LPAREN SYMBOL values RPAREN'
+        'formula : LPAREN symbol values RPAREN'
         p[0] = ast.Formula(p[2], *p[3])
-
-    def p_formula_anynode(self, p):
-        'formula : ANY'
-        if self.TEMPLATE_MODE == False:
-          raise Exception("Wildcard not allowed except in template")
-        p[0] = ast.Wildcard(p[1])
 
     def p_value(self, p):
       """value : formula
-               | number"""
+               | number
+               | symbol
+               | list
+               | wildcard"""
       p[0] = p[1]
-            
+
+    def p_wildcard(self, p):
+        'wildcard : ANY'
+        p[0] = ast.Wildcard(p[1])
+
+    def p_list(self, p):
+        'list : LPAREN values RPAREN'
+        p[0] = p[1]
 
     def p_values(self, p):
         'values : value values'
@@ -238,7 +246,7 @@ class SPLParser:
 
     ##    #subname
     def p_directive_subname(self, p):
-        'directive : HASH SUBNAME SYMBOL'
+        'directive : HASH SUBNAME symbol'
         p[0] = ast.SubName(ast.Name(p[3]))
 
     ##    #codetype / #datatype
@@ -294,15 +302,15 @@ class SPLParser:
 
     ##    define Symbol / define Value
     def p_definition_formula(self, p):
-        'definition : LPAREN DEFINE SYMBOL formula RPAREN'
+        'definition : LPAREN DEFINE symbol formula RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
     def p_definition_value(self, p):
-        'definition : LPAREN DEFINE SYMBOL number RPAREN'
+        'definition : LPAREN DEFINE symbol number RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
     def p_undefine(self, p):
-        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
+        'definition : LPAREN UNDEFINE symbol RPAREN'
         p[0] = ast.Undefine(p[3])
 
 #    def p_template_formula_condition(self, p):
@@ -315,9 +323,7 @@ class SPLParser:
     ##    template
     def p_template_formula(self, p):
         'template : LPAREN TEMPLATE formula RPAREN'
-        self.TEMPLATE_MODE = True
         p[0] = ast.Template(p[3], p[4])
-        self.TEMPLATE_MODE = False
 
 ##### Numbers #####
 
@@ -366,9 +372,9 @@ class SPLParser:
         'expression : number MOD number'
         p[0] = ast.Div(p[1], p[3])
 
-#    def p_expression_neg(self, p):
-#        'expression : MINUS number %prec UMINUS' 
-#        p[0] = ast.Neg(p[2])
+    def p_expression_neg(self, p):
+        'expression : MINUS number %prec UMINUS' 
+        p[0] = ast.Neg(p[2])
 
     def p_expression_paren(self, p):
         'expression : LPAREN expression RPAREN'
@@ -457,7 +463,7 @@ class SPLParser:
 
     def p_error(self, p):
         if p is not None:
-            print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
+          print "Line %d: Syntax error at '%s'" % (p.lineno, p.value)
         return None
 
 #Unimplemented: templates DEFINE_ PRIMITIVE OPERATION DIRECT ALIAS

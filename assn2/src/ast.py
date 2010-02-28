@@ -749,7 +749,7 @@ class Directive(Node):
         return None, False
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.value)
+        return "%s(%s)" % (self.__class__.__name__, repr(self.value))
 
 class SubName(Directive): pass
 
@@ -819,6 +819,9 @@ class Name(DirectiveParam):
         return self.value
 
     def __repr__(self):
+      return self.value
+
+    def __str__(self):
       return self.value
 
 ##### 2.3 Comments ######
