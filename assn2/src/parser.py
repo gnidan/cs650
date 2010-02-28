@@ -15,6 +15,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 import ast
+import iast
 
 class SPLParser:
     def __init__(self,debug=False):
@@ -51,14 +52,16 @@ class SPLParser:
         'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 
         'INTERNAL', 'OPTIMIZE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 
         'RPAREN', 'LPAREN', 'HASH', #'COLON',
-#        'LBRACKET', 'RBRACKET',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
         'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'WSCALAR',
         'REAL', 'COMPLEX',
         'ON', 'OFF', 'TEMPLATE', 'ANY',
-        'SYMBOL', 'SHAPE', 'SIZE_RULE'
+        'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
+        'LBRACKET', 'RBRACKET',
+        'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS', 'DOLLAR',
+        'ISCALAR', 'IVECTOR',
     )
 
     # dictionary of reserved words
@@ -82,17 +85,12 @@ class SPLParser:
         "def"          :	"DEFINE",
         "define"       :	"DEFINE",
         "define_"      :	"DEFINE_",
-        "deftemp"      :	"DEFTEMP",
         "direct"       :	"DIRECT",
         "div"          :	"DIV",
-        "do"           :	"LOOP",
-        "dounroll"     :	"LOOPUNROLL",
-        "end"          :	"LOOPEND",
         "exp"          :	"EXP",
         "internal"     :	"INTERNAL",
         "log"          :	"LOG",
         "misc"         :	"MISC",
-        "mod"          :	"MOD",
         "off"          :	"OFF",
         "on"           :	"ON",
         "operation"    :	"OPERATION",
@@ -123,19 +121,27 @@ class SPLParser:
         "spl_size_tensor"    : "SIZE_RULE",
         "spl_size_matrix"    : "SIZE_RULE",
         "spl_size_vector"    : "SIZE_RULE",
-        "spl_size_sparse"    : "SIZE_RULE"
+        "spl_size_sparse"    : "SIZE_RULE",
+
+        "newtmp"       :	"NEWTMP",
+        "do"           :	"LOOP",
+        "dounroll"     :	"LOOPUNROLL",
+        "end"          :	"END",
     }
 
+    t_EQUALS = r'='
     t_MINUS = r'-'
     t_PLUS = r'\+'
     t_MULT = r'\*'
     t_DIV = r'/'
-#    t_LBRACKET = r'\['
-#    t_RBRACKET = r'\]'
+    t_MOD = r'%'
+    t_LBRACKET = r'\['
+    t_RBRACKET = r'\]'
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_HASH = r'\#'
     t_COMMA = r','
+    t_DOLLAR = r'\$'
 #    t_COLON = r':'
 
     t_WSCALAR = r'w'
@@ -170,6 +176,14 @@ class SPLParser:
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
         t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
+        return t
+
+    def t_ISCALAR(self, t):
+        r'\$[rfip]\d+'
+        return t
+
+    def t_IVECTOR(self, t):
+        r'\$([xy]|t\d+)'
         return t
 
     # Define a rule so we can track line numbers
@@ -336,21 +350,23 @@ class SPLParser:
 
     ##    template
     def p_template_formula(self, p):
-        'template : LPAREN TEMPLATE formula RPAREN'
+        'template : LPAREN TEMPLATE formula LPAREN icode_program RPAREN RPAREN'
         p[0] = ast.Template(p[3], p[4])
 
     ##    declarations
-    def p_primitive_formula(self, p):
-        'declaration: LPAREN PRIMITIVE symbol shape RPAREN'
+    def p_primitive(self, p):
+        'declaration : LPAREN PRIMITIVE symbol SHAPE RPAREN'
         p[0] = ast.Primitve(p[3], p[4])
 
-    def p_primitive_formula(self, p):
-        'declaration: LPAREN OPERATION symbol size_rule RPAREN'
+    def p_operation(self, p):
+        'declaration : LPAREN OPERATION symbol SIZE_RULE RPAREN'
         p[0] = ast.Operation(p[3], p[4])
 
-    def p_primitive_formula(self, p):
-        'declaration: LPAREN DIRECT symbol size_rule RPAREN'
+    def p_direct(self, p):
+        'declaration : LPAREN DIRECT symbol SIZE_RULE RPAREN'
         p[0] = ast.Direct(p[3], p[4])
+
+    ##    icode
 
 
 ##### Numbers #####
@@ -493,6 +509,91 @@ class SPLParser:
         if p is not None:
           print "Line %d: Syntax error at '%s'" % (p.lineno, p.value)
         return None
+
+##### ICode #####
+    def p_icode_program(self, p):
+        'icode_program : icode_list'
+        p[0] = iast.Program(p[1])
+
+    def p_icode_list(self, p):
+        'icode_list : icode icode_list'
+        p[2].prepend(p[1])
+        p[0] = p[2]
+
+    def p_icode_list_end(self, p):
+        'icode_list : icode'
+        p[0] = iast.StmtList(p[1])
+
+    def p_icode(self, p):
+        """icode : add
+                 | sub
+                 | mul
+                 | div
+                 | mod
+                 | assn
+                 | call
+                 | do
+                 | newtmp
+                 | comment"""
+        p[0] = p[1]
+
+    def p_ivalue(self, p):
+        """ivalue : DOUBLE
+                  | INTEGER
+                  | ivar"""
+
+    def p_ivar(self, p):
+        """ivar : ISCALAR
+                | IVECTOR"""
+        p[0] = iast.Symbol(p[1])
+
+    def p_ivar_subscript(self, p):
+        'ivar : IVECTOR subscript'
+        p[0] = iast.Symbol(p[1], p[2])
+
+    def p_subscript(self, p):
+        'subscript : LPAREN ivalue RPAREN'
+        p[0] = p[2]
+
+    def p_add(self, p):
+        'add : ivar EQUALS ivalue PLUS ivalue'
+        p[0] = iast.Add(p[1], p[3], p[5])
+
+    def p_sub(self, p):
+        'sub : ivar EQUALS ivalue MINUS ivalue'
+        p[0] = iast.Subtract(p[1], p[3], p[5])
+
+    def p_mul(self, p):
+        'mul : ivar EQUALS ivalue MULT ivalue'
+        p[0] = iast.Multiply(p[1], p[3], p[5])
+
+    def p_div(self, p):
+        'div : ivar EQUALS ivalue DIV ivalue'
+        p[0] = iast.Divide(p[1], p[3], p[5])
+
+    def p_mod(self, p):
+        'mod : ivar EQUALS ivalue MOD ivalue'
+        p[0] = iast.Modulus(p[1], p[3], p[5])
+
+    def p_assn(self, p):
+        'assn : ivar EQUALS ivalue'
+        p[0] = iast.Assign(p[1], p[3])
+      
+    def p_call(self, p):
+        'call : ivar EQUALS CALL symbol'
+        p[0] = iast.Call(p[1], p[4])
+
+    def p_call_arg(self, p):
+        'call : ivar EQUALS CALL symbol ivar'
+        p[0] = iast.Call(p[1], p[4], p[5])
+
+    def p_do(self, p):
+        'do : LOOP ivalue icode_list END LOOP'
+        p[0] = iast.Do(p[2], p[3])
+
+    def p_newtmp(self, p):
+        'newtmp : NEWTMP ivalue'
+        p[0] = iast.NewTmp(p[2])
 
 #Unimplemented: DEFINE_ ALIAS
 #               size_rule shape root_of_one
