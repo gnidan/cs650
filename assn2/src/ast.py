@@ -58,22 +58,22 @@ class Formula(Node):
         print "Must implement Formula evaluate"
 
     def __repr__(self):
-        repr = ""
+        r = ""
         for i in range(len(self.list)):
           arg = self.list[i]
           if( i == 0 ):
-            repr += arg
-            repr += "("
+            r += repr(arg)
+            r += "("
             second = True
           elif( i == 1 ):
-            repr += arg.__repr__()
+            r += repr(arg)
           else:
-            repr += ", "
-            repr += arg.__repr__()
+            r += ", "
+            r += repr(arg)
 
-        repr += ")"
+        r += ")"
         
-        return repr
+        return r
 
 
 class Program(Node):
@@ -819,10 +819,10 @@ class Name(DirectiveParam):
         return self.value
 
     def __repr__(self):
-      return self.value
+      return str(self.value)
 
     def __str__(self):
-      return self.value
+      return repr(self)
 
 ##### 2.3 Comments ######
 class Comment(Node):
@@ -943,6 +943,9 @@ class Template(Assignment):
             self.pattern.evaluate(symtab, options), 
             self.icode_list.evaluate(symtab, options)
               )
+
+    def __repr__(self):
+        return "Template(%s, %s)" % (self.pattern, self.icode_list)
 
 class Condition(Node):
   pass
