@@ -351,7 +351,7 @@ class SPLParser:
     ##    template
     def p_template_formula(self, p):
         'template : LPAREN TEMPLATE formula LPAREN icode_program RPAREN RPAREN'
-        p[0] = ast.Template(p[3], p[4])
+        p[0] = ast.Template(p[3], p[5])
 
     ##    declarations
     def p_primitive(self, p):
@@ -365,9 +365,6 @@ class SPLParser:
     def p_direct(self, p):
         'declaration : LPAREN DIRECT symbol SIZE_RULE RPAREN'
         p[0] = ast.Direct(p[3], p[4])
-
-    ##    icode
-
 
 ##### Numbers #####
 
@@ -541,6 +538,7 @@ class SPLParser:
         """ivalue : DOUBLE
                   | INTEGER
                   | ivar"""
+        p[0] = p[1]
 
     def p_ivar(self, p):
         """ivar : ISCALAR

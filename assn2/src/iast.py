@@ -140,9 +140,9 @@ class Symbol(Node):
 
   def __repr__(self):
     if self.subscript == None:
-      return "$%s" % self.symbol
+      return "%s" % self.symbol
     else:
-      return "$%s[%s]" % (self.symbol, self.subscript)
+      return "%s[%s]" % (self.symbol, self.subscript)
 
 class Comment(Node):
   def __init__(self, comment):
