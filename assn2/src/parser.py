@@ -226,7 +226,7 @@ class SPLParser:
       """value : formula
                | number
                | symbol
-               | list
+               | vector
                | wildcard"""
       p[0] = p[1]
 
@@ -234,8 +234,8 @@ class SPLParser:
         'wildcard : ANY'
         p[0] = ast.Wildcard(p[1])
 
-    def p_list(self, p):
-        'list : LPAREN values RPAREN'
+    def p_vector(self, p):
+        'vector : LPAREN values RPAREN'
         p[0] = p[1]
 
     def p_values(self, p):
