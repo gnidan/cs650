@@ -57,6 +57,24 @@ class Formula(Node):
     def evaluate(self, symtab, options):
         print "Must implement Formula evaluate"
 
+    def __repr__(self):
+        repr = ""
+        for i in range(len(self.list)):
+          arg = self.list[i]
+          if( i == 0 ):
+            repr += arg
+            repr += "("
+            second = True
+          elif( i == 1 ):
+            repr += arg.__repr__()
+          else:
+            repr += ", "
+            repr += arg.__repr__()
+
+        repr += ")"
+        
+        return repr
+
 
 class Program(Node):
     def __init__(self, stmts):
