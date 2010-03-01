@@ -23,3 +23,14 @@ Compilation Strategy
 5. Optimize
 
 6. Unparse
+
+
+ICode Evaluation
+----------------
+
+1. Start a new records list
+2. Recursively evaluate each icode instruction, getting the variables as
+   appropriate.
+ 
+After this is done we should not have any symbol references, but variables
+instead!
