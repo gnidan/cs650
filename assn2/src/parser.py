@@ -180,6 +180,11 @@ class SPLParser:
 
     def t_ISCALAR(self, t):
         r'\$[rfip]\d+'
+        exp = re.compile(r'\$(?P<Type>[rfip])(?P<Index>\d+)')
+        match = exp.match(t)
+        if not match:
+          raise Exception()
+        t.value = match.group('Type','Index')
         return t
 
     def t_IVECTOR(self, t):

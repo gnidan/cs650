@@ -200,6 +200,7 @@ class Subscript(Node):
 class Symbol(Node):
   def __init__(self, symbol, subscript=None):
     self.symbol = symbol
+    print symbol
     self.subscript = subscript
 
   def evaluate(self, records, **options):
