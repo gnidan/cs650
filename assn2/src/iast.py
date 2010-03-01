@@ -13,6 +13,9 @@ Contains all of the AST Node classes for ICode.
 
 import math
 import cmath
+
+from symbols import ICodeRecordSet
+
 class Node:
     def __init__(self):
         raise AbstractClassError('Node')
@@ -29,14 +32,17 @@ class Node:
 
 class ICode(Node):
     def __init__(self, stmts):
-        self.stmts = stmts
-        self.__records = SymbolRecord()
+      self.stmts = stmts
 
     def evaluate(self, *args, **kwargs):
-        raise NotImplementedError
+      records = ICodeRecordSet()
+      kwargs["program"] = self
+
+      self.stmts.flatten()
+      self.stmts.evaluate(records, **kwargs)
 
     def __repr__(self):
-        return "Program(%s)" % (self.stmts)
+      return "Program(%s)" % (self.stmts)
 
 class StmtList(Node):
     def __init__(self, stmt=None):
@@ -58,6 +64,9 @@ class StmtList(Node):
           new_stmts.append(stmt)
 
         self.stmts = new_stmts
+
+    def evaluate(self, records, **options):
+      return [s.evaluate(records, **options) for s in self.stmts]
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -197,6 +206,3 @@ class Comment(Node):
     return "Comment(\"%s\")" % self.comment
 
 ##### Record Keeping #####
-
-class SymbolRecord:
-  pass

@@ -81,10 +81,6 @@ class Code(Formula):
     self.value = value
     self.icode = icode
 
-
-
-
-
 class Pattern(Variable):
   def __init__(self):
     self.Value = None     # TODO fill this in later for struct
@@ -95,20 +91,19 @@ class Vector(Variable):
     self.size = size
     self.scalars = [Scalar()] * size #initialize vector to have a given size
 
-class SymbolCollection:
+class ICodeRecordSet:
   # notes: actually, maybe the behavior with setting up all the variables,
   #   in particular, the i varible stack, should be behavior to put in C and
   #   not at all in the compiler python code. Instead, perhaps we should just
   #   be tracking usage?
-  def __init__(self, input_size, output_size):
+  def __init__(self, **options):
     self.r       = []
     self.f       = []
     self.i       = []
     self.p       = []
     self.t       = []
-    self.x       = Vector(input_size)
-    self.y       = Vector(output_size)
-    self.sym_tab = SymbolTable()
+    self.x       = Vector(options["input_size"])
+    self.y       = Vector(options["output_size"])
 
   def r(self, index):
     try:
@@ -162,9 +157,6 @@ class SymbolCollection:
       return self.t[index][subscript]
     else:
       return self.t[index]
-
-
-
 
 class AlreadyDefinedError(Exception):
   def __init__(self, name):
