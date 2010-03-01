@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
 from icode import *
 from symbols import *
 from options import *
 from templates import *
 from icodelist import *
+import unparser
 
 x = VarIn()
 y = VarOut()
@@ -14,10 +18,9 @@ il.unroll()
 
 il.constprop()
 
-for i in il.icode:
-    print i
+print il
 
-opt = Options()
-lang = opt.language()
+opt = Options(unparser.C99())
+func = opt.unparser.write_function(opt, il)
 
-func = lang.write_function(opt, il)
+print func

@@ -12,12 +12,13 @@ unparser.py Unparses icode into an output language
 import numbers
 import icode
 from options import Options
+from symbols import *
 
-class OutputLanguage(object):
+class Unparser(object):
     def __init__(self):
         raise NotImplementedError
 
-class C99(OutputLanguage):
+class C99(Unparser):
     def __init__(self):
         pass
 
@@ -40,8 +41,10 @@ class C99(OutputLanguage):
 
     def var(self, sym):
         if isinstance(sym, numbers.Number):
-            return sym
-        print sym
+            return "%s" % sym
+        if isinstance(sym, tuple):
+            v, i = sym
+            return "%s[%s]" % (v, i)
         return self.nxt[sym]
 
     def op(self, dest, src1, op, src2):

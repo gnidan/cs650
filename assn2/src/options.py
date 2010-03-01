@@ -12,7 +12,7 @@ options.py Contains all of the compile time and runtime evaluation options.
 import numbers
 
 class Options:
-    def __init__(self):
+    def __init__(self, unparser):
         self.unroll = True
         self.optimize = True
         self.verbose = False
@@ -24,9 +24,9 @@ class Options:
 
         #codetype is the type used in the target language
         self.codetype = numbers.Complex
-
-        self.language = C99
         self.sign = 1
+
+        self.unparser = unparser
 
         #Keeps track of the current function name and which ones are already
         #used

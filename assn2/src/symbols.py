@@ -13,6 +13,7 @@ import numbers
 
 class NextVarSet:
     def __init__(self):
+        print 'NextVarSet created'
         self.vars = {}
 
     def __getitem__(self, key):
@@ -23,120 +24,95 @@ class NextVarSet:
         return "%s%d" % (key, i)
 
 class Var:
-  var_type = 'v'
-  next_val = 0
+    var_type = 'v'
+    next_val = NextVarSet()
 
-  def __init__(self,val=None,name=None):
-    self.val = None
-    self.name = None
-    self.out_name = None
+    def __init__(self,val=None,name=None):
+        self.val = None
+        self.name = None
+        self.out_name = None
 
-  def num(self):
-    if self.val is None:
-      return None
-    elif isinstance(self.val, numbers.Number):
-      return self.val
-    else:
-      return self.val.num()
+    def num(self):
+        if hasattr(self.val, 'num'):
+            return getattr(self.val, 'num')()
+        return self.val
 
-  def __str__(self):
-    if self.val:
-      return str(self.val.num())
-    if not self.name:
-      self.name = "%s%d" % (self.__class__.var_type, self.__class__.next_val)
-      self.__class__.next_val += 1
-    return '$%s' % (self.name)
+    def __str__(self):
+        if self.val:
+            return str(self.val.num())
+        if not self.name:
+            self.name = "%s%d" % (self.__class__.var_type, self.__class__.next_val)
+            self.__class__.next_val += 1
+        return '$%s' % (self.name)
 
+    def __repr__(self):
+        return str(self)
+
+#TODO we should construct these dynamically?
 class VarR(Var):
-  var_type = 'r'
-  next_val = 0
+    var_type = 'r'
 
 class VarF(Var):
-  var_type = 'f'
-  next_val = 0
+    var_type = 'f'
 
 class DoVar(Var):
-  """This is used in Do Loops to indicate the current loop value"""
-  def __init__(self,inst,n,val=0):
-    self.inst = inst #The instruction this variable is associated with.
-    self.n = n # The value that this variable goes up to
-    self.val = val #The present value during a particular unrolling step
+    """This is used in Do Loops to indicate the current loop value"""
+    def __init__(self,inst,n,val=0):
+        self.inst = inst #The instruction this variable is associated with.
+        self.n = n # The value that this variable goes up to
+        self.val = val #The present value during a particular unrolling step
 
-  def __str__(self):
-    return "DoVar(val=%d, n=%d, inst=%d)" % (self.val, self.n, self.inst)
+    def __str__(self):
+        return "DoVar(val=%d, n=%d, inst=%d)" % (self.val, self.n, self.inst)
 
 class IRef(Var):
-  """This is just a reference to a variable $i0, $i1 ... """
-  def __init__(self,val):
-    self.val = val
+    """This is just a reference to a variable $i0, $i1 ... """
+    def __init__(self,val):
+        self.val = val
 
-  def __str__(self):
-    return "$i%d" % (self.val)
+    def __str__(self):
+        return "$i%d" % (self.val)
+
+class Vec(Var):
+    var_type = 't'
+
+class IOVec(Vec):
+    def __str__(self):
+        return self.var_type
+
+class VarIn(IOVec):
+    var_type = 'x'
+
+class VarOut(IOVec):
+    var_type = 'y'
+
+
+
 
 class Index:
-  """This is used to store the index in icode."""
-  def __init__(self, vec, exp, stack=None):
-    self.vec = vec
-    self.exp = exp
+    """This is used to store the index in icode."""
+    def __init__(self, vec, exp):
+        self.vec = vec
+        self.exp = exp
 
-    if stack:
-      self.exp = self.idx(vec, exp, stack)
+    def idx(self, stack=None):
+        accum = self.exp[0]
+        idxs = []
+        e = self.exp[1:]
+        for e,i in zip(self.exp[1:], stack):
+            if isinstance(i.val, numbers.Integral):
+                accum += e * i.val
+            elif isinstance(i, Var):
+                idxs.append("%d*%s" % (e, i.val))
+            else:
+                raise TypeError
+        if not idxs:
+            return (self.vec, accum)
+        idxs.append(str(accum))
+        return (self.vec, '+'.join(idxs))
 
-  def idx(self, vec, exp, stack):
-    accum = exp[0]
-    idxs = []
-    e = exp[1:]
-    for e,i in zip(exp[1:], stack):
-      if isinstance(i.val, numbers.Integral):
-        accum += e * i.val
-      elif isinstance(i, Var):
-        idxs.append("%d*%s" % (e, i.val))
-      else:
-        raise TypeError
-    if not idxs:
-      return accum
-    idxs.append(str(accum))
-    return '+'.join(idxs)
+    def num(self):
+        return self
 
-  def num(self):
-    return self
-
-  def __str__(self):
-    return "Index(%s, %s)" % (self.vec, self.exp)
-
-class Vec:
-  var_type = 't'
-  next_val = 0
-
-  def __init__(self):
-    self.name = None
-
-  def __str__(self):
-    if not self.name:
-      self.name = "$%s%d" % (self.__class__.var_type, self.__class__.next_val)
-      self.__class__.next_val += 1
-    return self.name
-
-  def idx(self, exp, stack):
-    accum = exp[0]
-    idxs = []
-    e = exp[1:]
-    for e,i,n in zip(exp[1:], stack, xrange(len(e)-1)):
-      if isinstance(i.val, numbers.Integral):
-        accum += e * i.val
-      elif isinstance(i, Var):
-        idxs.append("%d*%s" % (e, i.val))
-      else:
-        raise TypeError
-    if not idxs:
-      return accum
-    idxs.append(str(accum))
-    return '+'.join(idxs)
-
-class VarIn(Vec):
-  var_type = 'x'
-  next_val = 0
-
-class VarOut(Vec):
-  var_type = 'y'
-  next_val = 0
+    def __str__(self):
+        return "Index(%s, %s)" % (self.vec, self.exp)
