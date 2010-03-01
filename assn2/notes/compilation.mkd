@@ -1,0 +1,22 @@
+Compilation Strategy
+====================
+
+1. Parse
+  - builds AST of all source code with no symbol evaluation or template lookup
+  - builds sub-ASTs ("iast") for all defined templates
+
+2. Evaluate / Constant propagation and folding
+  - Set options based on directives
+  - Perform constant propagation and folding
+  - Declare / define variables
+  - Set input/output sizes for all nodes
+
+  This removes all SPL statements that aren't formulas, and builds a symbol
+  table and options table.
+
+4. Rewrite
+  Using the symbol table and options table, perform the rewrite!
+
+5. Optimize
+
+6. Unparse
