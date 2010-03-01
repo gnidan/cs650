@@ -31,7 +31,7 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
-        self.lexer_test(data)
+#        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
@@ -187,8 +187,6 @@ class SPLParser:
           raise Exception()
         type, index = match.group('Type','Index')
         t.value = (type, int(index))
-        
-        print t.value
         return t
 
     def t_IVECTOR(self, t):
@@ -202,8 +200,6 @@ class SPLParser:
           t.value = (type, int(index))
         else:
           t.value = (type, 0)
-
-        print t.value
         return t
 
     # Define a rule so we can track line numbers

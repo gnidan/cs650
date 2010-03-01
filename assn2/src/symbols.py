@@ -50,19 +50,22 @@ class Variable:
     """Record when a particular icode expression access this variable"""
     self.access.append(icode)
 
-class IntegerConst(Variable):
+class Scalar(Variable):
+  pass
+
+class IntegerConst(Scalar):
   """Represents an Integer constant value"""
   def __init__(self, value=0):
     self.const = True
     self.value = int(value)
 
-class RealConst(Variable):
+class RealConst(Scalar):
   """Represents a Double constant value"""
   def __init__(self, value):
     self.const = True
     self.value = float(value=0)
 
-class ComplexConst(Variable):
+class ComplexConst(Scalar):
   """Represents a Complex constant value"""
   def __init__(self, value=0):
     self.const = True
@@ -97,16 +100,18 @@ class ICodeRecordSet:
   #   not at all in the compiler python code. Instead, perhaps we should just
   #   be tracking usage?
   def __init__(self, **options):
-    self.r       = []
-    self.f       = []
-    self.i       = []
-    self.p       = []
-    self.t       = []
-    self.x       = Vector(options["input_size"])
-    self.y       = Vector(options["output_size"])
+    self.__r       = []
+    self.__f       = []
+    self.__i       = []
+    self.__p       = []
+    self.__t       = []
+    self.__x       = Vector(options["input_size"])
+    self.__y       = Vector(options["output_size"])
+
+    self.realcomplex = RealConst # TODO update this
 
   def __getitem__(self, symbol):
-    return {
+    switch = {
         'r': lambda index, sub: self.r(index),
         'f': lambda index, sub: self.f(index),
         'i': lambda index, sub: self.i(index),
@@ -114,60 +119,62 @@ class ICodeRecordSet:
         't': lambda index, sub: self.t(index, subscript),
         'x': lambda index, sub: self.x(subscript),
         'y': lambda index, sub: self.y(subscript)
-        }[symbol.var_type](symbol.index, symbol.subscript)
+        }
+    func = switch[symbol.var_type]
+    return func(symbol.index, symbol.subscript)
 
   def r(self, index):
     try:
-      return self.r[index]
+      return self.__r[index]
     except IndexError as inst:
-      if index == len(self.r):
-        self.r.append(Int())
-        return self.r[index]
+      if index == len(self.__r):
+        self.__r.append(IntegerConst())
+        return self.__r[index]
       else:
         raise inst
 
   def f(self, index):
     try:
-      return self.f[index]
+      return self.__f[index]
     except IndexError as inst:
-      if index == len(self.f):
-        self.f.append(RealComplex())
-        return self.f[index]
+      if index == len(self.__f):
+        self.__f.append(self.realcomplex()) 
+        return self.__f[index]
       else:
         raise inst
 
   def append_loop(self):
     i = Int()
-    self.i.append(i)
+    self.__i.append(i)
 
   def pop_loop(self):
-    self.i.pop()
+    self.__i.pop()
 
   def i(self, index):
     # i0 -> i[len(i)-1]
-    index = len(self.i) - index - 1
-    return self.i[index]
+    index = len(self.__i) - index - 1
+    return self.__i[index]
 
   def p(self, index):
     # pattern varible behavior is probably different in a bunch of ways
     try:
       return self.p[index]
     except IndexError as inst:
-      if index == len(self.p):
-        self.p.append(Pattern())
-        return self.p[index]
+      if index == len(self.__p):
+        self.__p.append(Pattern())
+        return self.__p[index]
       else:
         raise inst
 
   def new_t(self, size):
-    self.t.append(Vector(size))
-    return len(self.t) - 1
+    self.__t.append(Vector(size))
+    return len(self.__t) - 1
 
   def t(self, index, subscript=None):
     if(subscript):
-      return self.t[index][subscript]
+      return self.__t[index][subscript]
     else:
-      return self.t[index]
+      return self.__t[index]
 
 class AlreadyDefinedError(Exception):
   def __init__(self, name):

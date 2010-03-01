@@ -21,12 +21,12 @@ class Node:
     def __init__(self):
         raise NotImplementedError
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         '''Performs early optimizations on the AST such as Constant Folding'''
         print self.__class__.__name__
         raise NotImplementedError
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         print self.__class__.__name__
         raise NotImplementedError
 
@@ -48,13 +48,13 @@ class Formula(Node):
         self.list = args
         self.symbol = args[0]
 
-    def definition(self, symtab, options):
+    def definition(self, symtab, **options):
         if options.unroll:
             pass #TODO gen_code
         else:
             return symbols.Formula(self.value)
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         print "Must implement Formula evaluate"
 
     def __repr__(self):
@@ -80,11 +80,11 @@ class Program(Node):
     def __init__(self, stmts):
         self.stmts = stmts
 
-    def evaluate(self, symtab, options):
-        self.stmts.evaluate(symtab, options)
+    def evaluate(self, symtab, **options):
+        self.stmts.evaluate(symtab, **options)
 
-    def optimize(self, symtab, options):
-        self.stmts.optimize(symtab, options)
+    def optimize(self, symtab, **options):
+        self.stmts.optimize(symtab, **options)
 
     def __repr__(self):
         return "Program(%s)" % (self.stmts)
@@ -99,13 +99,13 @@ class StmtList(Node):
     def prepend(self, stmt):
         self.stmts.insert(0, stmt)
 
-    def evaluate(self, symtab, options):
-        return [s.evaluate(symtab, options) for s in self.stmts]
+    def evaluate(self, symtab, **options):
+        return [s.evaluate(symtab, **options) for s in self.stmts]
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         #List comprehension wasn't pretty. But i don't like xrange either :-(
         for i in xrange(len(self)):
-            node, opt = self.stmts[i].optimize(symtab, options)
+            node, opt = self.stmts[i].optimize(symtab, **options)
             if opt:
                 self.stmts[i] = node
         return None, False
@@ -130,10 +130,10 @@ class Scalar(Number):
     def value(self):
         return self.val
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         return self.value(), True
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         return self.value()
 
     def __repr__(self):
@@ -149,10 +149,10 @@ class Pi(Double):
     def __init__(self):
         pass
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         return math.pi, True
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         return math.pi
 
     def __repr__(self):
@@ -168,12 +168,12 @@ class Complex(Number):
             return True
         return self.real.isConst(symtab) and self.imaginary.isConst(symtab)
 
-    def optimize(self, symtab, options):
-        node, optR = self.real.optimize(symtab, options)
+    def optimize(self, symtab, **options):
+        node, optR = self.real.optimize(symtab, **options)
         if optR:
             self.real = node
 
-        node, optI = self.imaginary.optimize(symtab, options)
+        node, optI = self.imaginary.optimize(symtab, **options)
         if optI:
             self.imaginary = node
 
@@ -202,14 +202,14 @@ class Function(Node):
         if hasattr(module, fname):
                 return getattr(module, fname)(arg)
 
-    def optimize(self, symtab, options):
-        node, opt = self.number.optimize(symtab, options)
+    def optimize(self, symtab, **options):
+        node, opt = self.number.optimize(symtab, **options)
         if opt:
             self.number = node
             return calc(number), True
         return None, False
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         raise NotImplementedError
 
     def __repr__(self):
@@ -232,10 +232,10 @@ class w(Function):
         self.n = n
         self.k = k
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         raise NotImplementedError #TODO
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         raise NotImplementedError #TODO
 
     def __repr__(self):
@@ -256,12 +256,12 @@ class Operator(Node):
     def isConst(self):
         return False
 
-    def optimize(self, symtab, options):
-        node, optL = self.left.optimize(symtab, options)
+    def optimize(self, symtab, **options):
+        node, optL = self.left.optimize(symtab, **options)
         if optL:
             self.left = node
 
-        node, optR = self.right.optimize(symtab, options)
+        node, optR = self.right.optimize(symtab, **options)
         if optR:
             self.right = node
 
@@ -270,7 +270,7 @@ class Operator(Node):
 
         return None, False
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, symtab, **options):
         raise NotImplementedError #TODO
 
     def __repr__(self):
@@ -303,8 +303,8 @@ class Neg(Operator):
     def isConst(self, symtab=None):
         return self.val.isConst(symtab)
 
-    def optimize(self, symtab, options):
-        node, opt = self.val.optimize(symtab, options)
+    def optimize(self, symtab, **options):
+        node, opt = self.val.optimize(symtab, **options)
         if opt:
             self.val = node
             return (-node, True)
@@ -326,9 +326,9 @@ class MatrixRow(Constructor):
         self.values.insert(0, a)
         self.n += 1
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
+            node, opt = self.values[i].optimize(symtab, **options)
             if opt:
                 self.values[i] = node
         return None, False
@@ -356,9 +356,9 @@ class Matrix(Constructor):
         self.rows.insert(0, row)
         self.m += 1
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         for i in xrange(self.m):
-            node, opt = self.rows[i].optimize(symtab, options)
+            node, opt = self.rows[i].optimize(symtab, **options)
             if opt:
                 self.rows[i] = node
         return None, False
@@ -374,9 +374,9 @@ class Diagonal(Constructor):
         self.n = len(values)
         self.values = values
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
+            node, opt = self.values[i].optimize(symtab, **options)
             if opt:
                 self.values[i] = node
         return None, False
@@ -393,7 +393,7 @@ class Permutation(Constructor):
         self.values = values
 
 
-    def optimize(self, symtab, options):
+    def optimize(self, symtab, **options):
         for i in xrange(self.n):
             node, opt = self.values[i].optimize(symtab, options)
             if opt:
