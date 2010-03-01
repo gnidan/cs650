@@ -2,7 +2,7 @@ Subscripts for ICode Variables
 ==============================
 
 Vector form:
-``
+<pre>
  [0] -> Scalar
  [1] -> Scalar
  [2]    .
@@ -10,7 +10,7 @@ Vector form:
   .     .
   .
  [n-1]
-``
+</pre>
 
 Vectors are always addressed with subscripts as $v[s] where v is the vector
 variable and s is the subscript.
