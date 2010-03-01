@@ -14,7 +14,7 @@ Contains all of the AST Node classes.
 import math
 import cmath
 import numbers
-import symbol_collection as symbols
+import symbols
 from options import Options
 
 class Node:

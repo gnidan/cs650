@@ -14,7 +14,7 @@ PLY SPL compiler.
 
 import sys
 import getopt
-from symbol_collection import SymbolTable
+from symbols import SymbolTable
 from options import Options
 
 from parser import SPLParser

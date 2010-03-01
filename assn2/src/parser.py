@@ -536,8 +536,8 @@ class SPLParser:
         p[0] = p[1]
 
     def p_ivalue(self, p):
-        """ivalue : DOUBLE
-                  | INTEGER
+        """ivalue : double
+                  | integer
                   | ivar"""
         p[0] = p[1]
 

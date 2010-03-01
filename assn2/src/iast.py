@@ -17,11 +17,20 @@ import cmath
 from symbols import ICodeRecordSet
 
 class Node:
+    dest = None
+    src1 = None
+    src2 = None
+
     def __init__(self):
         raise AbstractClassError('Node')
 
-    def evaluate(self, *args, **kwargs):
-        raise NotImplementedError
+    def evaluate(self, records, options):
+      if self.dest:
+        self.dest.evaluate(records, options)
+      if self.src1:
+        self.src1.evaluate(records, options)
+      if self.src2:
+        self.src2.evaluate(records, options)
 
     def __str__(self):
         return repr(self)
@@ -34,12 +43,13 @@ class ICode(Node):
     def __init__(self, stmts):
       self.stmts = stmts
 
-    def evaluate(self, *args, **kwargs):
-      records = ICodeRecordSet()
-      kwargs["program"] = self
+    def evaluate(self, *args, **options):
+      # options should include input_size and output_size
+      records = ICodeRecordSet(options)
+      options["program"] = self
 
       self.stmts.flatten()
-      self.stmts.evaluate(records, **kwargs)
+      self.stmts.evaluate(records, **options)
 
     def __repr__(self):
       return "Program(%s)" % (self.stmts)
@@ -191,6 +201,9 @@ class Symbol(Node):
   def __init__(self, symbol, subscript=None):
     self.symbol = symbol
     self.subscript = subscript
+
+  def evaluate(self, records, **options):
+    self = records[self]
 
   def __repr__(self):
     if self.subscript == None:

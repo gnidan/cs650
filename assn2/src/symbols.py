@@ -105,6 +105,9 @@ class ICodeRecordSet:
     self.x       = Vector(options["input_size"])
     self.y       = Vector(options["output_size"])
 
+  def __getitem__(self, symbol):
+    pass
+
   def r(self, index):
     try:
       return self.r[index]
