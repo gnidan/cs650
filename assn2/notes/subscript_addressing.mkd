@@ -1,6 +1,29 @@
 Subscripts for ICode Variables
 ==============================
 
-N.B. This is funky shit, yo
+Vector form:
+``
+ [0] -> Scalar
+ [1] -> Scalar
+ [2]    .
+  .     .
+  .     .
+  .
+ [n-1]
+``
 
+Vectors are always addressed with subscripts as $v[s] where v is the vector
+variable and s is the subscript.
 
+Subscripts either address an individual scalar, or a list of scalars at a
+certain stride:
+
+  - Simple scalar index returns an individual existing scalar
+  - Start/stride/end index returns new vector of existing scalars in
+    appropriate order
+
+Both select scalars at ICode compilation time.
+
+Index evaluates based on loop vars.
+
+  TODO: How does this work when loop is not unrolled?
