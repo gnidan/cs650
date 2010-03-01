@@ -60,7 +60,7 @@ class SPLParser:
         'ON', 'OFF', 'TEMPLATE', 'ANY',
         'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
         'LBRACKET', 'RBRACKET',
-        'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS', 'DOLLAR',
+        'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS',
         'ISCALAR', 'IVECTOR',
     )
 
@@ -142,7 +142,6 @@ class SPLParser:
     t_RPAREN = r'\)'
     t_HASH = r'\#'
     t_COMMA = r','
-    t_DOLLAR = r'\$'
     t_COLON = r':'
 
     t_WSCALAR = r'w'
@@ -610,11 +609,13 @@ class SPLParser:
         p[0] = iast.Call(p[1], p[4], p[5])
 
     def p_do(self, p):
-        'do : LOOP ivalue icode_list END LOOP'
+        """do : LOOP ivalue icode_list END LOOP
+              | LOOP ivalue icode_list END"""
         p[0] = iast.Do(p[2], p[3])
 
     def p_dounroll(self, p):
-        'dounroll : LOOPUNROLL ivalue icode_list END LOOPUNROLL'
+        """dounroll : LOOPUNROLL ivalue icode_list END LOOPUNROLL
+                    | LOOPUNROLL ivalue icode_list END"""
         p[0] = iast.Do(p[2], p[3], unroll=True)
 
     def p_newtmp(self, p):
