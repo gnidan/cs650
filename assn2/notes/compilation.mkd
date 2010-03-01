@@ -10,12 +10,15 @@ Compilation Strategy
   - Perform constant propagation and folding
   - Declare / define variables
   - Set input/output sizes for all nodes
+  - Do NOT evaluate icode in templates
 
   This removes all SPL statements that aren't formulas, and builds a symbol
   table and options table.
 
 4. Rewrite
   Using the symbol table and options table, perform the rewrite!
+
+  (Evaluate icode as necessary)
 
 5. Optimize
 
