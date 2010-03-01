@@ -10,6 +10,7 @@ parser.py
 
 SPL Parser
 """
+import re
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -181,14 +182,28 @@ class SPLParser:
     def t_ISCALAR(self, t):
         r'\$[rfip]\d+'
         exp = re.compile(r'\$(?P<Type>[rfip])(?P<Index>\d+)')
-        match = exp.match(t)
+        match = exp.match(t.value)
         if not match:
           raise Exception()
-        t.value = match.group('Type','Index')
+        type, index = match.group('Type','Index')
+        t.value = (type, int(index))
+        
+        print t.value
         return t
 
     def t_IVECTOR(self, t):
         r'\$([xy]|t\d+)'
+        exp = re.compile(r'\$(?P<Type>.)(?P<Index>\d*)')
+        match = exp.match(t.value)
+        if not match:
+          raise Exception()
+        type, index = match.group('Type','Index')
+        if(index):
+          t.value = (type, int(index))
+        else:
+          t.value = (type, 0)
+
+        print t.value
         return t
 
     # Define a rule so we can track line numbers

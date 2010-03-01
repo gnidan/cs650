@@ -106,7 +106,15 @@ class ICodeRecordSet:
     self.y       = Vector(options["output_size"])
 
   def __getitem__(self, symbol):
-    pass
+    return {
+        'r': lambda index, sub: self.r(index),
+        'f': lambda index, sub: self.f(index),
+        'i': lambda index, sub: self.i(index),
+        'p': lambda index, sub: self.p(index),
+        't': lambda index, sub: self.t(index, subscript),
+        'x': lambda index, sub: self.x(subscript),
+        'y': lambda index, sub: self.y(subscript)
+        }[symbol.var_type](symbol.index, symbol.subscript)
 
   def r(self, index):
     try:

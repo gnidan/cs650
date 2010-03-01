@@ -199,8 +199,7 @@ class Subscript(Node):
 
 class Symbol(Node):
   def __init__(self, symbol, subscript=None):
-    self.symbol = symbol
-    print symbol
+    self.var_type, self.index = symbol
     self.subscript = subscript
 
   def evaluate(self, records, **options):
@@ -208,9 +207,9 @@ class Symbol(Node):
 
   def __repr__(self):
     if self.subscript == None:
-      return "%s" % self.symbol
+      return "$%s%d" % (self.var_type, self.index)
     else:
-      return "%s[%s]" % (self.symbol, self.subscript)
+      return "$%s%d[%s]" % (self.var_type, self.index, self.subscript)
 
 class Comment(Node):
   def __init__(self, comment):
