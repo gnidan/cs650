@@ -27,9 +27,10 @@ class Node:
         '''prints the AST in an ATerm like format'''
         raise NotImplementedError
 
-class Program(Node):
+class ICode(Node):
     def __init__(self, stmts):
         self.stmts = stmts
+        self.__records = SymbolRecord()
 
     def evaluate(self, *args, **kwargs):
         raise NotImplementedError
@@ -39,13 +40,24 @@ class Program(Node):
 
 class StmtList(Node):
     def __init__(self, stmt=None):
-        if stmt is None:
-            self.stmts = []
-        else:
-            self.stmts = [stmt]
+      if stmt is None:
+          self.stmts = []
+      else:
+          self.stmts = [stmt]
 
     def prepend(self, stmt):
         self.stmts.insert(0, stmt)
+
+    def flatten(self):
+      new_stmts = []
+      for stmt in self.stmts:
+        if stmt.issubclass(StmtList):
+          stmt.flatten()
+          new_stmts.extend(stmt.stmts)
+        else:
+          new_stmts.append(stmt)
+
+        self.stmts = new_stmts
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -119,9 +131,14 @@ class Call(Node):
       return "%s = Call(%s(%s))" % (self.dest, self.src1, self.src2)
 
 class Do(Node):
-  def __init__(self, src1, stmt_list):
+  def __init__(self, src1, stmt_list, unroll=False):
     self.src1 = src1
     self.stmts = stmt_list
+    if unroll:
+      self = self.unroll() 
+  
+  def unroll(self):
+    return self
 
   def __repr__(self):
     return "Do(%s, %s)" % (self.src1, self.stmts)
@@ -132,6 +149,34 @@ class NewTmp(Node):
 
   def __repr__(self):
     return "NewTmp(%s)" % self.src1
+
+class Index(Node):
+  def __init__(self, value):
+    self.value = value
+
+  def __repr__(self):
+    return repr(self.value)
+
+class Range(Index):
+  def __init__(self, start, stride, end):
+    self.start = start
+    self.stride = stride
+    self.end = end
+
+  def __repr__(self):
+    return "%s:%s:%s" % (repr(self.start), repr(self.stride), repr(self.end))
+
+class Subscript(Node):
+  def __init__(self, index, *multiplicands):
+    self.index = index
+    self.multiplicands = multiplicands
+
+  def __repr__(self):
+    r = repr(self.index)
+    for m in self.multiplicands:
+      r += " "
+      r += repr(m)
+    return r
 
 class Symbol(Node):
   def __init__(self, symbol, subscript=None):
@@ -150,3 +195,8 @@ class Comment(Node):
 
   def __repr__(self):
     return "Comment(\"%s\")" % self.comment
+
+##### Record Keeping #####
+
+class SymbolRecord:
+  pass

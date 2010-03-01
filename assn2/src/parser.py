@@ -51,7 +51,7 @@ class SPLParser:
         'DEFINE', 'UNDEFINE',
         'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 
         'INTERNAL', 'OPTIMIZE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 
-        'RPAREN', 'LPAREN', 'HASH', #'COLON',
+        'RPAREN', 'LPAREN', 'HASH', 'COLON',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
@@ -143,7 +143,7 @@ class SPLParser:
     t_HASH = r'\#'
     t_COMMA = r','
     t_DOLLAR = r'\$'
-#    t_COLON = r':'
+    t_COLON = r':'
 
     t_WSCALAR = r'w'
 
@@ -511,7 +511,7 @@ class SPLParser:
 ##### ICode #####
     def p_icode_program(self, p):
         'icode_program : icode_list'
-        p[0] = iast.Program(p[1])
+        p[0] = iast.ICode(p[1])
 
     def p_icode_list(self, p):
         'icode_list : icode icode_list'
@@ -531,6 +531,7 @@ class SPLParser:
                  | assn
                  | call
                  | do
+                 | dounroll
                  | newtmp
                  | comment"""
         p[0] = p[1]
@@ -541,18 +542,40 @@ class SPLParser:
                   | ivar"""
         p[0] = p[1]
 
-    def p_ivar(self, p):
+    def p_ivar_scalar(self, p):
         """ivar : ISCALAR
                 | IVECTOR"""
         p[0] = iast.Symbol(p[1])
 
-    def p_ivar_subscript(self, p):
-        'ivar : IVECTOR subscript'
-        p[0] = iast.Symbol(p[1], p[2])
 
-    def p_subscript(self, p):
-        'subscript : LPAREN ivalue RPAREN'
+    def p_ivar_vector(self, p):
+        'ivar : IVECTOR LPAREN subscript RPAREN'
+        p[0] = iast.Symbol(p[1], p[3])
+
+    def p_subscript_simple(self, p):
+        'subscript : index'
+        p[0] = iast.Subscript(p[1])
+
+    def p_subscript_multiplicands(self, p):
+        'subscript : index multiplicands'
+        p[0] = iast.Subscript(p[1], *p[2])
+
+    def p_multiplicands(self, p):
+        'multiplicands : ivalue multiplicands'
+        p[2].insert(0, p[1])
         p[0] = p[2]
+
+    def p_multiplicands_end(self, p):
+        'multiplicands : ivalue'
+        p[0] = [ p[1] ]
+
+    def p_index_simple(self, p):
+        'index : ivalue'
+        p[0] = iast.Index(p[1])
+
+    def p_index_range(self, p):
+        'index : ivalue COLON ivalue COLON ivalue'
+        p[0] = iast.Range(p[1], p[3], p[5])
 
     def p_add(self, p):
         'add : ivar EQUALS ivalue PLUS ivalue'
@@ -589,6 +612,10 @@ class SPLParser:
     def p_do(self, p):
         'do : LOOP ivalue icode_list END LOOP'
         p[0] = iast.Do(p[2], p[3])
+
+    def p_dounroll(self, p):
+        'dounroll : LOOPUNROLL ivalue icode_list END LOOPUNROLL'
+        p[0] = iast.Do(p[2], p[3], unroll=True)
 
     def p_newtmp(self, p):
         'newtmp : NEWTMP ivalue'
