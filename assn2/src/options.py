@@ -34,6 +34,7 @@ class Options:
         self._next = {}
 
     def next_name(self):
+        """gets the next function name based on 'self.subname'"""
         if self.subname not in self._next:
             self._next[self.subname] = 0
             return self.subname
@@ -41,15 +42,19 @@ class Options:
         return "%s_%d" % (self.subname, self._next[self.subname])
 
     def __getitem__(self, key):
+        """allows options to be accessed by string name"""
         try:
             getattr(self, key)
         except:
             raise KeyError
 
     def __setitem__(self, key, value):
+        """allows options to be set by string name"""
         if hasattr(self, key):
             setattr(self, key, value)
-        raise KeyError
+        else:
+            raise KeyError
 
     def __delitem__(self, key):
+        """we don't want no delete"""
         raise KeyError

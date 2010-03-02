@@ -27,7 +27,7 @@ class C99(Unparser):
     comment_end = '*/'
 
     vartype = {
-        numbers.Complex  : 'complex',
+        numbers.Complex  : 'complex double',
         numbers.Real     : 'double',
         numbers.Integral : 'int',
         }
@@ -42,6 +42,10 @@ class C99(Unparser):
 
     def var(self, sym):
         if isinstance(sym, numbers.Number):
+            #Complex values are of the form 'real + imag * I' in C99.
+            if isinstance(sym, numbers.Complex):
+                #TODO should really check the codetype first
+                return "(%d+%d*I)" % (sym.real, sym.imag)
             return "%s" % sym
         if isinstance(sym, tuple):
             v, i = sym
@@ -79,6 +83,7 @@ class C99(Unparser):
 
         src = []
 
+        #TODO implement the rest of these
         for i in il.icode:
             if isinstance(i, icode.OpICode):
                 src.append(self.op(i.dest, i.src1, i.__class__, i.src2))

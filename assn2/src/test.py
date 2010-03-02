@@ -8,10 +8,7 @@ from templates import *
 from icodelist import *
 import unparser
 
-x = VarIn()
-y = VarOut()
-
-icode = F(x, y, 4)
+icode = F([4])
 il = ICodeList(icode)
 
 il.unroll()

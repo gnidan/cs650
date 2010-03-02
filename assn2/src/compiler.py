@@ -16,8 +16,9 @@ import sys
 import getopt
 from symbol_collection import SymbolTable
 from options import Options
-
+from icodelist import *
 from parser import SPLParser
+import unparser
 
 help_message = '''
 This is the CS650 SPL compiler in PLY
@@ -39,7 +40,7 @@ def main(argv=None):
     verbose = False
     debug = False
 
-    options = Options()
+    options = Options(unparser.C99())
 
     try:
         try:
@@ -100,28 +101,46 @@ def main(argv=None):
         print "\n Optimized AST:"
         print t
 
-    #if verbose:
-    #    print "\n** Evaluating the AST"
-    #symtab = SymbolTable()
-    #t.evaluate(symtab=symtab, directives=Directives(), lang=C99)
-    #print symtab
+    if verbose:
+        print "\n** Translating the AST to icode"
+    symtab = SymbolTable()
+    icodes = t.evaluate(SymbolTable(), options)
 
-    if t is None:
-        return
+    #Get rid of the None's
+    icodes = [i for i in icodes if i is not None]
+    if debug:
+        print "\n Icodes:"
+        print icodes
 
+    #TODO i don't think this is the right place for this step
+    icodes = [ICodeList(i) for i in icodes]
 
-#if verbose: print "\n** Initializing the Environment"
-#env = runtime.Environment(debug=debug)
+    if verbose:
+        print "\n** Optimization: Unrolling the icode"
+    for i in icodes:
+        i.unroll()
 
-#if verbose: print "\n** Evaluating the AST"
-#try:
-#	print t.evaluate(env)
-#except runtime.RuntimeException, e:
-#	print e
+    if verbose:
+        print "\n** Optimization: Propagating constants"
+    for i in icodes:
+        i.constprop()
 
-#if verbose:
-#	print "\n** Dumping the Environment"
-#	print env
+    if verbose:
+        print "\n** Optimization: Subexpression elimination"
+    #for i in icodes:
+    #    i.subexpr()
+
+    if debug:
+        print "\n Icodes:"
+        print icodes
+
+    if verbose:
+        print "\n** Unparsing to %s" % (options.unparser.__class__.__name__)
+
+    funcs = [ options.unparser.write_function(options, i) for i in icodes ]
+
+    for f in funcs:
+        print f
 
 if __name__ == "__main__":
     sys.exit(main())

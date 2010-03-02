@@ -14,6 +14,8 @@ Contains all of the AST Node classes.
 import math
 import cmath
 import numbers
+import templates
+import types
 import symbol_collection as symbols
 from options import Options
 
@@ -51,7 +53,13 @@ class Formula(Node):
     #         return symbols.Formula(self.value)
 
     def evaluate(self, symtab, options):
-        print "Must implement Formula evaluate"
+        if hasattr(templates, self.__class__.__name__):
+            func = getattr(templates, self.__class__.__name__)
+            if not isinstance(func, types.FunctionType):
+                raise TypeError
+            return func(self.values)
+        else:
+            print "Must implement Formula %s" % (self.__class__.__name__)
 
     def __init__(self, values):
         self.values = values
@@ -74,7 +82,7 @@ class Program(Node):
         self.stmts = stmts
 
     def evaluate(self, symtab, options):
-        self.stmts.evaluate(symtab, options)
+        return self.stmts.evaluate(symtab, options)
 
     def optimize(self, symtab, options):
         self.stmts.optimize(symtab, options)
@@ -483,7 +491,9 @@ class Define(Assignment):
     def evaluate(self, symtab, options):
         #print "Symbol: %s" % self.symbol
         #print "Value: %s" % self.value
-        symtab[self.symbol] = self.value.evaluate(symtab, options)
+        #TODO this is hackish. is there a better way?
+        if not isinstance(self.value, numbers.Number):
+            symtab[self.symbol] = self.value.evaluate(symtab, options)
 
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
@@ -527,6 +537,8 @@ class Directive(Node):
 
     def evaluate(self, symtab, options):
         options[self.__class__.__name__.lower()] = self.value
+        #TODO how do we correctly do subnames and other directives? ugh.
+        #return self
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.value)

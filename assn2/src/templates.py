@@ -28,7 +28,8 @@ from intrinsics import *
 # 		  end
 # 		end
 # 	))
-def F(in_v, out_v, p1):
+def F(p, in_v=VarIn(), out_v=VarOut()):
+  p1 = p[0]
   r0 = VarR()
   r1 = VarR()
   r2 = VarR()
