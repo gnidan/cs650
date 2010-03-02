@@ -13,7 +13,7 @@ import numbers
 
 class NextVarSet:
     def __init__(self):
-        print 'NextVarSet created'
+        #print 'NextVarSet created'
         self.vars = {}
 
     def __getitem__(self, key):
@@ -22,6 +22,7 @@ class NextVarSet:
         i = self.vars[key]
         self.vars[key] += 1
         return "%s%d" % (key, i)
+        #return i
 
 class Var:
     var_type = 'v'
@@ -41,8 +42,7 @@ class Var:
         if self.val:
             return str(self.val.num())
         if not self.name:
-            self.name = "%s%d" % (self.__class__.var_type, self.__class__.next_val)
-            self.__class__.next_val += 1
+            self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
         return '$%s' % (self.name)
 
     def __repr__(self):

@@ -19,8 +19,9 @@ class Unparser(object):
         raise NotImplementedError
 
 class C99(Unparser):
+
     def __init__(self):
-        pass
+        self.varmap = {}
 
     comment_begin = '/*'
     comment_end = '*/'
@@ -45,7 +46,14 @@ class C99(Unparser):
         if isinstance(sym, tuple):
             v, i = sym
             return "%s[%s]" % (v, i)
-        return self.nxt[sym]
+        if isinstance(sym, Var):
+            v = self.idmap[sym.var_type]
+            if isinstance(sym, VarF):
+                self.varmap[v] = C99.vartype[self.codetype]
+            else:
+                self.varmap[v] = C99.vartype[numbers.Integral]
+            return v
+        raise TypeError
 
     def op(self, dest, src1, op, src2):
         return "%s = %s %s %s;" % (self.var(dest), self.var(src1), C99.sym[op], self.var(src2))
@@ -57,20 +65,19 @@ class C99(Unparser):
         return "%s %s %s" % (C99.comment_begin, str, C99.comment_end)
 
     def write_function(self, opt, il):
-        codetype = opt.codetype
-        datatype = opt.datatype
+        self.codetype = opt.codetype
+        self.datatype = opt.datatype
 
         #If our code is complex then we have to have complex input
-        if codetype == numbers.Complex:
-            datatype = codetype
+        if self.codetype == numbers.Complex:
+            self.datatype = self.codetype
 
-        codestr = C99.vartype[codetype]
-        datastr = C99.vartype[datatype]
+        codestr = C99.vartype[self.codetype]
+        datastr = C99.vartype[self.datatype]
 
-        self.nxt = NextVarSet()
+        self.idmap = NextVarSet()
 
         src = []
-        src.append("void %s(%s *y, %s *x) {" % (opt.next_name(), codestr, codestr))
 
         for i in il.icode:
             if isinstance(i, icode.OpICode):
@@ -88,5 +95,12 @@ class C99(Unparser):
             elif isinstance(i, icode.DefTmp):
                 pass
 
+        defs = ["%s %s;" % (self.varmap[i], i) for i in self.varmap]
+        src = defs + src
+
+        #Indent the source lines
+        src = ['\t' + i for i in src]
+
+        src.insert(0, "void %s(%s *y, %s *x) {" % (opt.next_name(), datastr, datastr))
         src.append("}")
         return '\n'.join(src)
