@@ -28,8 +28,7 @@ from intrinsics import *
 # 		  end
 # 		end
 # 	))
-def F(p, in_v=VarIn(), out_v=VarOut()):
-  p1 = p[0]
+def F(p1, in_v=VarIn(), out_v=VarOut()):
   r0 = VarR()
   r1 = VarR()
   r2 = VarR()
@@ -54,7 +53,7 @@ def F(p, in_v=VarIn(), out_v=VarOut()):
 # 		  $y(0 1) = $x(0 1)
 # 		end
 # 	))
-def I(in_v, out_v, p1):
+def I(p1, in_v=VarIn(), out_v=VarOut()):
   return [ Do(p1),
            Copy(Index(in_v, [0,1]), Index(out_v, [0,1])),
            End() ]
@@ -67,7 +66,7 @@ def I(in_v, out_v, p1):
 # 		  $y(0 1) = $x($r0 (-1))
 # 		end
 # 	))
-def J(in_v, out_v, p1):
+def J(p1, in_v=VarIn(), out_v=VarOut()):
   r0 = VarR()
   return [ Do(p1),
            Sub(p1, 1, r0),
@@ -81,11 +80,10 @@ def J(in_v, out_v, p1):
 # 		  $y(0 1) = 0
 # 		end
 # 	))
-def O(in_v, out_v, p1):
+def O(p1, in_v=VarIn(), out_v=VarOut()):
   return [ Do(p1),
            Copy (0, Index(out_v, [0,1])),
            End() ]
-
 
 # #(template (T ANY ANY) 		;; ---- T(mn n) parameters: self(ny,nx), mn, n
 # #	[$p1>=1 && $p2>=1 && $p1%$p2==0]
@@ -135,20 +133,20 @@ def O(in_v, out_v, p1):
 #   return [  Call (p2, in_v, t0),
 #             Call (p1, t0, out_v) ]
 
-# #(template (tensor any any)
-# #		;; ---- Amn x Bpq parameters: self(ny,nx), A(m,n), B(p,q)
-# #	(
-# #		$r0 = $p1.nx * $p2.ny
-# #		$r1 = $r0 - 1
-# #		deftemp $r0
-# #		do $p1.nx
-# #		  $t0(0:1:$p2.ny_1 $p2.ny) = call $p2( $x(0:1:$p2.nx_1 $p2.nx) )
-# #		end
-# #		do $p2.ny
-# #		  $y(0:$p2.ny:$p0.ny_1 1) = call $p1( $t0(0:$p2.ny:$r1 1) )
-# #		end
-# #	))
-# def tensor (in_v, out_v, p1, p2):
+#(template (tensor any any)
+#		;; ---- Amn x Bpq parameters: self(ny,nx), A(m,n), B(p,q)
+#	(
+#		$r0 = $p1.nx * $p2.ny
+#		$r1 = $r0 - 1
+#		deftemp $r0
+#		do $p1.nx
+#		  $t0(0:1:$p2.ny_1 $p2.ny) = call $p2( $x(0:1:$p2.nx_1 $p2.nx) )
+#		end
+#		do $p2.ny
+#		  $y(0:$p2.ny:$p0.ny_1 1) = call $p1( $t0(0:$p2.ny:$r1 1) )
+#		end
+#	))
+# def tensor (p1, p2, in_v=VarIn(), out_v=VarOut()):
 #   r0 = VarR();
 #   r1 = VarR();
 #   t0 = Vec();
@@ -161,7 +159,6 @@ def O(in_v, out_v, p1):
 #            Do (p2.ny),
 #            Call (p1, t0, out_v),
 #            End () ]
-
 
 # #(template (direct_sum any any)
 # #		;; ---- Amn + Bpq parameters: self(ny,nx), A(mn,n), B(p,q)

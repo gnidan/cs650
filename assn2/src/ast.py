@@ -57,9 +57,8 @@ class Formula(Node):
             func = getattr(templates, self.__class__.__name__)
             if not isinstance(func, types.FunctionType):
                 raise TypeError
-            return func(self.values)
-        else:
-            print "Must implement Formula %s" % (self.__class__.__name__)
+            return func(*tuple(self.values))
+        raise NotImplementedError("Must implement Formula '%s'" % (self.__class__.__name__))
 
     def __init__(self, values):
         self.values = values
@@ -552,7 +551,9 @@ class Comment(Node):
         return None, False
 
     def evaluate(self, symtab, options):
-        print "%s %s %s" % (options.lang.comment_begin(), self.txt, options.lang.comment_end())
+        #TODO fix
+        return self.txt
+#print "%s %s %s" % (options.lang.comment_begin(), self.txt, options.lang.comment_end())
 
     def __repr__(self):
         return "Comment(\"%s\")" % (self.txt)

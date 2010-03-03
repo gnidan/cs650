@@ -34,13 +34,17 @@ class Var:
         self.out_name = None
 
     def num(self):
-        if hasattr(self.val, 'num'):
-            return getattr(self.val, 'num')()
-        return self.val
+        if self.val is not None:
+            if hasattr(self.val, 'num'):
+                return getattr(self.val, 'num')()
+            return self.val
+        return self
 
     def __str__(self):
-        if self.val:
-            return str(self.val.num())
+        if self.val is not None:
+            if hasattr(self.val, 'num'):
+                return str(getattr(self.val, 'num')())
+            #return str(self.val)
         if not self.name:
             self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
         return '$%s' % (self.name)
@@ -66,6 +70,7 @@ class DoVar(Var):
         return "DoVar(val=%d, n=%d, inst=%d)" % (self.val, self.n, self.inst)
 
 class IRef(Var):
+    var_type = 'i'
     """This is just a reference to a variable $i0, $i1 ... """
     def __init__(self,val):
         self.val = val
@@ -100,7 +105,9 @@ class Index:
         idxs = []
         e = self.exp[1:]
         for e,i in zip(self.exp[1:], stack):
-            if isinstance(i.val, numbers.Integral):
+            if isinstance(i, str):
+                idxs.append("%d*%s" % (e, i))
+            elif isinstance(i.val, numbers.Integral):
                 accum += e * i.val
             elif isinstance(i, Var):
                 idxs.append("%d*%s" % (e, i.val))
