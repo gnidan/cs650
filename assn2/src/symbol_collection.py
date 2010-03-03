@@ -185,4 +185,4 @@ class SymbolTable(dict):
       if isinstance(val, numbers.Number):
         return True
       return val.isConst()
-    return KeyError
+    raise KeyError

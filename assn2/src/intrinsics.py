@@ -45,10 +45,13 @@ class W(Intrinsic):
     self.k = k
 
   def num(self):
+    #print self.n, num(self.n)
+    #print self.k, num(self.k)
     return Wf(num(self.n),num(self.k))
 
   def __str__(self):
-    return "W(%s %s)" % (num(self.n), num(self.k))
+    return "W(%s %s)" % (self.n, self.k)
+    #return str(id(self))
 
 class WR(Intrinsic):
   '''Return the real part of \omega_n^k'''
@@ -57,7 +60,7 @@ class WR(Intrinsic):
     self.k = k
 
   def num(self):
-    return Wf(n,k).real
+    return Wf(num(self.n),num(self.k)).real
 
   def __str__(self):
     return "WR(%s %s)" % (self.n, self.k)
@@ -69,7 +72,7 @@ class WI(Intrinsic):
     self.k = k
 
   def num(self):
-    return Wf(n,k).imag
+    return Wf(num(self.n),num(self.k)).imag
 
   def __str__(self):
     return "WI(%s %s)" % (self.n, self.k)
@@ -82,7 +85,7 @@ class TW(Intrinsic):
     self.k = k
 
   def num(self):
-    return TWf(mn,n,k)
+    return TWf(num(self.mn),num(self.n),num(self.k))
 
   def __str__(self):
     return "TW(%s %s %s)" % (self.mn, self.n, self.k)
@@ -94,7 +97,7 @@ class TWR(Intrinsic):
     self.k = k
 
   def num(self):
-    return TWf(mn,n,k).real
+    return TWf(num(self.mn),num(self.n),num(self.k)).real
 
   def __str__(self):
     return "TWR(%s %s %s)" % (self.mn, self.n, self.k)
@@ -106,7 +109,7 @@ class TWI(Intrinsic):
     self.k = k
 
   def num(self):
-    return TWf(mn,n,k).imag
+    return TWf(num(self.mn),num(self.n),num(self.k)).imag
 
   def __str__(self):
     return "TWI(%s %s %s)" % (self.mn, self.n, self.k)
@@ -117,7 +120,7 @@ class C(Intrinsic):
     self.k = k
 
   def num(self):
-    return Cf(n,k)
+    return Cf(num(self.n),num(self.k))
 
   def __str__(self):
     return "C(%s %s)" % (self.n, self.k)
@@ -128,7 +131,7 @@ class S(Intrinsic):
     self.k = k
 
   def num(self):
-    return Sf(n,k)
+    return Sf(num(self.n),num(self.k))
 
   def __str__(self):
     return "S(%s %s)" % (self.n, self.k)
