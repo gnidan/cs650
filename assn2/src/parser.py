@@ -419,10 +419,6 @@ class SPLParser:
                   | function"""
         p[0] = p[1]
 
-    def p_number_symbol(self, p):
-        'number : SYMBOL'
-        p[0] = ast.Symbol(p[1])
-
     def p_scalar(self,p):
         """scalar : integer
                   | double"""
