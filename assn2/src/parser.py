@@ -269,7 +269,7 @@ class SPLParser:
 
     def p_value(self, p):
       """value : formula
-               | number
+               | expression
                | symbol
                | vector
                | wildcard"""
@@ -302,21 +302,16 @@ class SPLParser:
         'comment : INVISIBLE_COMMENT'
  
 ##### Directives #####
- 
-    ##    #subname
-    def p_directive_subname(self, p):
-        'directive : HASH SUBNAME symbol'
-        p[0] = ast.SubName(p[3])
-
-    ##    #codetype / #datatype
-    def p_directive_codetype(self, p):
-        'directive : HASH CODETYPE type'
-        p[0] = ast.CodeType(p[3])
- 
-    def p_directive_datatype(self, p):
-        'directive : HASH DATATYPE type'
-        p[0] = ast.DataType(p[3])
-
+    def p_directive(self, p):
+        """directive : HASH SUBNAME SYMBOL
+                     | HASH CODETYPE type
+                     | HASH DATATYPE type
+                     | HASH OPTIMIZE flag
+                     | HASH UNROLL flag
+                     | HASH VERBOSE flag
+                     | HASH INTERNAL flag
+                     | HASH DEBUG flag"""
+        p[0] = self.create_or_get(p[2], ast.Directive)(p[3]) 
 
     ##    types
     def p_type_real(self, p):
@@ -326,28 +321,6 @@ class SPLParser:
     def p_type_complex(self, p):
         'type : COMPLEX'
         p[0] = numbers.Complex
-
-    ##    #optimize / #unroll
-    def p_directive_optimize(self, p):
-        'directive : HASH OPTIMIZE flag'
-        p[0] = ast.Optimize(p[3])
- 
-    def p_directive_unroll(self, p):
-        'directive : HASH UNROLL flag'
-        p[0] = ast.Unroll(p[3])
- 
-    ##    #debug / #verbose / #internal
-    def p_directive_debug(self, p):
-        'directive : HASH DEBUG flag'
-        p[0] = ast.Debug(p[3])
- 
-    def p_directive_verbose(self, p):
-        'directive : HASH VERBOSE flag'
-        p[0] = ast.Verbose(p[3])
- 
-    def p_directive_internal(self, p):
-        'directive : HASH INTERNAL flag'
-        p[0] = ast.Internal(p[3])
 
     ##    flags
     def p_flag_on(self, p):
@@ -409,14 +382,18 @@ class SPLParser:
         'number : LPAREN number RPAREN'
         p[0] = p[2]
 
-##### Numbers #####
+##### Expressions and Numbers #####
+    def p_expression_number(self, p):
+        """expression : number
+                      | symbol
+                      | intrinsic
+                      | function"""
+            
+        p[0] = p[1]
+
     def p_number(self, p):
         """number : scalar
-                  | complex
-                  | symbol
-                  | expression
-                  | intrinsic
-                  | function"""
+                  | complex"""
         p[0] = p[1]
 
     def p_scalar(self,p):
@@ -433,36 +410,37 @@ class SPLParser:
         p[0] = ast.Double(p[1])
 
     def p_complex(self, p):
-        'complex : LPAREN number COMMA number RPAREN'
+        'complex : LPAREN expression COMMA expression RPAREN'
         p[0] = ast.Complex(p[2], p[4])
 
     def p_expression_add(self, p):
-        'expression : number PLUS number'
+        'expression : expression PLUS expression'
         p[0] = ast.Add(p[1], p[3])
 
     def p_expression_sub(self, p):
-        'expression : number MINUS number'
+        'expression : expression MINUS expression'
         p[0] = ast.Sub(p[1], p[3])
 
     def p_expression_mul(self, p):
-        'expression : number MULT number'
+        'expression : expression MULT expression'
         p[0] = ast.Mul(p[1], p[3])
 
     def p_expression_div(self, p):
-        'expression : number DIV number'
+        'expression : expression DIV expression'
         p[0] = ast.Div(p[1], p[3])
 
     def p_expression_mod(self, p):
-        'expression : number MOD number'
+        'expression : expression MOD expression'
         p[0] = ast.Div(p[1], p[3])
 
     def p_expression_neg(self, p):
-        'expression : MINUS number %prec UMINUS' 
+        'expression : MINUS expression %prec UMINUS' 
         p[0] = ast.Neg(p[2])
 
     def p_expression_paren(self, p):
         'expression : LPAREN expression RPAREN'
         p[0] = p[2]
+
 
 ##### Intrinsics and Functions #####
 
