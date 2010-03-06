@@ -10,11 +10,13 @@ parser.py
 
 SPL Parser
 """
+import re
 
 import ply.lex as lex
 import ply.yacc as yacc
 
 import ast
+import iast
 import numbers
 
 class SPLParser:
@@ -31,12 +33,13 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
+#        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
         self.lexer.input(data)
         for tok in self.lexer:
-            print tok
+            print tok.type, tok.value
 
     def create_or_get(self, name, subclass=object):
         if name not in self.types:
@@ -53,19 +56,20 @@ class SPLParser:
 
     # List of token names.	 This is always required
     tokens = (
-        'MATRIX', 'DIAGONAL', 'PERMUTATION', 'RPERMUTATION', 'SPARSE',
-        'I', 'J', 'O', 'F', 'L', 'T',
-        'COMPOSE', 'TENSOR', 'DIRECT_SUM', 'CONJUGATE', 'SCALE',
         'DEFINE', 'UNDEFINE',
-        'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 'INTERNAL', 'OPTIMIZE',
-        'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 'RPAREN', 'LPAREN', 'HASH', 'COLON',
+        'SUBNAME', 'DATATYPE', 'CODETYPE', 'UNROLL', 'VERBOSE', 'DEBUG', 
+        'INTERNAL', 'OPTIMIZE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'MOD', 
+        'RPAREN', 'LPAREN', 'HASH', 'COLON',
         'COMMA', 'COMMENT', 'INVISIBLE_COMMENT',
         'INTEGER', 'DOUBLE',
         'C', 'S', 'W', 'WR', 'WI', 'TW', 'TWR', 'TWI',
         'SIN', 'COS', 'TAN', 'LOG', 'EXP', 'SQRT', 'PI', 'WSCALAR',
         'REAL', 'COMPLEX',
-        'ON', 'OFF',
-        'SYMBOL'
+        'ON', 'OFF', 'TEMPLATE', 'ANY',
+        'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
+        'LBRACKET', 'RBRACKET',
+        'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS',
+        'ISCALAR', 'IVECTOR',
     )
 
     binop_alias = {
@@ -78,16 +82,16 @@ class SPLParser:
 
     # dictionary of reserved words
     RESERVED = {
-        "C"            :	"C",
-        "S"            :	"S",
-        "TW"           :	"TW",
-        "TWI"          :	"TWI",
-        "TWR"          :	"TWR",
-        "W"            :	"W",
-        "WI"           :	"WI",
-        "WR"           :	"WR",
+        "c"            :	"C",
+        "s"            :	"S",
+        "tw"           :	"TW",
+        "twi"          :	"TWI",
+        "twr"          :	"TWR",
+        "w"            :	"W",
+        "wi"           :	"WI",
+        "wr"           :	"WR",
         "alias"        :	"ALIAS",
-        "any"          :	"ANYNODE",
+        "any"          :	"ANY",
         "call"         :	"CALL",
         "codetype"     :	"CODETYPE",
         "complex"      :	"COMPLEX",
@@ -97,17 +101,12 @@ class SPLParser:
         "def"          :	"DEFINE",
         "define"       :	"DEFINE",
         "define_"      :	"DEFINE_",
-        "deftemp"      :	"DEFTEMP",
         "direct"       :	"DIRECT",
         "div"          :	"DIV",
-        "do"           :	"LOOP",
-        "dounroll"     :	"LOOPUNROLL",
-        "end"          :	"LOOPEND",
         "exp"          :	"EXP",
         "internal"     :	"INTERNAL",
         "log"          :	"LOG",
         "misc"         :	"MISC",
-        "mod"          :	"MOD",
         "off"          :	"OFF",
         "on"           :	"ON",
         "operation"    :	"OPERATION",
@@ -126,26 +125,35 @@ class SPLParser:
         "undefine"     :	"UNDEFINE",
         "unroll"       :	"UNROLL",
         "verbose"      :	"VERBOSE",
-        "w"            :	"WSCALAR",
-        "F"            : "F",
-        "I"            : "I",
-        "J"            : "J",
-        "L"            : "L",
-        "O"            : "O",
-        "T"            : "T",
-        "direct_sum"   :	"DIRECT_SUM",
-        "compose"      :  "COMPOSE",
-        "tensor"       :  "TENSOR",
-        "matrix"       :  "MATRIX",
-        "permutation"  :  "PERMUTATION",
-        "rpermutation" :  "RPERMUTATION",
-        "diagonal"     :  "DIAGONAL",
+
+        "spl_shape_square"   : "SHAPE",
+        "spl_shape_rect"     : "SHAPE",
+        "spl_shape_diag"     : "SHAPE",
+        "spl_shape_rectdiag" : "SHAPE",
+        "spl_size_ident"     : "SIZE_RULE",
+        "spl_size_transpose" : "SIZE_RULE",
+        "spl_size_compose"   : "SIZE_RULE",
+        "spl_size_sum"       : "SIZE_RULE",
+        "spl_size_tensor"    : "SIZE_RULE",
+        "spl_size_matrix"    : "SIZE_RULE",
+        "spl_size_vector"    : "SIZE_RULE",
+        "spl_size_sparse"    : "SIZE_RULE",
+
+        "newtmp"       :	"NEWTMP",
+        "deftemp"       :	"NEWTMP",
+        "do"           :	"LOOP",
+        "dounroll"     :	"LOOPUNROLL",
+        "end"          :	"END",
     }
 
+    t_EQUALS = r'='
     t_MINUS = r'-'
     t_PLUS = r'\+'
     t_MULT = r'\*'
     t_DIV = r'/'
+    t_MOD = r'%'
+    t_LBRACKET = r'\['
+    t_RBRACKET = r'\]'
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_HASH = r'\#'
@@ -183,7 +191,30 @@ class SPLParser:
 
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value, "SYMBOL")
+        t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
+        return t
+
+    def t_ISCALAR(self, t):
+        r'\$[rfip]\d+'
+        exp = re.compile(r'\$(?P<Type>[rfip])(?P<Index>\d+)')
+        match = exp.match(t.value)
+        if not match:
+          raise Exception()
+        type, index = match.group('Type','Index')
+        t.value = (type, int(index))
+        return t
+
+    def t_IVECTOR(self, t):
+        r'\$([xy]|t\d+)'
+        exp = re.compile(r'\$(?P<Type>.)(?P<Index>\d*)')
+        match = exp.match(t.value)
+        if not match:
+          raise Exception()
+        type, index = match.group('Type','Index')
+        if(index):
+          t.value = (type, int(index))
+        else:
+          t.value = (type, 0)
         return t
 
     # Define a rule so we can track line numbers
@@ -202,6 +233,8 @@ class SPLParser:
 
     ##### YACC ################################################################
 
+##### Structure of Program #####
+
     def p_program(self, p):
         'program : stmt_list'
         p[0] = ast.Program(p[1])
@@ -216,24 +249,76 @@ class SPLParser:
         p[0] = ast.StmtList(p[1])
 
     def p_stmt(self, p):
-        """stmt : definition
-                | formula
+        """stmt : formula 
+                | comment 
                 | directive
-                | comment
-                | INVISIBLE_COMMENT"""
+                | definition
+                | declaration
+                | template"""
         p[0] = p[1]
 
-    def p_directive(self, p):
-        """directive : HASH SUBNAME SYMBOL
-                     | HASH CODETYPE type
-                     | HASH DATATYPE type
-                     | HASH OPTIMIZE flag
-                     | HASH UNROLL flag
-                     | HASH VERBOSE flag
-                     | HASH INTERNAL flag
-                     | HASH DEBUG flag"""
-        p[0] = self.create_or_get(p[2], ast.Directive)(p[3])
+    def p_symbol(self, p):
+        'symbol : SYMBOL'
+        p[0] = ast.Symbol(p[1])
 
+##### Formulas #####
+
+    def p_formula_sexp(self, p):
+        'formula : LPAREN symbol values RPAREN'
+        p[0] = ast.Formula(p[2], *p[3])
+
+    def p_value(self, p):
+      """value : formula
+               | number
+               | symbol
+               | vector
+               | wildcard"""
+      p[0] = p[1]
+
+    def p_wildcard(self, p):
+        'wildcard : ANY'
+        p[0] = ast.Wildcard(p[1])
+
+    def p_vector(self, p):
+        'vector : LPAREN values RPAREN'
+        p[0] = p[1]
+
+    def p_values(self, p):
+        'values : value values'
+        p[2].insert(0,p[1])
+        p[0] = p[2]
+
+    def p_values_end(self, p):
+        'values : value'
+        p[0] = [ p[1] ]
+
+##### Comments #####
+
+    def p_comment(self, p):
+        'comment : COMMENT'
+        p[0] = ast.Comment(p[1])
+
+    def p_invisible_comment(self, p):
+        'comment : INVISIBLE_COMMENT'
+ 
+##### Directives #####
+ 
+    ##    #subname
+    def p_directive_subname(self, p):
+        'directive : HASH SUBNAME symbol'
+        p[0] = ast.SubName(p[3])
+
+    ##    #codetype / #datatype
+    def p_directive_codetype(self, p):
+        'directive : HASH CODETYPE type'
+        p[0] = ast.CodeType(p[3])
+ 
+    def p_directive_datatype(self, p):
+        'directive : HASH DATATYPE type'
+        p[0] = ast.DataType(p[3])
+
+
+    ##    types
     def p_type_real(self, p):
         'type : REAL'
         p[0] = numbers.Real
@@ -242,6 +327,29 @@ class SPLParser:
         'type : COMPLEX'
         p[0] = numbers.Complex
 
+    ##    #optimize / #unroll
+    def p_directive_optimize(self, p):
+        'directive : HASH OPTIMIZE flag'
+        p[0] = ast.Optimize(p[3])
+ 
+    def p_directive_unroll(self, p):
+        'directive : HASH UNROLL flag'
+        p[0] = ast.Unroll(p[3])
+ 
+    ##    #debug / #verbose / #internal
+    def p_directive_debug(self, p):
+        'directive : HASH DEBUG flag'
+        p[0] = ast.Debug(p[3])
+ 
+    def p_directive_verbose(self, p):
+        'directive : HASH VERBOSE flag'
+        p[0] = ast.Verbose(p[3])
+ 
+    def p_directive_internal(self, p):
+        'directive : HASH INTERNAL flag'
+        p[0] = ast.Internal(p[3])
+
+    ##    flags
     def p_flag_on(self, p):
         'flag : ON'
         p[0] = True
@@ -250,148 +358,19 @@ class SPLParser:
         'flag : OFF'
         p[0] = False
 
-    def p_comment(self, p):
-        'comment : COMMENT'
-        p[0] = ast.Comment(p[1])
+##### Assignments #####
 
+    ##    define Symbol / define Value
     def p_definition_formula(self, p):
-        'definition : LPAREN DEFINE SYMBOL formula RPAREN'
+        'definition : LPAREN DEFINE symbol formula RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
-    def p_formula(self, p):
-        """formula : constructor
-                   | matrix
-                   | sparse
-                   | operation
-                   | scale
-                   | param_matrix
-                   | t"""
-        p[0] = p[1]
-
-    def p_formula_symbol(self, p):
-        'formula : SYMBOL'
-        p[0] = ast.Symbol(p[1])
-
-    def p_formula_paren(self, p):
-        'formula : LPAREN formula RPAREN'
-        p[0] = p[2]
-
-    #TODO should add SCALE
-    def p_operation_name(self, p):
-        """operation_name : COMPOSE
-                          | TENSOR
-                          | DIRECT_SUM
-                          | CONJUGATE"""
-        p[0] = p[1]
-
-    #TODO should add MATRIX and SPARSE
-    def p_constructor_name(self, p):
-        """constructor_name : DIAGONAL
-                            | PERMUTATION
-                            | RPERMUTATION"""
-        p[0] = p[1]
-
-    #TODO should include T
-    def p_param_matrix_name(self, p):
-        """param_matrix_name : F
-                             | I
-                             | J
-                             | L
-                             | O"""
-        p[0] = p[1]
-
-    def p_constructor(self, p):
-        'constructor : LPAREN constructor_name number_list RPAREN'
-        p[0] = self.create_or_get(p[2], ast.Formula)(p[3])
-
-    def p_operation(self, p):
-        'operation : LPAREN operation_name formulas RPAREN'
-        p[0] = self.create_or_get(p[2], ast.Formula)(p[3])
-
-    def p_param_matrix(self, p):
-        """param_matrix : LPAREN param_matrix_name nums RPAREN"""
-        p[0] = self.create_or_get(p[2], ast.Formula)(p[3])
-
-    def p_scale(self, p):
-        'scale : LPAREN SCALE number formula RPAREN'
-        p[0] = ast.Scale(a, B)
-
-    def p_index(self, p):
-        'index : number COLON number COLON number'
-        p[0] = ast.Index(p[1], p[3], p[5])
-
-    #TODO ELIMINATE!
-    def p_t(self, p):
-        't : LPAREN T number number RPAREN'
-        p[0] = ast.T(p[3], p[4])
-
-    def p_t_idx(self, p):
-        't : LPAREN T number number COMMA index RPAREN'
-        p[0] = ast.T(p[3], p[4], p[6])
-
-    def p_matrix(self, p):
-        'matrix : LPAREN MATRIX matrix_row_list RPAREN'
-        p[0] = p[3]
-
-    def p_matrix_row_list(self, p):
-        'matrix_row_list : matrix_row matrix_row_list'
-        p[2].prepend(p[1])
-        p[0] = p[2]
-
-    def p_matrix_row_list_row(self, p):
-        'matrix_row_list : matrix_row'
-        p[0] = ast.Matrix()
-        p[0].prepend(p[1])
-
-    def p_matrix_row(self, p):
-        'matrix_row : number_list'
-        p[0] = ast.MatrixRow(p[1])
-
-    def p_number_list(self, p):
-        'number_list : LPAREN nums RPAREN'
-        p[0] = p[2]
-
-    def p_numbers(self, p):
-        'nums : number nums'
-        p[2].insert(0, p[1])
-        p[0] = p[2]
-
-    def p_numbers_end(self, p):
-        'nums : number'
-        p[0] = [p[1]]
-
-    def p_formulas(self, p):
-        'formulas : formula formulas'
-        p[2].insert(0, p[1])
-        p[0] = p[2]
-
-    def p_formulas_end(self, p):
-        'formulas : formula'
-        p[0] = [ p[1] ]
-
-    def p_sparse(self, p):
-        'sparse : LPAREN SPARSE triple_list RPAREN'
-        p[0] = ast.Sparse(p[3])
-
-    def p_triple_list(self, p):
-        'triple_list : triple triple_list'
-        p[2].insert(0, p[1])
-        p[0] = p[1]
-
-    def p_triple_list_end(self, p):
-        'triple_list : triple'
-        p[0] = [ p[1] ]
-
-    def p_triple(self, p):
-        'triple : LPAREN number number number RPAREN'
-        p[0] = ast.SparseElement(p[2], p[3], p[4])
-
     def p_definition_value(self, p):
-        'definition : LPAREN DEFINE SYMBOL number RPAREN'
+        'definition : LPAREN DEFINE symbol number RPAREN'
         p[0] = ast.Define(p[3], p[4])
 
     def p_undefine(self, p):
-        'definition : LPAREN UNDEFINE SYMBOL RPAREN'
+        'definition : LPAREN UNDEFINE symbol RPAREN'
         p[0] = ast.Undefine(p[3])
 
 ##### Operators #####
@@ -403,6 +382,25 @@ class SPLParser:
                   | number MOD number"""
         p[0] = ast.Operator(p[1], self.binop_alias[p[2]], p[3])
 
+##### Templates #####
+
+    ##    template
+    def p_template_formula(self, p):
+        'template : LPAREN TEMPLATE formula LPAREN icode_program RPAREN RPAREN'
+        p[0] = ast.Template(p[3], p[5])
+
+    ##    declarations
+    def p_primitive(self, p):
+        'declaration : LPAREN PRIMITIVE symbol SHAPE RPAREN'
+        p[0] = ast.Primitve(p[3], p[4])
+
+    def p_operation(self, p):
+        'declaration : LPAREN OPERATION symbol SIZE_RULE RPAREN'
+        p[0] = ast.Operation(p[3], p[4])
+
+    def p_direct(self, p):
+        'declaration : LPAREN DIRECT symbol SIZE_RULE RPAREN'
+        p[0] = ast.Direct(p[3], p[4])
     def p_number_neg(self, p):
         'number : MINUS number %prec UMINUS'
         p[0] = ast.Operator(p[2], 'neg')
@@ -413,10 +411,12 @@ class SPLParser:
 
 ##### Numbers #####
     def p_number(self, p):
-        """number : function
-                  | scalar
+        """number : scalar
                   | complex
-                  | intrinsic"""
+                  | symbol
+                  | expression
+                  | intrinsic
+                  | function"""
         p[0] = p[1]
 
     def p_number_symbol(self, p):
@@ -439,6 +439,36 @@ class SPLParser:
     def p_complex(self, p):
         'complex : LPAREN number COMMA number RPAREN'
         p[0] = ast.Complex(p[2], p[4])
+
+    def p_expression_add(self, p):
+        'expression : number PLUS number'
+        p[0] = ast.Add(p[1], p[3])
+
+    def p_expression_sub(self, p):
+        'expression : number MINUS number'
+        p[0] = ast.Sub(p[1], p[3])
+
+    def p_expression_mul(self, p):
+        'expression : number MULT number'
+        p[0] = ast.Mul(p[1], p[3])
+
+    def p_expression_div(self, p):
+        'expression : number DIV number'
+        p[0] = ast.Div(p[1], p[3])
+
+    def p_expression_mod(self, p):
+        'expression : number MOD number'
+        p[0] = ast.Div(p[1], p[3])
+
+    def p_expression_neg(self, p):
+        'expression : MINUS number %prec UMINUS' 
+        p[0] = ast.Neg(p[2])
+
+    def p_expression_paren(self, p):
+        'expression : LPAREN expression RPAREN'
+        p[0] = p[2]
+
+##### Intrinsics and Functions #####
 
     def p_intrinsic(self, p):
         """intrinsic : i_W
@@ -511,8 +541,123 @@ class SPLParser:
 
     def p_error(self, p):
         if p is not None:
-            print "Line: %s Syntax error at '%s'" % (p.lineno, p.value)
+          print "Line %d: Syntax error at '%s'" % (p.lineno, p.value)
         return None
 
-#Unimplemented: templates DEFINE_ PRIMITIVE OPERATION DIRECT ALIAS
+##### ICode #####
+    def p_icode_program(self, p):
+        'icode_program : icode_list'
+        p[0] = iast.ICode(p[1])
+
+    def p_icode_list(self, p):
+        'icode_list : icode icode_list'
+        p[2].prepend(p[1])
+        p[0] = p[2]
+
+    def p_icode_list_end(self, p):
+        'icode_list : icode'
+        p[0] = iast.StmtList(p[1])
+
+    def p_icode(self, p):
+        """icode : add
+                 | sub
+                 | mul
+                 | div
+                 | mod
+                 | assn
+                 | call
+                 | do
+                 | dounroll
+                 | newtmp
+                 | comment"""
+        p[0] = p[1]
+
+    def p_ivalue(self, p):
+        """ivalue : double
+                  | integer
+                  | ivar"""
+        p[0] = p[1]
+
+    def p_ivar_scalar(self, p):
+        """ivar : ISCALAR
+                | IVECTOR"""
+        p[0] = iast.Symbol(p[1])
+
+
+    def p_ivar_vector(self, p):
+        'ivar : IVECTOR LPAREN subscript RPAREN'
+        p[0] = iast.Symbol(p[1], p[3])
+
+    def p_subscript_simple(self, p):
+        'subscript : index'
+        p[0] = iast.Subscript(p[1])
+
+    def p_subscript_multiplicands(self, p):
+        'subscript : index multiplicands'
+        p[0] = iast.Subscript(p[1], *p[2])
+
+    def p_multiplicands(self, p):
+        'multiplicands : ivalue multiplicands'
+        p[2].insert(0, p[1])
+        p[0] = p[2]
+
+    def p_multiplicands_end(self, p):
+        'multiplicands : ivalue'
+        p[0] = [ p[1] ]
+
+    def p_index_simple(self, p):
+        'index : ivalue'
+        p[0] = iast.Index(p[1])
+
+    def p_index_range(self, p):
+        'index : ivalue COLON ivalue COLON ivalue'
+        p[0] = iast.Range(p[1], p[3], p[5])
+
+    def p_add(self, p):
+        'add : ivar EQUALS ivalue PLUS ivalue'
+        p[0] = iast.Add(p[1], p[3], p[5])
+
+    def p_sub(self, p):
+        'sub : ivar EQUALS ivalue MINUS ivalue'
+        p[0] = iast.Subtract(p[1], p[3], p[5])
+
+    def p_mul(self, p):
+        'mul : ivar EQUALS ivalue MULT ivalue'
+        p[0] = iast.Multiply(p[1], p[3], p[5])
+
+    def p_div(self, p):
+        'div : ivar EQUALS ivalue DIV ivalue'
+        p[0] = iast.Divide(p[1], p[3], p[5])
+
+    def p_mod(self, p):
+        'mod : ivar EQUALS ivalue MOD ivalue'
+        p[0] = iast.Modulus(p[1], p[3], p[5])
+
+    def p_assn(self, p):
+        'assn : ivar EQUALS ivalue'
+        p[0] = iast.Assign(p[1], p[3])
+      
+    def p_call(self, p):
+        'call : ivar EQUALS CALL symbol'
+        p[0] = iast.Call(p[1], p[4])
+
+    def p_call_arg(self, p):
+        'call : ivar EQUALS CALL symbol ivar'
+        p[0] = iast.Call(p[1], p[4], p[5])
+
+    def p_do(self, p):
+        """do : LOOP ivalue icode_list END LOOP
+              | LOOP ivalue icode_list END"""
+        p[0] = iast.Do(p[2], p[3])
+
+    def p_dounroll(self, p):
+        """dounroll : LOOPUNROLL ivalue icode_list END LOOPUNROLL
+                    | LOOPUNROLL ivalue icode_list END"""
+        p[0] = iast.Do(p[2], p[3], unroll=True)
+
+    def p_newtmp(self, p):
+        'newtmp : NEWTMP ivalue'
+        p[0] = iast.NewTmp(p[2])
+
+#Unimplemented: DEFINE_ ALIAS
 #               size_rule shape root_of_one
