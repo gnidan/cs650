@@ -87,7 +87,7 @@ class Declaration(Variable):
     self.size_rule = size_rule;
 
   def addTemplate(self, template):
-    templates.insert(0, Template(icode_list=template.icode_list, 
+    self.templates.insert(0, Template(icode_list=template.icode_list, 
       pattern=template.pattern, condition=template.condition))
 
 class Primitive(Declaration):
