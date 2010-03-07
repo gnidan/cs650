@@ -23,13 +23,13 @@ class Node:
     def __init__(self):
         raise AbstractClassError('Node')
 
-    def evaluate(self, records, **options):
+    def evaluate(self, records, options):
       if self.dest:
-        self.dest = self.dest.evaluate(records, **options)
+        self.dest = self.dest.evaluate(records, options)
       if self.src1:
-        self.src1 = self.src1.evaluate(records, **options)
+        self.src1 = self.src1.evaluate(records, options)
       if self.src2:
-        self.src2 = self.src2.evaluate(records, **options)
+        self.src2 = self.src2.evaluate(records, options)
 
     def __str__(self):
         return repr(self)
@@ -42,7 +42,7 @@ class ICode(Node):
     def __init__(self, stmts):
       self.stmts = stmts
 
-    def evaluate(self, **options):
+    def evaluate(self, options):
       pass
       # options should include input_size and output_size
 
@@ -70,9 +70,9 @@ class StmtList(Node):
 
         self.stmts = new_stmts
 
-    def evaluate(self, records, **options):
+    def evaluate(self, records, options):
       for s in self.stmts:
-        s.evaluate(records, **options)
+        s.evaluate(records, options)
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -198,7 +198,7 @@ class Symbol(Node):
     self.var_type, self.index = symbol
     self.subscript = subscript
 
-  def evaluate(self, records, **options):
+  def evaluate(self, records, options):
     return records[self]
 
   def __repr__(self):
