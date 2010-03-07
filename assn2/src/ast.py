@@ -672,11 +672,6 @@ class Template(Assignment):
 #            self.pattern.evaluate(symtab, options),
 #            self.icode_list.evaluate(symtab, options)
 #              )
-        self.pattern.evaluate(symtab, options)
-        self.icode_list.evaluate(symtab, options)
-        if self.condition:
-          self.condition.evaluate(symtab, options)
-
         symtab[self.pattern.symbol].addTemplate(self)
 
     def __repr__(self):
