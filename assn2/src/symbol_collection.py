@@ -92,10 +92,26 @@ class Declaration(Variable):
       pattern=template.pattern, condition=template.condition))
 
   def match(self, formula):
-    pass
+    for template in self.templates:
+      comparison = self.compare(template, formula)
+      if comparison:
+        return comparison
 
 class Primitive(Declaration):
-  pass
+  def compare(template, formula):
+    if len(formula.list) != len(template.pattern.list):
+      return False
+
+    # make a new "scope"
+
+    # for term in template.pattern:
+      # compare the terms and make a new pattern variable if it's a wildcard
+
+    # get the icode list and give it the scope we just made, with the 
+    # appropriate pattern variables and x,y
+
+    # return that icode list, or return False if at any point a match is not
+    # found.
 
 class Operation(Declaration):
   pass
