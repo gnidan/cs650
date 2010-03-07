@@ -83,7 +83,7 @@ class Code(Formula):
 
 class Declaration(Variable):
   def __init__(self, size_rule):
-    templates = []
+    self.templates = []
     self.size_rule = size_rule;
 
   def addTemplate(self, template):
@@ -205,4 +205,4 @@ class SymbolTable(dict):
       if isinstance(val, numbers.Number):
         return True
       return val.isConst()
-    raise KeyError
+    raise KeyError 
