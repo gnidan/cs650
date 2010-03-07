@@ -81,17 +81,14 @@ class Code(Formula):
     self.value = value
     self.icode = icode
 
-
-
-
-
-
 class Declaration(Variable):
-  def __init__(self, size_rule)
+  def __init__(self, size_rule):
+    templates = []
     self.size_rule = size_rule;
 
-  def addICode (self, pattern, condition, icode_list)
-    raise NotImplementedError
+  def addTemplate(self, template):
+    templates.insert(0, Template(icode_list=template.icode_list, 
+      pattern=template.pattern, condition=template.condition))
 
 class Primitive(Declaration):
   pass
@@ -102,7 +99,11 @@ class Operation(Declaration):
 class Direct(Declaration):
   pass
 
-
+class Template:
+  def __init__(self, icode_list, pattern, condition=None):
+    self.icode_list = icode_list
+    self.pattern = pattern
+    self.condition = condition
 
 class Pattern(Variable):
   def __init__(self):
