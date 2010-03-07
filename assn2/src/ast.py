@@ -43,7 +43,7 @@ class Node(object):
         return self.__class__.__name__
 
 class Formula(Node):
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         if(len(args) == 0):
             raise IndexError
  

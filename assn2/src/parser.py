@@ -250,6 +250,7 @@ class SPLParser:
 
     def p_stmt(self, p):
         """stmt : formula 
+                | symbol
                 | comment 
                 | directive
                 | definition
@@ -266,6 +267,14 @@ class SPLParser:
     def p_formula_sexp(self, p):
         'formula : LPAREN symbol values RPAREN'
         p[0] = ast.Formula(p[2], *p[3])
+
+    def p_formula_stride(self, p):
+        'formula : LPAREN symbol values COMMA stride RPAREN'
+        p[0] = ast.Formula(p[2], *p[3], stride=p[5])
+
+    def p_stride(self, p):
+        'stride : expression COLON expression COLON expression'
+        p[0] = (p[1], p[3], p[5])
 
     def p_value(self, p):
       """value : formula
