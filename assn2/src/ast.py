@@ -528,6 +528,9 @@ class Symbol(str, Node):
     def __repr__(self):
         return "Symbol(%s)" % (self.symbol)
 
+    def __str__(self):
+        return self.symbol
+
 ##### 2.2 Directive ######
 class Directive(Node):
     def __init__(self, value=None):
