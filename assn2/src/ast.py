@@ -674,6 +674,9 @@ class Template(Assignment):
         return False
  
     def evaluate(self, symtab, options):
+        if self.pattern.symbol not in symtab:
+            raise NameError("%s not declared before being used" % 
+                self.pattern.symbol)
         symtab[self.pattern.symbol].addTemplate(self)
 
     def __repr__(self):
