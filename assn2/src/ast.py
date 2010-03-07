@@ -67,10 +67,10 @@ class Formula(Node):
         for i in range(len(self.list)):
           arg = self.list[i]
           if( i == 0 ):
-            r += repr(arg)
+            r += str(arg)
           else:
             r += ", "
-            r += repr(arg)
+            r += str(arg)
 
         if self.stride:
           r += " @ %s:%s:%s" % self.stride
