@@ -510,7 +510,7 @@ class Undefine(Assignment):
     def __repr__(self):
         return "Undefine(%s)" % (self.symbol)
 
-class Symbol(Node):
+class Symbol(str, Node):
     def __init__(self, symbol):
         self.symbol = symbol
 
