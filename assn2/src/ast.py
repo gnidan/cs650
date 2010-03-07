@@ -62,7 +62,7 @@ class Formula(Node):
         print "Must implement Formula evaluate"
  
     def __repr__(self):
-        r = repr(self.symbol)
+        r = str(self.symbol)
         r += "("
         for i in range(len(self.list)):
           arg = self.list[i]
