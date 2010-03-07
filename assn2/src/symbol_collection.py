@@ -86,13 +86,21 @@ class Code(Formula):
 
 
 
-class Template(Variable):
+class Declaration(Variable):
   def __init__(self, size_rule)
     self.size_rule = size_rule;
 
   def addICode (self, pattern, condition, icode_list)
     raise NotImplementedError
 
+class Primitive(Declaration):
+  pass
+
+class Operation(Declaration):
+  pass
+
+class Direct(Declaration):
+  pass
 
 
 
