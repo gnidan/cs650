@@ -40,6 +40,7 @@
 # CODE      		 a piece of straight-line code defined by "define_"
 
 import numbers
+import ast
 
 class Variable:
   """Maintains the record for a particular variable in our symbol table"""
@@ -89,6 +90,9 @@ class Declaration(Variable):
   def addTemplate(self, template):
     self.templates.insert(0, Template(icode_list=template.icode_list, 
       pattern=template.pattern, condition=template.condition))
+
+  def match(self, formula):
+    pass
 
 class Primitive(Declaration):
   pass
@@ -203,8 +207,9 @@ class SymbolTable(dict):
     """Get an entry from the symbol table. Returns either a constant or a list
     of ICode ops (defined values get stored as ICode, templates get matched and
     converted on way out)"""
-    if isintance(key, ast.Formula):
-      "then it's a template..."
+    if isinstance(key, ast.Formula):
+      declaration = self.__getitem__(key.symbol)
+      return declaration.match(key)
     else:
       return super(SymbolTable,self).__getitem__(key)
 
