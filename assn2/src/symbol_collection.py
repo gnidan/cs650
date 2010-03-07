@@ -85,6 +85,17 @@ class Code(Formula):
 
 
 
+
+class Template(Variable):
+  def __init__(self, size_rule)
+    self.size_rule = size_rule;
+
+  def addICode (self, pattern, condition, icode_list)
+    raise NotImplementedError
+
+
+
+
 class Pattern(Variable):
   def __init__(self):
     self.Value = None     # TODO fill this in later for struct

@@ -638,7 +638,7 @@ class Primitive(Assignment):
         self.shape = shape
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Template(self.shape)
+        symtab[self.symbol] = self.symbols.Template(self.shape)
  
 class Operation(Assignment):
     def __init__(self, symbol, size_rule):
