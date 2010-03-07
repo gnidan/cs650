@@ -672,11 +672,6 @@ class Template(Assignment):
         return False
  
     def evaluate(self, symtab, options):
-        # buhh gotta think about this one :) TODO
-#        symtab[self.pattern.symbol] = (
-#            self.pattern.evaluate(symtab, options),
-#            self.icode_list.evaluate(symtab, options)
-#              )
         symtab[self.pattern.symbol].addTemplate(self)
 
     def __repr__(self):
