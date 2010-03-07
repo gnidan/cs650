@@ -646,7 +646,7 @@ class Operation(Assignment):
         self.size_rule = size_rule
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = self.symbols.Template(self.size_rule)
+        symtab[self.symbol] = symbols.Template(self.size_rule)
  
 class Direct(Assignment):
     def __init__(self, symbol, size_rule):
