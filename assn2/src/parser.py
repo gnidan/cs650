@@ -273,7 +273,7 @@ class SPLParser:
         p[0] = ast.Formula(p[2], p[3], stride=p[5])
 
     def p_stride(self, p):
-        'stride : expression COLON expression COLON expression'
+        'stride : value COLON value COLON value'
         p[0] = (p[1], p[3], p[5])
 
     def p_value(self, p):
