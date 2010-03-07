@@ -346,14 +346,6 @@ class SPLParser:
         'definition : LPAREN UNDEFINE symbol RPAREN'
         p[0] = ast.Undefine(p[3])
 
-##### Operators #####
-    def p_bin_op(self, p):
-        """number : number PLUS number
-                  | number MINUS number
-                  | number MULT number
-                  | number DIV number
-                  | number MOD number"""
-        p[0] = ast.Operator(p[1], self.binop_alias[p[2]], p[3])
 
 ##### Templates #####
 
@@ -413,25 +405,13 @@ class SPLParser:
         'complex : LPAREN expression COMMA expression RPAREN'
         p[0] = ast.Complex(p[2], p[4])
 
-    def p_expression_add(self, p):
-        'expression : expression PLUS expression'
-        p[0] = ast.Add(p[1], p[3])
-
-    def p_expression_sub(self, p):
-        'expression : expression MINUS expression'
-        p[0] = ast.Sub(p[1], p[3])
-
-    def p_expression_mul(self, p):
-        'expression : expression MULT expression'
-        p[0] = ast.Mul(p[1], p[3])
-
-    def p_expression_div(self, p):
-        'expression : expression DIV expression'
-        p[0] = ast.Div(p[1], p[3])
-
-    def p_expression_mod(self, p):
-        'expression : expression MOD expression'
-        p[0] = ast.Div(p[1], p[3])
+    def p_expression(self, p):
+        """expression : expression PLUS expression
+                      | expression MINUS expression
+                      | expression MULT expression
+                      | expression DIV expression
+                      | expression MOD expression"""
+        p[0] = ast.Operator(p[1], self.binop_alias[p[2]], p[3])
 
     def p_expression_neg(self, p):
         'expression : MINUS expression %prec UMINUS' 
