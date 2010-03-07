@@ -59,7 +59,8 @@ class Formula(Node):
             return symbols.Formula(self.value)
  
     def evaluate(self, symtab, options):
-        print "Must implement Formula evaluate"
+        if self.symbol not in symtab:
+          raise NameError(self.symbol)
  
     def __repr__(self):
         r = str(self.symbol)
@@ -686,5 +687,5 @@ class Wildcard(Symbol):
 
 ##### A.1 Errors #####
 class ConstantError(ValueError):
-    def __init__(self, msg):
-        self.msg = "'%s' is not a constant" % (msg)
+    def __init__(self, val):
+        self.msg = "'%s' is not a constant" % (val)
