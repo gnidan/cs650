@@ -43,14 +43,14 @@ class Node(object):
         return self.__class__.__name__
 
 class Formula(Node):
-    def __init__(self, args, stride=None):
+    def __init__(self, symbol, args, stride=None):
         if(len(args) == 0):
             raise IndexError
 
         self.stride = stride
  
         self.list = args
-        self.symbol = args[0]
+        self.symbol = symbol
  
     def definition(self, symtab, options):
         if options.unroll:
@@ -62,13 +62,11 @@ class Formula(Node):
         print "Must implement Formula evaluate"
  
     def __repr__(self):
-        r = ""
+        r = repr(self.symbol)
+        r += "("
         for i in range(len(self.list)):
           arg = self.list[i]
           if( i == 0 ):
-            r += arg.symbol
-            r += "("
-          elif( i == 1 ):
             r += repr(arg)
           else:
             r += ", "
