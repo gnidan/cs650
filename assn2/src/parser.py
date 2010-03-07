@@ -303,7 +303,7 @@ class SPLParser:
  
 ##### Directives #####
     def p_directive(self, p):
-        """directive : HASH SUBNAME SYMBOL
+        """directive : HASH SUBNAME symbol
                      | HASH CODETYPE type
                      | HASH DATATYPE type
                      | HASH OPTIMIZE flag

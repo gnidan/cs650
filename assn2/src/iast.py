@@ -13,12 +13,24 @@ Contains all of the AST Node classes for ICode.
 
 import math
 import cmath
+
+from symbols import ICodeRecordSet
+
 class Node:
+    dest = None
+    src1 = None
+    src2 = None
+
     def __init__(self):
         raise AbstractClassError('Node')
 
-    def evaluate(self, *args, **kwargs):
-        raise NotImplementedError
+    def evaluate(self, records, **options):
+      if self.dest:
+        self.dest = self.dest.evaluate(records, **options)
+      if self.src1:
+        self.src1 = self.src1.evaluate(records, **options)
+      if self.src2:
+        self.src2 = self.src2.evaluate(records, **options)
 
     def __str__(self):
         return repr(self)
@@ -27,25 +39,45 @@ class Node:
         '''prints the AST in an ATerm like format'''
         raise NotImplementedError
 
-class Program(Node):
+class ICode(Node):
     def __init__(self, stmts):
-        self.stmts = stmts
+      self.stmts = stmts
 
-    def evaluate(self, *args, **kwargs):
-        raise NotImplementedError
+    def evaluate(self, **options):
+      # options should include input_size and output_size
+      records = ICodeRecordSet(**options)
+      options["program"] = self
+
+      self.stmts.flatten()
+      self.stmts.evaluate(records, **options)
 
     def __repr__(self):
-        return "Program(%s)" % (self.stmts)
+      return "Program(%s)" % (self.stmts)
 
 class StmtList(Node):
     def __init__(self, stmt=None):
-        if stmt is None:
-            self.stmts = []
-        else:
-            self.stmts = [stmt]
+      if stmt is None:
+          self.stmts = []
+      else:
+          self.stmts = [stmt]
 
     def prepend(self, stmt):
         self.stmts.insert(0, stmt)
+
+    def flatten(self):
+      new_stmts = []
+      for stmt in self.stmts:
+        if issubclass(stmt.__class__, StmtList):
+          stmt.flatten()
+          new_stmts.extend(stmt.stmts)
+        else:
+          new_stmts.append(stmt)
+
+        self.stmts = new_stmts
+
+    def evaluate(self, records, **options):
+      for s in self.stmts:
+        s.evaluate(records, **options)
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -119,9 +151,14 @@ class Call(Node):
       return "%s = Call(%s(%s))" % (self.dest, self.src1, self.src2)
 
 class Do(Node):
-  def __init__(self, src1, stmt_list):
+  def __init__(self, src1, stmt_list, unroll=False):
     self.src1 = src1
     self.stmts = stmt_list
+    if unroll:
+      self = self.unroll() 
+  
+  def unroll(self):
+    return self
 
   def __repr__(self):
     return "Do(%s, %s)" % (self.src1, self.stmts)
@@ -133,16 +170,47 @@ class NewTmp(Node):
   def __repr__(self):
     return "NewTmp(%s)" % self.src1
 
+class Index(Node):
+  def __init__(self, value):
+    self.value = value
+
+  def __repr__(self):
+    return repr(self.value)
+
+class Range(Index):
+  def __init__(self, start, stride, end):
+    self.start = start
+    self.stride = stride
+    self.end = end
+
+  def __repr__(self):
+    return "%s:%s:%s" % (repr(self.start), repr(self.stride), repr(self.end))
+
+class Subscript(Node):
+  def __init__(self, index, *multiplicands):
+    self.index = index
+    self.multiplicands = multiplicands
+
+  def __repr__(self):
+    r = repr(self.index)
+    for m in self.multiplicands:
+      r += " "
+      r += repr(m)
+    return r
+
 class Symbol(Node):
   def __init__(self, symbol, subscript=None):
-    self.symbol = symbol
+    self.var_type, self.index = symbol
     self.subscript = subscript
+
+  def evaluate(self, records, **options):
+    return records[self]
 
   def __repr__(self):
     if self.subscript == None:
-      return "$%s" % self.symbol
+      return "$%s%d" % (self.var_type, self.index)
     else:
-      return "$%s[%s]" % (self.symbol, self.subscript)
+      return "$%s%d[%s]" % (self.var_type, self.index, self.subscript)
 
 class Comment(Node):
   def __init__(self, comment):
@@ -150,3 +218,5 @@ class Comment(Node):
 
   def __repr__(self):
     return "Comment(\"%s\")" % self.comment
+
+##### Record Keeping #####
