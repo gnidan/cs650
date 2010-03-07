@@ -16,7 +16,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 import ast
-import iast
+import icode
 import numbers
 
 class SPLParser:
@@ -501,7 +501,7 @@ class SPLParser:
 ##### ICode #####
     def p_icode_program(self, p):
         'icode_program : icode_list'
-        p[0] = iast.ICode(p[1])
+        p[0] = icode.ICode(p[1])
 
     def p_icode_list(self, p):
         'icode_list : icode icode_list'
@@ -510,7 +510,7 @@ class SPLParser:
 
     def p_icode_list_end(self, p):
         'icode_list : icode'
-        p[0] = iast.StmtList(p[1])
+        p[0] = icode.StmtList(p[1])
 
     def p_icode(self, p):
         """icode : add
@@ -535,20 +535,20 @@ class SPLParser:
     def p_ivar_scalar(self, p):
         """ivar : ISCALAR
                 | IVECTOR"""
-        p[0] = iast.Symbol(p[1])
+        p[0] = icode.Symbol(p[1])
 
 
     def p_ivar_vector(self, p):
         'ivar : IVECTOR LPAREN subscript RPAREN'
-        p[0] = iast.Symbol(p[1], p[3])
+        p[0] = icode.Symbol(p[1], p[3])
 
     def p_subscript_simple(self, p):
         'subscript : index'
-        p[0] = iast.Subscript(p[1])
+        p[0] = icode.Subscript(p[1])
 
     def p_subscript_multiplicands(self, p):
         'subscript : index multiplicands'
-        p[0] = iast.Subscript(p[1], *p[2])
+        p[0] = icode.Subscript(p[1], *p[2])
 
     def p_multiplicands(self, p):
         'multiplicands : ivalue multiplicands'
@@ -561,57 +561,57 @@ class SPLParser:
 
     def p_index_simple(self, p):
         'index : ivalue'
-        p[0] = iast.Index(p[1])
+        p[0] = icode.Index(p[1])
 
     def p_index_range(self, p):
         'index : ivalue COLON ivalue COLON ivalue'
-        p[0] = iast.Range(p[1], p[3], p[5])
+        p[0] = icode.Range(p[1], p[3], p[5])
 
     def p_add(self, p):
         'add : ivar EQUALS ivalue PLUS ivalue'
-        p[0] = iast.Add(p[1], p[3], p[5])
+        p[0] = icode.Add(p[1], p[3], p[5])
 
     def p_sub(self, p):
         'sub : ivar EQUALS ivalue MINUS ivalue'
-        p[0] = iast.Subtract(p[1], p[3], p[5])
+        p[0] = icode.Sub(p[1], p[3], p[5])
 
     def p_mul(self, p):
         'mul : ivar EQUALS ivalue MULT ivalue'
-        p[0] = iast.Multiply(p[1], p[3], p[5])
+        p[0] = icode.Mul(p[1], p[3], p[5])
 
     def p_div(self, p):
         'div : ivar EQUALS ivalue DIV ivalue'
-        p[0] = iast.Divide(p[1], p[3], p[5])
+        p[0] = icode.Div(p[1], p[3], p[5])
 
     def p_mod(self, p):
         'mod : ivar EQUALS ivalue MOD ivalue'
-        p[0] = iast.Modulus(p[1], p[3], p[5])
+        p[0] = icode.Mod(p[1], p[3], p[5])
 
     def p_assn(self, p):
         'assn : ivar EQUALS ivalue'
-        p[0] = iast.Assign(p[1], p[3])
+        p[0] = icode.Copy(p[1], p[3])
       
     def p_call(self, p):
         'call : ivar EQUALS CALL symbol'
-        p[0] = iast.Call(p[1], p[4])
+        p[0] = icode.Call(p[1], p[4])
 
     def p_call_arg(self, p):
         'call : ivar EQUALS CALL symbol ivar'
-        p[0] = iast.Call(p[1], p[4], p[5])
+        p[0] = icode.Call(p[1], p[4], p[5])
 
     def p_do(self, p):
         """do : LOOP ivalue icode_list END LOOP
               | LOOP ivalue icode_list END"""
-        p[0] = iast.Do(p[2], p[3])
+        p[0] = icode.Do(p[2], p[3])
 
     def p_dounroll(self, p):
         """dounroll : LOOPUNROLL ivalue icode_list END LOOPUNROLL
                     | LOOPUNROLL ivalue icode_list END"""
-        p[0] = iast.Do(p[2], p[3], unroll=True)
+        p[0] = icode.Do(p[2], p[3], unroll=True)
 
     def p_newtmp(self, p):
         'newtmp : NEWTMP ivalue'
-        p[0] = iast.NewTmp(p[2])
+        p[0] = icode.DefTmp(p[2])
 
 #Unimplemented: DEFINE_ ALIAS
 #               size_rule shape root_of_one
