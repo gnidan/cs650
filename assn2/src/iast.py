@@ -14,7 +14,6 @@ Contains all of the AST Node classes for ICode.
 import math
 import cmath
 
-from symbols import ICodeRecordSet
 
 class Node:
     dest = None
@@ -44,12 +43,8 @@ class ICode(Node):
       self.stmts = stmts
 
     def evaluate(self, **options):
+      pass
       # options should include input_size and output_size
-      records = ICodeRecordSet(**options)
-      options["program"] = self
-
-      self.stmts.flatten()
-      self.stmts.evaluate(records, **options)
 
     def __repr__(self):
       return "Program(%s)" % (self.stmts)
