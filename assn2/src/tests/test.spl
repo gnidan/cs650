@@ -1,0 +1,69 @@
+;;/************************************************************************
+;; *                                                                      *
+;; *                   SPL Compiler Version 3.30                          *
+;; *                                                                      *
+;; *                         Jianxin Xiong                                *
+;; *                                                                      *
+;; *                  Department of Computer Science                      *
+;; *            University of Illinois at Urbana-Champaign                *
+;; *                                                                      *
+;; *  This software is copyrighted by the University of Illinois. You     *
+;; *  are granted a free license for non-commercial use. Please read      *
+;; *  the detailed license information in the file LICENSE.               *
+;; *                                                                      *
+;; *  Contact Information:                                                *
+;; *        URL:    http://polaris.cs.uiuc.edu/SPL                        *
+;; *        Email:  jxiong@cs.uiuc.edu                                    *
+;; *        Phone:  (217)333-6578,  Fax: (217)333-3501.                   *
+;; *                                                                      *
+;; *  Latest revision date: 04/10/2002                                    *
+;; *                                                                      *
+;; ************************************************************************/
+;;
+
+;; This is a test file to see if the compiler can generate right code
+;; for right SPL programs
+
+; predefined primitives
+
+(primitive BLIP SPL_SHAPE_SQUARE)
+(define F8
+    (BLIP 4))
+
+(template (BLIP ANY)
+  (
+    dounroll $p1
+      $r0 = 5 
+    end dounroll
+  ))
+
+(BLIP 5)
+F8
+
+;;(template (F 2)		;; ---- F(2) 
+;;	(
+;;		$y(1) = $x(0) - $x(1)
+;;		$y(0) = $x(0) + $x(1)
+;;	))
+;;
+;;(template (T ANY ANY, ANY:ANY:ANY) 
+;;		;; ---- T(mn n,i:j:k) parameters: self(ny,nx), mn, n, i, j, k 
+;;	(
+;;		$r0 = $p5 - $p3
+;;		$r0 = $r0 / $p4
+;;		$r0 = $r0 + 1
+;;		do $r0
+;;		  $r1 = $i0 * $p4
+;;		  $r1 = $r1 + $p3
+;;      $y(0 1) = TW($p1 $p2 $r1) * $x(0 1)
+;;		end
+;;	))
+;;
+;;#subname L82
+;;(L 8 2)
+;;
+;;(define F4_SPLIT
+;;	(compose sigma
+;;		 (direct_sum (F 2) (I 2))
+;;		 (L 4 2)))
+;;
