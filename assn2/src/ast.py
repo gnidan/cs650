@@ -50,13 +50,13 @@ class Formula(Node):
         self.list = args
         self.symbol = args[0]
  
-    def definition(self, symtab, **options):
+    def definition(self, symtab, options):
         if options.unroll:
             pass #TODO gen_code
         else:
             return symbols.Formula(self.value)
  
-    def evaluate(self, symtab, **options):
+    def evaluate(self, symtab, options):
         print "Must implement Formula evaluate"
  
     def __repr__(self):
