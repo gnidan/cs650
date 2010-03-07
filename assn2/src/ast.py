@@ -43,38 +43,38 @@ class Node(object):
         return self.__class__.__name__
 
 class Formula(Node):
-    def __init__(self, values):
-        self.values = values
-
-    # def definition(self, symtab, options):
-    #     if options.unroll:
-    #         pass #TODO gen_code
-    #     else:
-    #         return symbols.Formula(self.value)
-
-    def evaluate(self, symtab, options):
-        if hasattr(templates, self.__class__.__name__):
-            func = getattr(templates, self.__class__.__name__)
-            if not isinstance(func, types.FunctionType):
-                raise TypeError
-            return func(*tuple(self.values))
-        raise NotImplementedError("Must implement Formula '%s'" % (self.__class__.__name__))
-
-    def __init__(self, values):
-        self.values = values
-
-    def optimize(self, symtab, options):
-        for i in xrange(len(self.values)):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
-
-    def __len__(self):
-        return len(self.values)
-
+    def __init__(self, *args):
+        if(len(args) == 0):
+            raise IndexError
+ 
+        self.list = args
+        self.symbol = args[0]
+ 
+    def definition(self, symtab, **options):
+        if options.unroll:
+            pass #TODO gen_code
+        else:
+            return symbols.Formula(self.value)
+ 
+    def evaluate(self, symtab, **options):
+        print "Must implement Formula evaluate"
+ 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.values)
+        r = ""
+        for i in range(len(self.list)):
+          arg = self.list[i]
+          if( i == 0 ):
+            r += arg.symbol
+            r += "("
+          elif( i == 1 ):
+            r += repr(arg)
+          else:
+            r += ", "
+            r += repr(arg)
+ 
+        r += ")"
+        
+        return r
 
 class Program(Node):
     def __init__(self, stmts):
@@ -630,6 +630,53 @@ class S(Intrinsic):
 
     def __repr__(self):
         return "S(%s %s)" % (self.n, self.k)
+
+##### 3.1 Symbol Declaration #####
+class Primitive(Assignment):
+    def __init__(self, symbol, shape):
+        self.symbol = symbol
+        self.shape = shape
+ 
+class Operation(Assignment):
+    def __init__(self, symbol, size_rule):
+        self.symbol = symbol
+        self.size_rule = size_rule
+ 
+class Direct(Assignment):
+    def __init__(self, symbol, size_rule):
+        self.symbol = symbol
+        self.size_rule = size_rule
+ 
+##### 3.2 Templates ######
+class Template(Assignment):
+    def __init__(self, pattern, icode_list, condition=None):
+        self.pattern = pattern
+        self.condition = condition
+        self.icode_list = icode_list
+ 
+    def isConst(self, symbtab=None):
+        return False
+ 
+    def evaluate(self, symtab, options):
+        # buhh gotta think about this one :) TODO
+        symtab[self.pattern.symbol] = (
+            self.pattern.evaluate(symtab, options),
+            self.icode_list.evaluate(symtab, options)
+              )
+ 
+    def __repr__(self):
+        return "Template(%s, %s)" % (self.pattern, self.icode_list)
+ 
+class Condition(Node):
+  pass
+ 
+class Pattern(Symbol):
+    def __init__(self, symbol, formulas):
+      self.symbol = symbol
+      self.formulas = formulas
+ 
+class Wildcard(Symbol):
+  pass
 
 ##### A.1 Errors #####
 class ConstantError(ValueError):
