@@ -685,11 +685,6 @@ class Template(Assignment):
 class Condition(Node):
   pass
  
-class Pattern(Symbol):
-    def __init__(self, symbol, formulas):
-      self.symbol = symbol
-      self.formulas = formulas
- 
 class Wildcard(Symbol):
   pass
 
