@@ -659,10 +659,11 @@ class Template(Assignment):
  
     def evaluate(self, symtab, options):
         # buhh gotta think about this one :) TODO
-        symtab[self.pattern.symbol] = (
-            self.pattern.evaluate(symtab, options),
-            self.icode_list.evaluate(symtab, options)
-              )
+#        symtab[self.pattern.symbol] = (
+#            self.pattern.evaluate(symtab, options),
+#            self.icode_list.evaluate(symtab, options)
+#              )
+        pass            
  
     def __repr__(self):
         return "Template(%s, %s)" % (self.pattern, self.icode_list)
