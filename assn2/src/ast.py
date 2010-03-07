@@ -43,9 +43,11 @@ class Node(object):
         return self.__class__.__name__
 
 class Formula(Node):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, args, stride=None):
         if(len(args) == 0):
             raise IndexError
+
+        self.stride = stride
  
         self.list = args
         self.symbol = args[0]
@@ -71,6 +73,9 @@ class Formula(Node):
           else:
             r += ", "
             r += repr(arg)
+
+        if self.stride:
+          r += " @ %s:%s:%s" % self.stride
  
         r += ")"
         
