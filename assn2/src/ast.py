@@ -638,7 +638,7 @@ class Primitive(Assignment):
         self.shape = shape
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Template(self.shape)
+        symtab[self.symbol] = symbols.Primitive(self.shape)
  
 class Operation(Assignment):
     def __init__(self, symbol, size_rule):
@@ -646,7 +646,7 @@ class Operation(Assignment):
         self.size_rule = size_rule
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Template(self.size_rule)
+        symtab[self.symbol] = symbols.Operation(self.size_rule)
  
 class Direct(Assignment):
     def __init__(self, symbol, size_rule):
@@ -654,7 +654,7 @@ class Direct(Assignment):
         self.size_rule = size_rule
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Template(self.size_rule)
+        symtab[self.symbol] = symbols.Direct(self.size_rule)
  
 ##### 3.2 Templates ######
 class Template(Assignment):
