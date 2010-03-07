@@ -501,7 +501,7 @@ class SPLParser:
 ##### ICode #####
     def p_icode_program(self, p):
         'icode_program : icode_list'
-        p[0] = icode.ICode(p[1])
+        p[0] = p[1]
 
     def p_icode_list(self, p):
         'icode_list : icode icode_list'
@@ -522,6 +522,7 @@ class SPLParser:
                  | call
                  | do
                  | dounroll
+                 | end
                  | newtmp
                  | comment"""
         p[0] = p[1]
@@ -600,14 +601,18 @@ class SPLParser:
         p[0] = icode.Call(p[1], p[4], p[5])
 
     def p_do(self, p):
-        """do : LOOP ivalue icode_list END LOOP
-              | LOOP ivalue icode_list END"""
-        p[0] = icode.Do(p[2], p[3])
+        'do : LOOP ivalue'
+        p[0] = icode.Do(p[2])
 
     def p_dounroll(self, p):
-        """dounroll : LOOPUNROLL ivalue icode_list END LOOPUNROLL
-                    | LOOPUNROLL ivalue icode_list END"""
-        p[0] = icode.Do(p[2], p[3], unroll=True)
+        'dounroll : LOOPUNROLL ivalue'
+        p[0] = icode.DoUnroll(p[2])
+
+    def p_do_end(self, p):
+      """end : END LOOP
+             | END LOOPUNROLL
+             | END"""
+      p[0] = icode.End()
 
     def p_newtmp(self, p):
         'newtmp : NEWTMP ivalue'
