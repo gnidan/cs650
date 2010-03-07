@@ -386,10 +386,7 @@ class SPLParser:
 ##### Expressions and Numbers #####
     def p_expression_number(self, p):
         """expression : number
-                      | symbol
-                      | intrinsic
-                      | function"""
-            
+                      | symbol"""
         p[0] = p[1]
 
     def p_number(self, p):
@@ -445,35 +442,35 @@ class SPLParser:
         p[0] = p[1]
 
     def p_W(self, p):
-        'i_W : W LPAREN number number RPAREN'
+        'i_W : W LPAREN ivalue ivalue RPAREN'
         p[0] = ast.W(p[3], p[4])
 
     def p_WR(self, p):
-        'i_WR : WR LPAREN number number RPAREN'
+        'i_WR : WR LPAREN ivalue ivalue RPAREN'
         p[0] = ast.WR(p[3], p[4])
 
     def p_WI(self, p):
-        'i_WI : WI LPAREN number number RPAREN'
+        'i_WI : WI LPAREN ivalue ivalue RPAREN'
         p[0] = ast.WI(p[3], p[4])
 
     def p_TW(self, p):
-        'i_TW : TW LPAREN number number number RPAREN'
+        'i_TW : TW LPAREN ivalue ivalue ivalue RPAREN'
         p[0] = ast.TW(p[3], p[4], p[5])
 
     def p_TWR(self, p):
-        'i_TWR : TWR LPAREN number number number RPAREN'
+        'i_TWR : TWR LPAREN ivalue ivalue ivalue RPAREN'
         p[0] = ast.TWR(p[3], p[4], p[5])
 
     def p_TWI(self, p):
-        'i_TWI : TWI LPAREN number number number RPAREN'
+        'i_TWI : TWI LPAREN ivalue ivalue ivalue RPAREN'
         p[0] = ast.TWI(p[3], p[4], p[5])
 
     def p_C(self, p):
-        'i_C : C LPAREN number number RPAREN'
+        'i_C : C LPAREN ivalue ivalue RPAREN'
         p[0] = ast.C(p[3], p[4])
 
     def p_S(self, p):
-        'i_S : S LPAREN number number RPAREN'
+        'i_S : S LPAREN ivalue ivalue RPAREN'
         p[0] = ast.S(p[3], p[4])
 
 ##### Functions #####
@@ -487,7 +484,7 @@ class SPLParser:
         p[0] = p[1]
 
     def p_function_sin(self, p):
-        'function : function_name LPAREN number RPAREN'
+        'function : function_name LPAREN ivalue RPAREN'
         p[0] = self.create_or_get(p[1], ast.Function)(p[3])
 
     def p_function_pi(self, p):
@@ -495,11 +492,11 @@ class SPLParser:
         p[0] = ast.Pi()
 
     def p_function_w(self, p):
-        'function : WSCALAR LPAREN number RPAREN'
+        'function : WSCALAR LPAREN ivalue RPAREN'
         p[0] = ast.w(p[3])
 
     def p_function_w_exp(self, p):
-        'function : WSCALAR LPAREN number COMMA number RPAREN'
+        'function : WSCALAR LPAREN ivalue COMMA ivalue RPAREN'
         p[0] = ast.w(p[3], p[5])
 
     def p_error(self, p):
@@ -539,7 +536,9 @@ class SPLParser:
     def p_ivalue(self, p):
         """ivalue : double
                   | integer
-                  | ivar"""
+                  | ivar
+                  | intrinsic
+                  | function"""
         p[0] = p[1]
 
     def p_ivar_scalar(self, p):
