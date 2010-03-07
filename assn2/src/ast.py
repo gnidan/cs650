@@ -61,6 +61,7 @@ class Formula(Node):
     def evaluate(self, symtab, options):
         if self.symbol not in symtab:
           raise NameError(self.symbol)
+        return symtab[self]
  
     def __repr__(self):
         r = str(self.symbol)

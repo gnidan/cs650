@@ -199,6 +199,15 @@ class SymbolTable(dict):
       raise AlreadyDefinedError(key)
     super(SymbolTable,self).__setitem__(key, value)
 
+  def __getitem__(self, key):
+    """Get an entry from the symbol table. Returns either a constant or a list
+    of ICode ops (defined values get stored as ICode, templates get matched and
+    converted on way out)"""
+    if isintance(key, ast.Formula):
+      "then it's a template..."
+    else:
+      return super(SymbolTable,self).__getitem__(key)
+
   def isConst(self, key):
     if self.has_key(key):
       val = super(SymbolTable,self).__getitem__(key)
