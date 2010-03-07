@@ -366,7 +366,7 @@ class SPLParser:
     ##    declarations
     def p_primitive(self, p):
         'declaration : LPAREN PRIMITIVE symbol SHAPE RPAREN'
-        p[0] = ast.Primitve(p[3], p[4])
+        p[0] = ast.Primitive(p[3], p[4])
 
     def p_operation(self, p):
         'declaration : LPAREN OPERATION symbol SIZE_RULE RPAREN'

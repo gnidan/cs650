@@ -636,16 +636,25 @@ class Primitive(Assignment):
     def __init__(self, symbol, shape):
         self.symbol = symbol
         self.shape = shape
+
+    def evaluate(self, symtab, options):
+        symtab[symbol] = symbols.Template(shape)
  
 class Operation(Assignment):
     def __init__(self, symbol, size_rule):
         self.symbol = symbol
         self.size_rule = size_rule
+
+    def evaluate(self, symtab, options):
+        symtab[symbol] = symbols.Template(size_rule)
  
 class Direct(Assignment):
     def __init__(self, symbol, size_rule):
         self.symbol = symbol
         self.size_rule = size_rule
+
+    def evaluate(self, symtab, options):
+        symtab[symbol] = symbols.Template(size_rule)
  
 ##### 3.2 Templates ######
 class Template(Assignment):
@@ -663,8 +672,8 @@ class Template(Assignment):
 #            self.pattern.evaluate(symtab, options),
 #            self.icode_list.evaluate(symtab, options)
 #              )
-        pass            
- 
+        symtab[self.pattern.symbol].addICode(pattern, condition)
+
     def __repr__(self):
         return "Template(%s, %s)" % (self.pattern, self.icode_list)
  
