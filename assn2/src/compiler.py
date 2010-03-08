@@ -104,8 +104,8 @@ def main(argv=None):
         print t
 
     if verbose:
-        print "\n** Optimising the AST (Constant Propagation)"
-    t.optimize(SymbolTable(), options)
+        print "\n** Simplifying the AST (Constant Propagation, Defines)"
+    t.simplify(SymbolTable())
     if debug:
         print "\n Optimized AST:"
         print t
@@ -113,7 +113,7 @@ def main(argv=None):
     if verbose:
         print "\n** Translating the AST to icode"
     symtab = SymbolTable()
-    icodes = t.evaluate(SymbolTable(), options)
+    icodes = t.evaluate(options)
 
     #Get rid of the None's
     icodes = [i for i in icodes if i]
@@ -121,24 +121,38 @@ def main(argv=None):
         print "\n Icodes:"
         print icodes
 
-    #TODO i don't think this is the right place for this step
-    icodes = [ICodeList(i) for i in icodes]
     if verbose:
         for i in icodes:
             print i.count()
+
+    if verbose:
+        print "\n** Optimization: Constant Propagation and Constant Folding (Pass #1)"
+    for i in icodes:
+        i.constprop()
+        if debug:
+            print "\nIcodes:"
+            print i
+        if verbose:
+            print i.count()
+
+
+    if verbose:
+        print "\n** Processing: Inlining Calls"
+    for i in icodes:
+        i.do_calls()
 
     if verbose:
         print "\n** Optimization: Unrolling the icode"
     for i in icodes:
         i.unroll()
         if debug:
-            print "\n Icodes:"
+            print "\nIcodes:"
             print i
         if verbose:
             print i.count()
 
     if verbose:
-        print "\n** Optimization: Propagating constants"
+        print "\n** Optimization: Constant Propagation and Constant Folding (Pass #2)"
     for i in icodes:
         i.constprop()
         if verbose:
@@ -150,7 +164,7 @@ def main(argv=None):
     #    i.subexpr()
 
     if debug:
-        print "\n Icodes:"
+        print "\nIcodes:"
         print icodes
 
     if verbose:

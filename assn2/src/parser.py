@@ -264,8 +264,8 @@ class SPLParser:
                    | sparse
                    | operation
                    | scale
-                   | param_matrix
-                   | t"""
+                   | param_matrix"""
+#                   | t"""
         p[0] = p[1]
 
     def p_formula_symbol(self, p):
@@ -297,7 +297,8 @@ class SPLParser:
                              | I
                              | J
                              | L
-                             | O"""
+                             | O
+                             | T"""
         p[0] = p[1]
 
     def p_constructor(self, p):
@@ -316,18 +317,18 @@ class SPLParser:
         'scale : LPAREN SCALE number formula RPAREN'
         p[0] = ast.Scale(a, B)
 
-    def p_index(self, p):
-        'index : number COLON number COLON number'
-        p[0] = ast.Index(p[1], p[3], p[5])
+    # def p_index(self, p):
+    #     'index : number COLON number COLON number'
+    #     p[0] = ast.Index(p[1], p[3], p[5])
 
     #TODO ELIMINATE!
-    def p_t(self, p):
-        't : LPAREN T number number RPAREN'
-        p[0] = ast.T(p[3], p[4])
+    # def p_t(self, p):
+    #     't : LPAREN T number number RPAREN'
+    #     p[0] = ast.T(p[3], p[4])
 
-    def p_t_idx(self, p):
-        't : LPAREN T number number COMMA index RPAREN'
-        p[0] = ast.T(p[3], p[4], p[6])
+    # def p_t_idx(self, p):
+    #     't : LPAREN T number number COMMA index RPAREN'
+    #     p[0] = ast.T(p[3], p[4], p[6])
 
     def p_matrix(self, p):
         'matrix : LPAREN MATRIX matrix_row_list RPAREN'

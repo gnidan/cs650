@@ -18,17 +18,18 @@ import templates
 import types
 import symbol_collection as symbols
 from options import Options
+from icodelist import ICodeList
 
 class Node(object):
     def __init__(self):
         raise NotImplementedError
 
-    def optimize(self, symtab, options):
-        '''Performs early optimizations on the AST such as Constant Folding'''
+    def simplify(self, symtab):
+        '''Performs simplification of the AST. Propagates defines, folds constants, etc.'''
         print "OPTIMIZING: %s" % (self.__class__.__name__)
-        return None, False
+        return self
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, options):
         print self.__class__.__name__
         raise NotImplementedError
 
@@ -45,30 +46,60 @@ class Node(object):
 class Formula(Node):
     def __init__(self, values):
         self.values = values
+        self._nx = None
+        self._ny = None
 
-    # def definition(self, symtab, options):
-    #     if options.unroll:
-    #         pass #TODO gen_code
-    #     else:
-    #         return symbols.Formula(self.value)
+    #This is absolutely horrible
+    def nx(self):
+        if self._nx is None:
+            pass
 
-    def evaluate(self, symtab, options):
+    def ny(self):
+        if self._ny is None:
+            pass
+
+    def func(self):
         if hasattr(templates, self.__class__.__name__):
-            func = getattr(templates, self.__class__.__name__)
-            if not isinstance(func, types.FunctionType):
+            f = getattr(templates, self.__class__.__name__, None)
+            if not isinstance(f, types.FunctionType):
                 raise TypeError
-            return func(*tuple(self.values))
+            return f
         raise NotImplementedError("Must implement Formula '%s'" % (self.__class__.__name__))
+
+
+    def func(self):
+        if hasattr(templates, self.__class__.__name__):
+            f = getattr(templates, self.__class__.__name__, None)
+            if not isinstance(f, types.FunctionType):
+                raise TypeError
+            return f
+        raise NotImplementedError("Must implement Formula '%s'" % (self.__class__.__name__))
+
+    def size_func(self):
+        name = "%s_size" % (self.__class__.__name__)
+        if hasattr(templates, name):
+            f = getattr(templates, name, None)
+            if not isinstance(f, types.FunctionType):
+                raise TypeError
+            return f
+        raise NotImplementedError("Must implement size function for '%s'" % (self.__class__.__name__))
+
+    def evaluate(self, options):
+        return ICodeList(self.func()(*tuple(self.values)))
+
+    def __call__(self, x, y):
+        print "Calling: %s size: %s %s" % (self.__class__.__name__, self.nx, self.ny)
+        self.il = ICodeList(self.func()(*tuple(self.values),x=x, y=y))
+        return self.il
 
     def __init__(self, values):
         self.values = values
+        self.nx, self.ny = self.size_func()(*tuple(self.values))
 
-    def optimize(self, symtab, options):
-        for i in xrange(len(self.values)):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
+    def simplify(self, symtab):
+        self.values = [ i.simplify(symtab) for i in self.values ]
+        self.values = [ i for i in self.values if i ]
+        return self
 
     def __len__(self):
         return len(self.values)
@@ -80,11 +111,12 @@ class Program(Node):
     def __init__(self, stmts):
         self.stmts = stmts
 
-    def evaluate(self, symtab, options):
-        return self.stmts.evaluate(symtab, options)
+    def evaluate(self, options):
+        return self.stmts.evaluate(options)
 
-    def optimize(self, symtab, options):
-        self.stmts.optimize(symtab, options)
+    def simplify(self, symtab):
+        self.stmts = self.stmts.simplify(symtab)
+        return self
 
     def __repr__(self):
         return "Program(%s)" % (self.stmts)
@@ -99,16 +131,13 @@ class StmtList(Node):
     def prepend(self, stmt):
         self.stmts.insert(0, stmt)
 
-    def evaluate(self, symtab, options):
-        return [s.evaluate(symtab, options) for s in self.stmts]
+    def evaluate(self, options):
+        return [s.evaluate(options) for s in self.stmts]
 
-    def optimize(self, symtab, options):
-        #List comprehension wasn't pretty. But i don't like xrange either :-(
-        for i in xrange(len(self)):
-            node, opt = self.stmts[i].optimize(symtab, options)
-            if opt:
-                self.stmts[i] = node
-        return None, False
+    def simplify(self, symtab):
+        self.stmts = [ i.simplify(symtab) for i in self.stmts ]
+        self.stmts = [ i for i in self.stmts if i ]
+        return self
 
     def __repr__(self):
         return "StmtList(%s)" % (self.stmts)
@@ -130,10 +159,10 @@ class Scalar(Number):
     def value(self):
         return self.val
 
-    def optimize(self, symtab, options):
-        return self.value(), True
+    def simplify(self, symtab):
+        return self.value()
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, options):
         return self.value()
 
     def __repr__(self):
@@ -149,10 +178,10 @@ class Pi(Double):
     def __init__(self):
         pass
 
-    def optimize(self, symtab, options):
-        return math.pi, True
+    def simplify(self, symtab):
+        return math.pi
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, options):
         return math.pi
 
     def __repr__(self):
@@ -168,18 +197,14 @@ class Complex(Number):
             return True
         return self.real.isConst(symtab) and self.imaginary.isConst(symtab)
 
-    def optimize(self, symtab, options):
-        node, optR = self.real.optimize(symtab, options)
-        if optR:
-            self.real = node
+    def simplify(self, symtab):
+        self.real = self.real.simplify(symtab)
+        self.imaginary = self.imaginary.simplify(symtab)
 
-        node, optI = self.imaginary.optimize(symtab, options)
-        if optI:
-            self.imaginary = node
+        if self.isConst(symtab):
+            return self.value()
 
-        if optR and optI:
-            return self.value(), True
-        return None, False
+        return self
 
     def value(self):
         return complex(self.real, self.imaginary)
@@ -202,14 +227,13 @@ class Function(Node):
         if hasattr(module, fname):
                 return getattr(module, fname)(arg)
 
-    def optimize(self, symtab, options):
-        node, opt = self.number.optimize(symtab, options)
-        if opt:
-            self.number = node
-            return calc(number), True
-        return None, False
+    def simplify(self, symtab):
+        self.number = self.number.simplify(symtab)
+        if self.number.isConst(symtab):
+            return calc(number)
+        return self
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, options):
         raise NotImplementedError
 
     def __repr__(self):
@@ -220,10 +244,10 @@ class w(Function):
         self.n = n
         self.k = k
 
-    def optimize(self, symtab, options):
+    def simplify(self, symtab):
         raise NotImplementedError #TODO
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, options):
         raise NotImplementedError #TODO
 
     def __repr__(self):
@@ -240,9 +264,12 @@ class Operator(Node):
         self.right = right
         self.func = func
 
-    def isConst(self):
+    def isConst(self, symtab=None):
+        if isinstance(self.left, numbers.Number) and (self.right is None or isinstance(self.right, numbers.Number)):
+            return True
+
         if hasattr(self.left, 'isConst') and (self.right is None or hasattr(self.right, 'isConst')):
-            return self.left.isConst() and (self.right is None or self.right.isConst())
+            return self.left.isConst(symtab) and (self.right is None or self.right.isConst(symtab))
         return False
 
     def calc(self):
@@ -283,20 +310,15 @@ class Operator(Node):
                 return val
         return NotImplemented
 
-    def optimize(self, symtab, options):
-        node, optL = self.left.optimize(symtab, options)
-        if optL:
-            self.left = node
+    def simplify(self, symtab):
+        self.left = self.left.simplify(symtab)
+        if self.right is not None:
+            self.right = self.right.simplify(symtab)
 
-        optR = True
-        if self.right:
-            node, optR = self.right.optimize(symtab, options)
-            if optR:
-                self.right = node
+        if self.isConst(symtab):
+            return self.calc()
 
-        if optL and optR:
-            return self.calc(), True
-        return None, False
+        return self
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.func, self.left, self.right)
@@ -311,12 +333,9 @@ class MatrixRow(Formula):
         self.values.insert(0, a)
         self.n += 1
 
-    def optimize(self, symtab, options):
-        for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return self.values, True
+    def simplify(self, symtab):
+        self.values = [ i.simplify(symtab) for i in self.values ]
+        return self
 
     def size(self):
         return len(self)
@@ -341,12 +360,9 @@ class Matrix(Formula):
         self.rows.insert(0, row)
         self.m += 1
 
-    def optimize(self, symtab, options):
-        for i in xrange(self.m):
-            node, opt = self.rows[i].optimize(symtab, options)
-            if opt:
-                self.rows[i] = node
-        return None, False
+    def simplify(self, symtab):
+        self.rows = [ i.simplify(symtab) for i in self.rows ]
+        return self
 
     def size(self):
         return (m, n)
@@ -361,20 +377,11 @@ class SparseElement(Formula):
         self.a = a
 
     #TODO should eliminate sparseelement if possible
-    def optimize(self, symtab, options):
-        node, optI = self.i.optimize(symtab, options)
-        if optI:
-            self.i = node
-
-        node, optJ = self.j.optimize(symtab, options)
-        if optI:
-            self.j = node
-
-        node, optA = self.a.optimize(symtab, options)
-        if optI:
-            self.a = node
-
-        return None, False
+    def simplify(self, symtab):
+        self.i = self.i.simplify(symtab)
+        self.j = self.j.simplify(symtab)
+        self.a = self.a.simplify(symtab)
+        return self
 
     def __repr__(self):
         return "SparesElement(%s %s %s)" % (self.i, self.j, self.a)
@@ -388,12 +395,13 @@ class Sparse(Formula):
             self.m = v.i if v.i > self.m else self.m
             self.n = v.j if v.j > self.n else self.n
 
-    def optimize(self, symtab, options):
-        for i in xrange(len(self)):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
+    def simplify(self, symtab):
+        self.values = [ i.simplify(symtab) for i in self.values ]
+        return self
+
+    def simplify(self, symtab):
+        self.values = [ i.simplify(symtab) for i in self.values ]
+        return self
 
     def size(self):
         return (m, n)
@@ -404,48 +412,48 @@ class Sparse(Formula):
     def __repr__(self):
         return "Sparse(%s)" % (self.values)
 
-class Index(Node):
-    def __init__(self, start, stride, stop):
-        self.start = start
-        self.stride = stride
-        self.stop = stop
+# class Index(Node):
+#     def __init__(self, start, stride, stop):
+#         self.start = start
+#         self.stride = stride
+#         self.stop = stop
 
-    #TODO should eliminate Index if possible
-    def optimize(self, symtab, options):
-        node, optStart = self.start.optimize(symtab, options)
-        if optStart:
-            self.start = node
+#     #TODO should eliminate Index if possible
+#     def simplify(self, symtab):
+#         node, optStart = self.start.simplify(symtab)
+#         if optStart:
+#             self.start = node
 
-        node, optStride = self.stride.optimize(symtab, options)
-        if optStride:
-            self.stride = node
+#         node, optStride = self.stride.simplify(symtab)
+#         if optStride:
+#             self.stride = node
 
-        node, optStop = self.stop.optimize(symtab, options)
-        if optStop:
-            self.stop = node
-        return None, False
+#         node, optStop = self.stop.simplify(symtab)
+#         if optStop:
+#             self.stop = node
+#         return None, False
 
-    def __repr__(self):
-        return "Index(%s, %s, %s)" % (self.start, self.stride, self.stop)
+#     def __repr__(self):
+#         return "Index(%s, %s, %s)" % (self.start, self.stride, self.stop)
 
 ##### 1.2 Predefined Parametrized Matrices ######
-class T(Formula):
-    def __init__(self, mn, n, index=None):
-        self.mn = mn
-        self.n = n
-        self.index = index
+# class T(Formula):
+#     def __init__(self, mn, n, index=None):
+#         self.mn = mn
+#         self.n = n
+#         self.index = index
 
-    def optimize(self, symtab, options):
-        node, optMN = self.mn.optimize(symtab, options)
-        if optMN:
-            self.mn = node
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
+#     def simplify(self, symtab):
+#         node, optMN = self.mn.simplify(symtab)
+#         if optMN:
+#             self.mn = node
+#         node, optN = self.n.simplify(symtab)
+#         if optN:
+#             self.n = node
+#         return None, False
 
-    def __repr__(self):
-        return "(T %s %s %s)" % (self.mn, self.n, self.index)
+#     def __repr__(self):
+#         return "(T %s %s %s)" % (self.mn, self.n, self.index)
 
 ##### 1.3 Predefined Matrix Operations ######
 
@@ -454,14 +462,10 @@ class Scale(Formula):
         self.a = a
         self.A = A
 
-    def optimize(self, symtab, options):
-        node, opta = self.a.optimize(symtab, options)
-        if opta:
-            self.a = node
-        node, optA = self.A.optimize(symtab, options)
-        if optA:
-            self.A = node
-        return None, False
+    def simplify(self, symtab):
+        self.a = self.a.simplify(symtab)
+        self.A = self.A.simplify(symtab)
+        return self
 
     def __repr__(self):
         return "Scale(%s %s)" % (self.a, self.A)
@@ -478,21 +482,10 @@ class Define(Assignment):
     def isConst(self,symtab=None):
         return symtab.isConst(self.symbol)
 
-    def optimize(self, symtab, options):
-        node, opt = self.value.optimize(symtab, options)
-        if opt:
-            symtab[self.symbol] = node
-            self.value = node
-        else:
-            symtab[self.symbol] = self.value
-        return None, False
-
-    def evaluate(self, symtab, options):
-        #print "Symbol: %s" % self.symbol
-        #print "Value: %s" % self.value
-        #TODO this is hackish. is there a better way?
-        if not isinstance(self.value, numbers.Number):
-            symtab[self.symbol] = self.value.evaluate(symtab, options)
+    def simplify(self, symtab):
+        self.value = self.value.simplify(symtab)
+        symtab[self.symbol] = self.value
+        return None
 
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
@@ -501,8 +494,9 @@ class Undefine(Assignment):
     def __init__(self, symbol, value):
         self.symbol = symbol
 
-    def evaluate(self, symtab, options):
+    def simplify(self, symtab):
         del symtab[self.symbol]
+        return None
 
     def __repr__(self):
         return "Undefine(%s)" % (self.symbol)
@@ -514,13 +508,10 @@ class Symbol(Node):
     def isConst(self,symtab=None):
         return symtab.isConst(self.symbol)
 
-    def optimize(self, symtab, options):
+    def simplify(self, symtab):
         if self.isConst(symtab):
-            return symtab[self.symbol], True
-        return None, False
-
-    def evaluate(self, symtab, options):
-        return symtab[self.symbol]
+            return symtab[self.symbol]
+        return self
 
     def __repr__(self):
         return "Symbol(%s)" % (self.symbol)
@@ -530,14 +521,11 @@ class Directive(Node):
     def __init__(self, value=None):
         self.value = value
 
-    #TODO eliminate
-    def optimize(self, symtab, options):
-        return None, False
+    def simplify(self, symtab):
+        return self
 
-    def evaluate(self, symtab, options):
+    def evaluate(self, options):
         options[self.__class__.__name__.lower()] = self.value
-        #TODO how do we correctly do subnames and other directives? ugh.
-        #return self
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.value)
@@ -547,22 +535,18 @@ class Comment(Node):
     def __init__(self, txt):
         self.txt = txt
 
-    def optimize(self, symtab, options):
-        return None, False
+    def simplify(self, symtab):
+        return self
 
-    def evaluate(self, symtab, options):
-        #TODO fix
+    def evaluate(self, options):
         return self.txt
-#print "%s %s %s" % (options.lang.comment_begin(), self.txt, options.lang.comment_end())
 
     def __repr__(self):
         return "Comment(\"%s\")" % (self.txt)
 
 class Intrinsic(Node):
-    #REFACTOR
-    def optimize(self, symtab, options):
-        return None, False
-    pass
+    def simplify(self, symtab):
+        return self
 
 class W(Intrinsic):
     def __init__(self, n, k):

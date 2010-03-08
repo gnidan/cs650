@@ -48,40 +48,42 @@ def promote_complex(val):
 
     return val
 
-def num(val):
-    if isinstance(val, numbers.Number):
-        return val
-    if hasattr(val, 'num'):
-        #print 'num = ', getattr(val, 'num')()
-        return getattr(val, 'num')()
-    return val
+def num(sym):
+    if isinstance(sym, numbers.Number):
+        return sym
+
+    if isinstance(sym, Intrinsic):
+        if not isnum_or_none(num(sym.mn)) or not isnum_or_none(num(sym.n)) or not isnum_or_none(num(sym.k)):
+            return sym
+
+    if hasattr(sym, 'num'):
+        return sym.num()
+    return sym
     #raise NameError
 
-def isnumeric(val):
-    return isinstance(val, numbers.Number)
+def isnum_or_none(sym):
+    return isinstance(sym, numbers.Number) or sym is None
+
+def isnumeric(sym):
+    return isinstance(sym, numbers.Number)
+
+def isindex(sym):
+    return isinstance(sym, tuple) or isinstance(sym, Index)
 
 class ICodeList:
     def __init__(self, icode):
         self.icode = icode
 
     def varunroll(self, old, stack, varmap, outvar=False):
-        #print 'varunroll', old
+        if old is None:
+            return None
         if isnumeric(old):
             return old
         elif isinstance(old, Intrinsic):
-            #n, k, mn
-            #TODO this is ugly
             new = copy.copy(old)
-            if hasattr(new, 'n'):
-                v = self.varunroll(new.n, stack, varmap, False)
-                #print 'n = ', v
-                new.n = v
-            if hasattr(new, 'k'):
-                v = self.varunroll(new.k, stack, varmap, False)
-                #print 'k = ', v
-                new.k = v
-            if hasattr(new, 'mn'):
-                new.mn = self.varunroll(new.mn, stack, varmap, False)
+            new.mn = self.varunroll(new.mn, stack, varmap, False)
+            new.n = self.varunroll(new.n, stack, varmap, False)
+            new.k = self.varunroll(new.k, stack, varmap, False)
             return new
         elif isinstance(old, Vec):
             return old
@@ -93,7 +95,7 @@ class ICodeList:
         elif isinstance(old, DoVar):
             raise TypeError
         elif isinstance(old, IRef):
-            return stack[old.val].val
+            return stack[old.ref].val
         #We want to do SSA. If we are an output variable, create
         #a new map. Otherwise we want to use our old value.
         elif outvar:
@@ -103,6 +105,19 @@ class ICodeList:
             return varmap[old]
         else:
             return old
+
+    def do_calls(self):
+        i = 0
+        while i < len(self.icode):
+            inst = self.icode[i]
+            if isinstance(inst, Call):
+                #TODO this could be nicer
+                print ICodeList(inst.src1(inst.src2, inst.dest))
+            elif isinstance(inst, DefTmp):
+                #unrolled.append(DefTmp(inst.src1))
+                #TODO
+                pass
+            i+=1
 
     def unroll(self):
         Var.next_val = NextVarSet()
@@ -115,22 +130,18 @@ class ICodeList:
 
             #LOOPS
             if isinstance(inst, Do):
-                stack.insert(0, DoVar(i,inst.src1))
+                stack.insert(0, DoVar(i,num(inst.src1)))
+                #print 'DoVar: ', i, inst, num(inst.src1), stack
             elif isinstance(inst, End):
                 stack[0].val += 1
                 #if < then we still have to loop, otherwise move on
                 if stack[0].val < stack[0].n:
+                    #iold = i
                     i = stack[0].inst
+                    #print 'End: ', iold, '->', i, stack
                 else:
+                    #print 'End: ', i, '(Stop)', stack
                     stack = stack[1:]
-
-            elif isinstance(inst, Call):
-                #TODO
-                pass
-
-            elif isinstance(inst, DefTmp):
-                unrolled.append(DefTmp(inst.src1))
-                #TODO
 
             #OPERATIONS
             elif isinstance(inst, OpICode):
@@ -153,13 +164,6 @@ class ICodeList:
             inst = self.icode[i]
 
             if isinstance(inst, OpICode):
-                #print inst
-                # print 'src1', inst.src1, num(inst.src1)
-                # if isinstance(inst.src1, Var):
-                #     print 'val = ', inst.src1.val
-                # print 'src2', inst.src2, num(inst.src2)
-                # if isinstance(inst.src2, Var):
-                #     print 'val = ', inst.src2.val
                 src1 = num(inst.src1)
                 src2 = num(inst.src2)
 
@@ -176,7 +180,6 @@ class ICodeList:
                 if isinstance(inst, Add):
                     if isnumeric(src1) and isnumeric(src2):
                         inst.dest.val = src1 + src2
-                        #print 'add', inst.dest,'<-',inst.dest.val
                         self.icode[i] = None
                     elif src1 == 0:
                         inst.dest.val = src2
@@ -188,7 +191,6 @@ class ICodeList:
                 elif isinstance(inst, Sub):
                     if isnumeric(src1) and isnumeric(src2):
                         inst.dest.val = src1 - src2
-                        #print 'sub', inst.dest,'<-',inst.dest.val
                         self.icode[i] = None
                     elif src2 == 0:
                         inst.dest.val = src1
@@ -196,29 +198,33 @@ class ICodeList:
 
                 elif isinstance(inst, Mul):
                     if isnumeric(src1) and isnumeric(src2):
-                        inst.dest.val = src1 * src2
-                        #print 'mul', inst.dest,'<-',inst.dest.val
-                        self.icode[i] = None
+                        if isinstance(inst.dest, tuple):
+                            self.icode[i] = Copy(src1 * src2, inst.dest)
+                        else:
+                            inst.dest.val = src1 * src2
+                            self.icode[i] = None
                     elif src1 == 1:
-                        inst.dest.val = src2
-                        self.icode[i] = None
-                    # elif src1 == -1:
-                    #     inst.dest.val = -src2
-                    #     self.icode[i] = None
+                        if isinstance(inst.dest, tuple):
+                            self.icode[i] = Copy(src2, inst.dest)
+                        else:
+                            inst.dest.val = src2
+                            self.icode[i] = None
                     elif src2 == 1:
-                        inst.dest.val = src1
-                        self.icode[i] = None
-                    # elif src2 == -1:
-                    #     inst.dest.val = -src1
-                    #     self.icode[i] = None
+                        if isinstance(inst.dest, tuple):
+                            self.icode[i] = Copy(src1, inst.dest)
+                        else:
+                            inst.dest.val = src1
+                            self.icode[i] = None
                     elif src1 == 0 or src2 == 0:
-                        inst.dest.val = 0
-                        self.icode[i] = None
+                        if isinstance(inst.dest, tuple):
+                            self.icode[i] = Copy(src1, inst.dest)
+                        else:
+                            inst.dest.val = 0
+                            self.icode[i] = None
 
                 elif isinstance(inst, Div):
                     if isnumeric(src1) and isnumeric(src2):
                         inst.dest.val = src1 / src2
-                        #print 'div', inst.dest,'<-',inst.dest.val
                         self.icode[i] = None
                     elif src1 == 0:
                         inst.dest.val = 0
@@ -226,9 +232,6 @@ class ICodeList:
                     elif src2 == 1:
                         inst.dest.val = src1
                         self.icode[i] = None
-                    # elif src2 == -1:
-                    #     inst.dest.val = -src1
-                    #     self.icode[i] = None
                     elif src2 == 0:
                         raise ZeroDivisionError
 
@@ -248,9 +251,13 @@ class ICodeList:
             elif isinstance(inst, Copy):
                 src1 = num(inst.src1)
                 if src1 is not None:
-                    if not isinstance(src1, tuple):
-                        if not isinstance(inst.dest, tuple):
-                            inst.dest.val = src1.val
+                    if not isindex(src1):
+                        if not isindex(inst.dest):
+                            if isinstance(src1, numbers.Number):
+                                inst.dest.val = src1
+                            else:
+                                print i, inst
+                                inst.dest.val = src1.val
                             self.icode[i] = None
 
             i+=1
@@ -265,26 +272,14 @@ class ICodeList:
         return '\n'.join([str(i) for i in self.icode])
 
     def count(self):
-        add = 0
-        sub = 0
-        mul = 0
-        div = 0
-        mod = 0
-        cpy = 0
-        for i in self.icode:
-            if isinstance(i, Add):
-                add += 1
-            if isinstance(i, Sub):
-                sub += 1
-            if isinstance(i, Mul):
-                mul += 1
-            if isinstance(i, Div):
-                div += 1
-            if isinstance(i, Mod):
-                mod += 1
-            if isinstance(i, Copy):
-                cpy += 1
+        add = sum([1 for i in self.icode if isinstance(i, Add)])
+        sub = sum([1 for i in self.icode if isinstance(i, Sub)])
+        mul = sum([1 for i in self.icode if isinstance(i, Mul)])
+        div = sum([1 for i in self.icode if isinstance(i, Div)])
+        mod = sum([1 for i in self.icode if isinstance(i, Mod)])
+        cpy = sum([1 for i in self.icode if isinstance(i, Copy)])
+        do = sum([1 for i in self.icode if isinstance(i, Do)])
         op = add + sub + div + mul + mod
-        return 'add=%d sub=%d mul=%d div=%d mod=%d cpy=%d op=%d' % (add,sub,mul,div,mod,cpy,op)
+        return 'add=%d sub=%d mul=%d div=%d mod=%d cpy=%d op=%d do=%d' % (add,sub,mul,div,mod,cpy,op,do)
 
 #loop stack is just a list with the first element being the top

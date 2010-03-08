@@ -13,6 +13,39 @@ from symbols import *
 from icode import *
 from intrinsics import *
 
+SPL_SHAPE_SQUARE   = 0
+SPL_SHAPE_RECT     = 1
+SPL_SHAPE_DIAG     = 2
+SPL_SHAPE_RECTDIAG = 3
+
+SPL_SIZE_IDENT	   = 0
+SPL_SIZE_TRANSPOSE = 1
+SPL_SIZE_COMPOSE   = 2
+SPL_SIZE_SUM       = 3
+SPL_SIZE_TENSOR    = 4
+SPL_SIZE_MATRIX    = 5
+SPL_SIZE_VECTOR    = 6
+SPL_SIZE_SPARSE    = 7
+
+F_SHAPE            = SPL_SHAPE_SQUARE
+I_SHAPE            = SPL_SHAPE_RECTDIAG
+O_SHAPE            = SPL_SHAPE_RECTDIAG
+T_SHAPE            = SPL_SHAPE_DIAG
+L_SHAPE            = SPL_SHAPE_SQUARE
+J_SHAPE            = SPL_SHAPE_SQUARE
+
+COMPOSE_SIZE       = SPL_SIZE_COMPOSE
+TENSOR_SIZE        = SPL_SIZE_TENSOR
+DIRECT_SUM_SIZE    = SPL_SIZE_SUM
+CONJUGATE_SIZE     = SPL_SIZE_COMPOSE
+SCALE_SIZE         = SPL_SIZE_TENSOR
+
+MATRIX_SIZE        = SPL_SIZE_MATRIX
+DIAGONAL_SIZE      = SPL_SIZE_VECTOR
+PERMUTATION_SIZE   = SPL_SIZE_VECTOR
+RPERMUTATION_SIZE  = SPL_SIZE_VECTOR
+SPARSE_SIZE        = SPL_SIZE_SPARSE
+
 # (template (F ANY)		;; ---- F(n) parameters: self(ny,nx), n
 #        [$p1>=1]
 # 	(
@@ -28,23 +61,26 @@ from intrinsics import *
 # 		  end
 # 		end
 # 	))
-def F(p1, in_v=VarIn(), out_v=VarOut()):
+def F(p1, x=VarIn(), y=VarOut()):
   r0 = VarR()
   r1 = VarR()
   r2 = VarR()
   r3 = VarR()
   f0 = VarF()
   return [ Do(p1),
-           Copy(0, Index(out_v, [0,1])),
+           Copy(0, Index(y, [0,1])),
            Do(p1),
            Mul(IRef(0), IRef(1), r0),
            Div(r0, p1, r1),
            Mul(r1, p1, r2),
            Sub(r0, r2, r3),
-           Mul(W(p1, r3), Index(in_v, [0,1,0]), f0 ),
-           Add(Index(out_v, [0,0,1]), f0, Index(out_v, [0,0,1])),
+           Mul(W(p1, r3), Index(x, [0,1,0]), f0 ),
+           Add(Index(y, [0,0,1]), f0, Index(y, [0,0,1])),
            End(),
            End() ]
+
+def F_size(p1):
+  return p1, p1
 
 # (template (I ANY)		;; ---- I(n) parameters: self(ny,nx), n
 #        [$p1>=1]
@@ -53,10 +89,14 @@ def F(p1, in_v=VarIn(), out_v=VarOut()):
 # 		  $y(0 1) = $x(0 1)
 # 		end
 # 	))
-def I(p1, in_v=VarIn(), out_v=VarOut()):
+def I(p1, x=VarIn(), y=VarOut()):
   return [ Do(p1),
-           Copy(Index(in_v, [0,1]), Index(out_v, [0,1])),
+           Copy(Index(x, [0,1]), Index(y, [0,1])),
            End() ]
+
+def I_size(p1):
+  return p1, p1
+
 
 # (template (J ANY)		;; ---- J(n) parameters: self(ny,nx), n
 #        [$p1>=1]
@@ -66,12 +106,16 @@ def I(p1, in_v=VarIn(), out_v=VarOut()):
 # 		  $y(0 1) = $x($r0 (-1))
 # 		end
 # 	))
-def J(p1, in_v=VarIn(), out_v=VarOut()):
+def J(p1, x=VarIn(), y=VarOut()):
   r0 = VarR()
   return [ Do(p1),
            Sub(p1, 1, r0),
-           Copy(Index(in_v, [r0, -1]), Index(out_v, [0, 1])),
+           Copy(Index(x, [r0, -1]), Index(y, [0, 1])),
            End() ]
+
+def J_size(p1):
+  return p1, p1
+
 
 # (template (O ANY)		;; ---- O(n) parameters: self(ny,nx), n
 #        [$p1>=1]
@@ -80,59 +124,68 @@ def J(p1, in_v=VarIn(), out_v=VarOut()):
 # 		  $y(0 1) = 0
 # 		end
 # 	))
-def O(p1, in_v=VarIn(), out_v=VarOut()):
+def O(p1, x=VarIn(), y=VarOut()):
   return [ Do(p1),
-           Copy (0, Index(out_v, [0,1])),
+           Copy(0, Index(y, [0,1])),
            End() ]
 
-# #(template (T ANY ANY) 		;; ---- T(mn n) parameters: self(ny,nx), mn, n
-# #	[$p1>=1 && $p2>=1 && $p1%$p2==0]
-# #	(
-# #		do $p1
-# #		  $r0 = $i0
-# #	          $y(0 1) = TW($p1 $p2 $r0) * $x(0 1)
-# #		end
-# #	))
-# def T(in_v, out_v, p1, p2):
-#   r0 = VarR()
-#   return [ Do(p1),
-#            Copy (IRef(0), r0),
-#            Mul (TW(p1, p2, r0), Index(in_v, [0,1]), Index(out_v, [0,1])),
-#            End() ]
+def O_size(p1):
+  return p1, p1
 
+#(template (T ANY ANY) 		;; ---- T(mn n) parameters: self(ny,nx), mn, n
+#	[$p1>=1 && $p2>=1 && $p1%$p2==0]
+#	(
+#		do $p1
+#		  $r0 = $i0
+#	          $y(0 1) = TW($p1 $p2 $r0) * $x(0 1)
+#		end
+#	))
+def T(p1, p2, x=VarIn(), y=VarOut()):
+  r0 = VarR()
+  return [ Do(p1),
+           Mul(TW(p1, p2, IRef(0)), Index(x, [0,1]), Index(y, [0,1])),
+           End() ]
 
-# #(template (L ANY ANY)		;; ---- L(mn n) parameters: self(ny,nx), mn, n
-# #	[$p1>=1 && $p2>=1 && $p1%$p2==0]
-# #	(
-# #		$r0 = $p1 / $p2
-# #		do $p2
-# #		  do $r0
-# #		    $y(0 1 $r0) = $x(0 $p2 1)
-# #		  end
-# #		end
-# #	))
-# def L(in_v, out_v, p1, p2):
-#   r0 = VarR()
-#   return [ Div(p1, p2, r0),
-#            Do(p2),
-#            Do(r0),
-#            Copy(Index(in_v, [0,p2,1]), Index(out_v, [0, 1, r0])),
-#            End(),
-#            End() ]
+def T_size(p1, p2):
+  return p1, p1
 
-# #(template (compose any any)
-# #		;; ---- Amn * Bpq parameters: self(ny,nx), A(m,n), B(p,q)
-# #	(
-# #		deftemp $p2.ny
-# #compose
-# #		$t0(0:1:$p2.ny_1) = call $p2( $x(0:1:$p2.nx_1) )
-# #		$y(0:1:$p1.ny_1)  = call $p1( $t0(0:1:$p1.nx_1) )
-# #	))
-# def compose(in_v, out_v, p1, p2):
-#   t0 = Vec () # needs to be size p2.ny ??
-#   return [  Call (p2, in_v, t0),
-#             Call (p1, t0, out_v) ]
+#(template (L ANY ANY)		;; ---- L(mn n) parameters: self(ny,nx), mn, n
+#	[$p1>=1 && $p2>=1 && $p1%$p2==0]
+#	(
+#		$r0 = $p1 / $p2
+#		do $p2
+#		  do $r0
+#		    $y(0 1 $r0) = $x(0 $p2 1)
+#		  end
+#		end
+#	))
+def L(p1, p2, x=VarIn(), y=VarOut()):
+  r0 = VarR()
+  return [ Div(p1, p2, r0),
+           Do(p2),
+           Do(r0),
+           Copy(Index(x, [0,p2,1]), Index(y, [0, 1, r0])),
+           End(),
+           End() ]
 
+def L_size(p1, p2):
+  return p1, p1
+
+#(template (compose any any)
+#		;; ---- Amn * Bpq parameters: self(ny,nx), A(m,n), B(p,q)
+#	(
+#		deftemp $p2.ny
+#		$t0(0:1:$p2.ny_1) = call $p2( $x(0:1:$p2.nx_1) )
+#		$y(0:1:$p1.ny_1)  = call $p1( $t0(0:1:$p1.nx_1) )
+#	))
+def compose(p1, p2, x=VarIn(), y=VarOut()):
+  t0 = Vec()
+  return [ Call(p2, x, t0),
+           Call(p1, t0, y) ]
+
+def compose_size(p1, p2):
+  return p2.nx, p1.ny
+  
 #(template (tensor any any)
 #		;; ---- Amn x Bpq parameters: self(ny,nx), A(m,n), B(p,q)
 #	(
@@ -146,7 +199,7 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 #		  $y(0:$p2.ny:$p0.ny_1 1) = call $p1( $t0(0:$p2.ny:$r1 1) )
 #		end
 #	))
-# def tensor (p1, p2, in_v=VarIn(), out_v=VarOut()):
+# def tensor (p1, p2, x=VarIn(), y=VarOut()):
 #   r0 = VarR();
 #   r1 = VarR();
 #   t0 = Vec();
@@ -154,21 +207,22 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 #            Sub (r0, 1, r1),
 #            # set the size of t0 to $r0 ???,
 #            Do (p1.nx),
-#            Call (p2, in_v, t0),
+#            Call (p2, x, t0),
 #            End (),
 #            Do (p2.ny),
-#            Call (p1, t0, out_v),
+#            Call (p1, t0, y),
 #            End () ]
 
-# #(template (direct_sum any any)
-# #		;; ---- Amn + Bpq parameters: self(ny,nx), A(mn,n), B(p,q)
-# #	(
-# #		$y(0:1:$p1.ny_1) = call $p1( $x(0:1:$p1.nx_1) )
-# #		$y($p1.ny:1:$p0.ny_1) = call $p2( $x($p1.nx:1:$p0.nx_1) )
-# #	))
-# def direct_sum (in_v, out_v, p1, p2):
-#   return [ Call (p1, in_v, out_v),
-#            Call (p2, in_v, out_v) ]
+#(template (direct_sum any any)
+#		;; ---- Amn + Bpq parameters: self(ny,nx), A(mn,n), B(p,q)
+#	(
+#		$y(0:1:$p1.ny_1) = call $p1( $x(0:1:$p1.nx_1) )
+#		$y($p1.ny:1:$p0.ny_1) = call $p2( $x($p1.nx:1:$p0.nx_1) )
+#	))
+#def direct_sum (x, y, p1, p2):
+#  return [ Call (p1, x, y),
+#           Call (p2, x, y) ]
+#
 
 # #(template (matrix (0))		;; ---- matrix parameters: self(ny,nx), matrix
 # #       ;; format: (matrix (a11 ... a1n) ... (am1 ... amn))
@@ -181,12 +235,12 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 # #		  end
 # #		end
 # #	))
-# def matrix(in_v, out_v, p1):
+# def matrix(x, y, p1):
 #   f0 = VarF()
-#   return [ Copy (0, Index(out_v, [0,1])),
+#   return [ Copy (0, Index(y, [0,1])),
 #            Do (p1.nx),
-#            Mul (Index (p1, [IRef(1), IRef(0)]), Index(in_v, [0,1,0]), f0),
-#            Add (Index(out_v, [0,0,1]), f0, Index(out_v, [0,0,1])),
+#            Mul (Index (p1, [IRef(1), IRef(0)]), Index(x, [0,1,0]), f0),
+#            Add (Index(y, [0,0,1]), f0, Index(y, [0,0,1])),
 #            End (),
 #            End () ]
 
@@ -198,9 +252,9 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 # #		  $y(0 1) = $p1.a(0 $i0) * $x(0 1)
 # #		end
 # #	))
-# def diagonal (in_v, out_v, p1):
+# def diagonal (x, y, p1):
 #   return [ Do (p1.ny),
-#            Mul (Index (p1, [0, IRef(0)]), Index(in_v, [0,1]), Index (out_v, [0,1])),
+#            Mul (Index (p1, [0, IRef(0)]), Index(x, [0,1]), Index (y, [0,1])),
 #            End () ]
 
 # #(template (permutation (0))	;; ---- permutation parameters: self(ny,nx), perm
@@ -211,11 +265,11 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 # #		  $y(0 1) = $x($r0 0)
 # #		end
 # #	))
-# def permutation (in_v, out_v, p1):
+# def permutation (x, y, p1):
 #   r0 = VarR()
 #   return [ Do (p1.ny),
 #            Sub (Index (p1, [0,IRef(0)]), 1, r0),
-#            Copy (Index (in_v, [r0,1]), Index (out_v, [0,1])),
+#            Copy (Index (x, [r0,1]), Index (y, [0,1])),
 #            End () ]
 
 # #(template (rpermutation (0))	;; ---- rpermutation parameters: self(ny,nx),rperm
@@ -226,11 +280,11 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 # #		  $y($r0 0) = $x(0 1)
 # #		end
 # #	))
-# def rpermutation (in_v, out_v, p1):
+# def rpermutation (x, y, p1):
 #   r0 = VarR()
 #   return [ Do (p1.ny),
 #            Sub (Index (p1, [0,IRef(0)]), 1, r0),
-#            Copy (Index (in_v, [0,1]), Index(out_v, [r0, 0])),
+#            Copy (Index (x, [0,1]), Index(y, [r0, 0])),
 #            End () ]
 
 # #sparse
@@ -247,27 +301,26 @@ def O(p1, in_v=VarIn(), out_v=VarOut()):
 # #		  $y($r0 0) = $y($r0 0)+$f1
 # #		end
 # #	))
-# def sparse (in_v, out_v, p1):
+# def sparse (x, y, p1):
 #   r0 = VarR()
 #   r1 = VarR()
 #   f1 = VarF()
 #   return [ Do (p1.ny),
-#            Copy (0, Index (out_v, [0,1])),
+#            Copy (0, Index (y, [0,1])),
 #            End (),
 #            Do (p1.matrix_nrow),
 #            Sub (Index (p1, [IRef(0), 0]), 1, r0),
 #            Sub (Index (p1, [IRef(0), 1]), 1, r1),
-#            Mul (Index (p1, [IRef(0), 2]), Index (in_v, [r1, 0]), f1),
-#            Add (Index (out_v, [r0, 0]), f1, Index (out_v, [r0,0])),
+#            Mul (Index (p1, [IRef(0), 2]), Index (x, [r1, 0]), f1),
+#            Add (Index (y, [r0, 0]), f1, Index (y, [r0,0])),
 #            End () ]
 
 # #conjugate
 
 
-# #scale
-# def scale (in_v, out_v, p1, p2):
+# def scale(p1, p2, x=VarIn(), y=VarOut()):
 #   t0 = Vec()  #size should be p2.ny
-#   return [ Call (p2, in_v, t0),
+#   return [ Call (p2, x, t0),
 #            Do (p2.ny)
-#            Mul (p1, Index (t0, [0,1]), Index, (out_v, [0,1]),
+#            Mul (p1, Index (t0, [0,1]), Index, (y, [0,1]),
 #            End () ]
