@@ -83,20 +83,30 @@ class Code(Formula):
     self.icode = icode
 
 class Declaration(Variable):
-  def __init__(self, size_rule):
+  def __init__(self, size_rule, options):
     self.templates = []
-    self.size_rule = size_rule;
+    self.size_rule = size_rule
+    self.options   = options
 
   def addTemplate(self, template):
-    self.templates.insert(0, Template(icode_list=template.icode_list, 
-      pattern=template.pattern, condition=template.condition))
+    self.templates.insert(0, template)
 
   def match(self, formula):
     for template in self.templates:
-      print self.compare(template, formula)
-      comparison = classmethod(self.compare(mula))
+      comparison = self.compare(template, formula)
+      # comparison = [ p1, ... ]
+
       if comparison:
-        return comparison
+        records = RecordSet()
+        formula.ny, formula.nx = self.sizes(self.size_rule, formula)
+
+        records.__x = Vector(input)
+        records.__y = Vector(output)
+        records.__p = comparison.p
+        
+
+        
+
 
 class Primitive(Declaration):
   @staticmethod
@@ -114,18 +124,26 @@ class Primitive(Declaration):
 
     # return that icode list, or return False if at any point a match is not
     # found.
+    
+  @staticmethod
+  def sizes(shape, formula):
+    if shape == "spl_shape_square" or shape == "spl_shape_diag":
+      input = formula.list[0]
+      output = input
+      return (output, input)
+    if shape == "spl_shape_rect" or shape == "spl_shape_rectdiag":
+      input = formula.list[0]
+      if len(formula) > 1:
+        output = formula.list[1]
+      else
+        output = input
+      return (output, input)
 
 class Operation(Declaration):
   pass
 
 class Direct(Declaration):
   pass
-
-class Template:
-  def __init__(self, icode_list, pattern, condition=None):
-    self.icode_list = icode_list
-    self.pattern = pattern
-    self.condition = condition
 
 class Pattern(Variable):
   def __init__(self):
@@ -137,75 +155,89 @@ class Vector(Variable):
     self.size = size
     self.scalars = [Scalar()] * size #initialize vector to have a given size
 
-class SymbolCollection:
+class RecordSet:
   # notes: actually, maybe the behavior with setting up all the variables,
-  #   in particular, the i varible stack, should be behavior to put in C and
-  #   not at all in the compiler python code. Instead, perhaps we should just
-  #   be tracking usage?
-  def __init__(self, input_size, output_size):
-    self.r       = []
-    self.f       = []
-    self.i       = []
-    self.p       = []
-    self.t       = []
-    self.x       = Vector(input_size)
-    self.y       = Vector(output_size)
-    self.sym_tab = SymbolTable()
+  # in particular, the i varible stack, should be behavior to put in C and
+  # not at all in the compiler python code. Instead, perhaps we should just
+  # be tracking usage?
+  def __init__(self):
+    self.__r = []
+    self.__f = []
+    self.__i = []
+    self.__t = []
+    self.__p = []
 
+    # don't initialize these because they should be given
+    self.__x = None
+    self.__y = None
+ 
+    self.realcomplex = RealConst # TODO update this
+ 
+  def __getitem__(self, symbol):
+    switch = {
+        'r': lambda index, sub: self.r(index),
+        'f': lambda index, sub: self.f(index),
+        'i': lambda index, sub: self.i(index),
+        'p': lambda index, sub: self.p(index),
+        't': lambda index, sub: self.t(index, subscript),
+        'x': lambda index, sub: self.x(subscript),
+        'y': lambda index, sub: self.y(subscript)
+        }
+    func = switch[symbol.var_type]
+    return func(symbol.index, symbol.subscript)
+ 
   def r(self, index):
     try:
-      return self.r[index]
+      return self.__r[index]
     except IndexError as inst:
-      if index == len(self.r):
-        self.r.append(Int())
-        return self.r[index]
+      if index == len(self.__r):
+        self.__r.append(IntegerConst())
+        return self.__r[index]
       else:
         raise inst
-
+ 
   def f(self, index):
     try:
-      return self.f[index]
+      return self.__f[index]
     except IndexError as inst:
-      if index == len(self.f):
-        self.f.append(RealComplex())
-        return self.f[index]
+      if index == len(self.__f):
+        self.__f.append(self.realcomplex())
+        return self.__f[index]
       else:
         raise inst
-
+ 
   def append_loop(self):
     i = Int()
-    self.i.append(i)
-
+    self.__i.append(i)
+ 
   def pop_loop(self):
-    self.i.pop()
-
+    self.__i.pop()
+ 
   def i(self, index):
     # i0 -> i[len(i)-1]
-    index = len(self.i) - index - 1
-    return self.i[index]
-
+    index = len(self.__i) - index - 1
+    return self.__i[index]
+ 
   def p(self, index):
     # pattern varible behavior is probably different in a bunch of ways
     try:
       return self.p[index]
     except IndexError as inst:
-      if index == len(self.p):
-        self.p.append(Pattern())
-        return self.p[index]
+      if index == len(self.__p):
+        self.__p.append(Pattern())
+        return self.__p[index]
       else:
         raise inst
-
+ 
   def new_t(self, size):
-    self.t.append(Vector(size))
-    return len(self.t) - 1
-
+    self.__t.append(Vector(size))
+    return len(self.__t) - 1
+ 
   def t(self, index, subscript=None):
     if(subscript):
-      return self.t[index][subscript]
+      return self.__t[index][subscript]
     else:
-      return self.t[index]
-
-
+      return self.__t[index]
 
 
 class AlreadyDefinedError(Exception):
