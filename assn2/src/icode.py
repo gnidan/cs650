@@ -128,9 +128,9 @@ class StmtList(ICode):
         
       self.stmts = new_stmts
 
-  def evaluate(self, records, **options):
+  def evaluate(self, records, options):
     for s in self.stmts:
-      s.evaluate(records, **options)
+      s.evaluate(records, options)
 
   def __repr__(self):
     return "StmtList(%s)" % (self.stmts)

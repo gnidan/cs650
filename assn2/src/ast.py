@@ -48,9 +48,10 @@ class Formula(Node):
             raise IndexError
 
         self.stride = stride
- 
         self.list = args
         self.symbol = symbol
+        self.ny = 0
+        self.nx = 0
  
     def definition(self, symtab, options):
         if options.unroll:
@@ -646,7 +647,7 @@ class Primitive(Assignment):
         self.shape = shape
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Primitive(self.shape)
+        symtab[self.symbol] = symbols.Primitive(self.shape, options)
  
 class Operation(Assignment):
     def __init__(self, symbol, size_rule):
@@ -654,7 +655,7 @@ class Operation(Assignment):
         self.size_rule = size_rule
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Operation(self.size_rule)
+        symtab[self.symbol] = symbols.Operation(self.size_rule, options)
  
 class Direct(Assignment):
     def __init__(self, symbol, size_rule):
@@ -662,7 +663,7 @@ class Direct(Assignment):
         self.size_rule = size_rule
 
     def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Direct(self.size_rule)
+        symtab[self.symbol] = symbols.Direct(self.size_rule, options)
  
 ##### 3.2 Templates ######
 class Template(Assignment):
