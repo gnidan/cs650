@@ -139,7 +139,7 @@ def main(argv=None):
     if verbose:
         print "\n** Processing: Inlining Calls"
     for i in icodes:
-        i.do_calls()
+        i.inline_calls()
 
     if verbose:
         print "\n** Optimization: Unrolling the icode"

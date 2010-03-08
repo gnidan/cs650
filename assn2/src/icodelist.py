@@ -106,18 +106,16 @@ class ICodeList:
         else:
             return old
 
-    def do_calls(self):
-        i = 0
-        while i < len(self.icode):
-            inst = self.icode[i]
+    def inline_calls(self):
+        processed = []
+        for inst in self.icode:
             if isinstance(inst, Call):
-                #TODO this could be nicer
-                print ICodeList(inst.src1(inst.src2, inst.dest))
+                processed.extend(inst.src1(inst.src2, inst.dest).icode)
             elif isinstance(inst, DefTmp):
-                #unrolled.append(DefTmp(inst.src1))
-                #TODO
                 pass
-            i+=1
+            else:
+                processed.append(inst)
+        self.icode = processed
 
     def unroll(self):
         Var.next_val = NextVarSet()

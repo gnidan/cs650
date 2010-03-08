@@ -81,10 +81,15 @@ class DoVar(Var):
         return "DoVar(val=%d, n=%d, inst=%d)" % (self.val, self.n, self.inst)
 
 
+### VECTORS ###
 class Vec(Var):
     var_type = 't'
     def __init__(self, size=None):
         self.size = size
+        self.val = None
+        self.name = None
+        self.out_name = None
+        
 
     def __len__(self):
         return self.size
