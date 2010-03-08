@@ -93,11 +93,13 @@ class Declaration(Variable):
 
   def match(self, formula):
     for template in self.templates:
-      comparison = self.compare(template, formula)
+      print self.compare(template, formula)
+      comparison = classmethod(self.compare(mula))
       if comparison:
         return comparison
 
 class Primitive(Declaration):
+  @staticmethod
   def compare(template, formula):
     if len(formula.list) != len(template.pattern.list):
       return False
