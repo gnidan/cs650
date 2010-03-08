@@ -11,6 +11,13 @@ icode.py represents the icode
 """
 
 class ICode(object):
+  def evaluate(self, records, options):
+    if self.dest:
+      self.dest = self.dest.evaluate(records, options)
+    if self.src1:
+      self.src1 = self.src1.evaluate(records, options)
+    if self.src2:
+      self.src2 = self.src2.evaluate(records, options)
   def __repr__(self):
     return str(self)
 
@@ -68,6 +75,7 @@ class Mod(OpICode):
 class Copy(ICode):
   def __init__(self, src1, dest):
     self.src1 = src1
+    self.src2 = None
     self.dest = dest
 
   def __str__(self):
@@ -85,6 +93,8 @@ class Call(ICode):
 class DoUnroll(ICode):
   def __init__(self, src1):
     self.src1 = src1
+    self.src2 = None
+    self.dest = None
 
   def __str__(self):
     return "dounroll(%s)" % (self.src1)
@@ -92,17 +102,26 @@ class DoUnroll(ICode):
 class Do(ICode):
   def __init__(self, src1):
     self.src1 = src1
+    self.src2 = None
+    self.dest = None
 
   def __str__(self):
     return "do(%s)" % (self.src1)
 
 class End(ICode):
+  def __init__(self):
+    self.src1 = None
+    self.src2 = None
+    self.dest = None
+
   def __str__(self):
     return "end()"
 
 class DefTmp(ICode):
   def __init__(self, src1):
     self.src1 = src1
+    self.src2 = None
+    self.dest = None
 
   def __str__(self):
     return "deftmp(%s)" % (self.src1)
@@ -143,7 +162,7 @@ class Symbol(ICode):
     self.var_type, self.index = symbol
     self.subscript = subscript
 
-  def evaluate(self, records, **options):
+  def evaluate(self, records, options):
     return records[self]
 
   def __repr__(self):

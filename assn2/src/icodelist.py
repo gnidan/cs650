@@ -15,7 +15,6 @@ import numbers
 from icode import *
 from symbols import *
 from intrinsics import *
-from symbol_collection import SymbolCollection
 
 import copy
 

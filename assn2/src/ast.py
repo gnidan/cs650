@@ -60,9 +60,15 @@ class Formula(Node):
             return symbols.Formula(self.value)
  
     def evaluate(self, symtab, options):
-        if self.symbol not in symtab:
-          raise NameError(self.symbol)
-        return symtab[self]
+        try:
+          declaration = self.symbol.evaluate(symtab, options)
+        except KeyError:
+          raise NameError("%s not declared" % self.symbol)
+        self.ny, self.nx = declaration.sizes_for(self)
+
+        print symtab
+        icode, records = symtab[self]
+        return icode.evaluate(records, options)
  
     def __repr__(self):
         r = str(self.symbol)
@@ -145,7 +151,7 @@ class Scalar(Number):
     def __repr__(self):
         return "%s" % (self.val)
 
-class Integer(Scalar):
+class Integer(int, Scalar):
     pass
 
 class Double(Scalar):

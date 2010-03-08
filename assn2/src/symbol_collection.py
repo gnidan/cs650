@@ -91,21 +91,31 @@ class Declaration(Variable):
   def addTemplate(self, template):
     self.templates.insert(0, template)
 
+  # returns true or false
+  # postcondition: if true, template is filled in with wildcards assigned to
+  #   matching formulas
+  @staticmethod
+  def compare(template, formula):
+    pass
+
   def match(self, formula):
     for template in self.templates:
       comparison = self.compare(template, formula)
-      # comparison = [ p1, ... ]
 
       if comparison:
         records = RecordSet()
-        formula.ny, formula.nx = self.sizes(self.size_rule, formula)
 
-        records.__x = Vector(input)
-        records.__y = Vector(output)
-        records.__p = comparison.p
-        
+        # setup vars for input/output and patterns
+        records.x = Vector(formula.nx)
+        records.y = Vector(formula.ny)
 
-        
+        patterns = []
+        for f in template.matches:
+          patterns.append( Pattern(f) )
+
+        records.p = patterns
+
+        return (template.icode_list, records)
 
 
 class Primitive(Declaration):
@@ -113,20 +123,25 @@ class Primitive(Declaration):
   def compare(template, formula):
     if len(formula.list) != len(template.pattern.list):
       return False
-
-    # make a new "scope"
-
-    # for term in template.pattern:
-      # compare the terms and make a new pattern variable if it's a wildcard
-
-    # get the icode list and give it the scope we just made, with the 
-    # appropriate pattern variables and x,y
-
-    # return that icode list, or return False if at any point a match is not
-    # found.
     
-  @staticmethod
-  def sizes(shape, formula):
+    # p0 corresponds to the whole formula
+    matches = [ formula ]
+
+    for i in range(len(template.pattern.list)):
+      t = template.pattern.list[i]
+      f = formula.list[i]
+
+      if isinstance(t, ast.Wildcard) and t == "ANY":
+        matches.append(f)
+      elif t != f:
+        return False
+
+    template.matches = matches
+    return True
+    
+  def sizes_for(self, formula):
+    print self.size_rule
+    shape = self.size_rule.lower()
     if shape == "spl_shape_square" or shape == "spl_shape_diag":
       input = formula.list[0]
       output = input
@@ -135,7 +150,7 @@ class Primitive(Declaration):
       input = formula.list[0]
       if len(formula) > 1:
         output = formula.list[1]
-      else
+      else:
         output = input
       return (output, input)
 
@@ -146,14 +161,14 @@ class Direct(Declaration):
   pass
 
 class Pattern(Variable):
-  def __init__(self):
-    self.Value = None     # TODO fill this in later for struct
+  def __init__(self, val):
+    self.val = val
 
 class Vector(Variable):
   """Represents a vector of scalars"""
   def __init__(self, size):
     self.size = size
-    self.scalars = [Scalar()] * size #initialize vector to have a given size
+    self.scalars = [Variable()]*size.val #initialize vector to have a given size
 
 class RecordSet:
   # notes: actually, maybe the behavior with setting up all the variables,
@@ -165,28 +180,23 @@ class RecordSet:
     self.__f = []
     self.__i = []
     self.__t = []
-    self.__p = []
 
-    # don't initialize these because they should be given
-    self.__x = None
-    self.__y = None
- 
     self.realcomplex = RealConst # TODO update this
  
   def __getitem__(self, symbol):
     switch = {
-        'r': lambda index, sub: self.r(index),
-        'f': lambda index, sub: self.f(index),
-        'i': lambda index, sub: self.i(index),
-        'p': lambda index, sub: self.p(index),
-        't': lambda index, sub: self.t(index, subscript),
-        'x': lambda index, sub: self.x(subscript),
-        'y': lambda index, sub: self.y(subscript)
+        'r': lambda index, sub: self.get_r(index),
+        'f': lambda index, sub: self.get_f(index),
+        'i': lambda index, sub: self.get_i(index),
+        'p': lambda index, sub: self.get_p(index),
+        't': lambda index, sub: self.get_t(index, subscript),
+        'x': lambda index, sub: self.get_x(subscript),
+        'y': lambda index, sub: self.get_y(subscript)
         }
     func = switch[symbol.var_type]
     return func(symbol.index, symbol.subscript)
  
-  def r(self, index):
+  def get_r(self, index):
     try:
       return self.__r[index]
     except IndexError as inst:
@@ -196,7 +206,7 @@ class RecordSet:
       else:
         raise inst
  
-  def f(self, index):
+  def get_f(self, index):
     try:
       return self.__f[index]
     except IndexError as inst:
@@ -213,19 +223,19 @@ class RecordSet:
   def pop_loop(self):
     self.__i.pop()
  
-  def i(self, index):
+  def get_i(self, index):
     # i0 -> i[len(i)-1]
     index = len(self.__i) - index - 1
     return self.__i[index]
  
-  def p(self, index):
+  def get_p(self, index):
     # pattern varible behavior is probably different in a bunch of ways
     try:
       return self.p[index]
     except IndexError as inst:
-      if index == len(self.__p):
-        self.__p.append(Pattern())
-        return self.__p[index]
+      if index == len(self.p):
+        self.p.append(Pattern())
+        return self.p[index]
       else:
         raise inst
  
@@ -233,11 +243,23 @@ class RecordSet:
     self.__t.append(Vector(size))
     return len(self.__t) - 1
  
-  def t(self, index, subscript=None):
+  def get_t(self, index, subscript=None):
     if(subscript):
       return self.__t[index][subscript]
     else:
       return self.__t[index]
+
+  def get_x(self, subscript=None):
+    if(subscript):
+      return self.x[subscript]
+    else:
+      return self.x
+
+  def get_y(self, subscript=None):
+    if(subscript):
+      return self.y[subscript]
+    else:
+      return self.y
 
 
 class AlreadyDefinedError(Exception):

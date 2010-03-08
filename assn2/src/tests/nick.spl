@@ -27,8 +27,6 @@
 ; predefined primitives
 
 (primitive BLIP SPL_SHAPE_SQUARE)
-(define F8
-    (BLIP 4))
 
 (template (BLIP ANY)
   (
@@ -37,6 +35,8 @@
     end dounroll
   ))
 
+(define F8
+    (BLIP 4))
 (BLIP 5)
 F8
 
