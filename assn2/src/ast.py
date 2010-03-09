@@ -61,12 +61,11 @@ class Formula(Node):
  
     def evaluate(self, symtab, options):
         try:
-          declaration = self.symbol.evaluate(symtab, options)
+          declaration = symtab[self.symbol]
         except KeyError:
           raise NameError("%s not declared" % self.symbol)
         self.ny, self.nx = declaration.sizes_for(self)
 
-        print symtab
         icode, records = symtab[self]
         return icode.evaluate(records, options)
  
@@ -112,7 +111,13 @@ class StmtList(Node):
         self.stmts.insert(0, stmt)
 
     def evaluate(self, symtab, options):
-        return [s.evaluate(symtab, options) for s in self.stmts]
+        icodes = []
+        for s in self.stmts:
+          s_ev = s.evaluate(symtab, options)
+          if s_ev:
+            icodes.extend(s_ev)
+
+        return icodes
 
     def optimize(self, symtab, options):
         #List comprehension wasn't pretty. But i don't like xrange either :-(
@@ -313,171 +318,6 @@ class Operator(Node):
     def __repr__(self):
         return "%s(%s, %s)" % (self.func, self.left, self.right)
 
-##### 1.1 Predefined Matrix Constructors ######
-class MatrixRow(Formula):
-    def __init__(self, values):
-        self.n = len(values)
-        self.values = values
-
-    def prepend(self, a):
-        self.values.insert(0, a)
-        self.n += 1
-
-    def optimize(self, symtab, options):
-        for i in xrange(self.n):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return self.values, True
-
-    def size(self):
-        return len(self)
-
-    def __len__(self):
-        return len(self.values)
-
-    def __repr__(self):
-        return "MatrixRow(%s)" % (self.values)
-
-class Matrix(Formula):
-    def __init__(self):
-        self.m = 0
-        self.n = 0
-        self.rows = []
-
-    def prepend(self, row):
-        if len(self.rows) == 0:
-            self.n = len(row)
-        elif len(row) != self.n:
-            raise ValueError("Invalid row size")
-        self.rows.insert(0, row)
-        self.m += 1
-
-    def optimize(self, symtab, options):
-        for i in xrange(self.m):
-            node, opt = self.rows[i].optimize(symtab, options)
-            if opt:
-                self.rows[i] = node
-        return None, False
-
-    def size(self):
-        return (m, n)
-
-    def __repr__(self):
-        return "Matrix(%s)" % (self.rows)
-
-class SparseElement(Formula):
-    def __init__(self, i, j, a):
-        self.i = i
-        self.j = j
-        self.a = a
-
-    #TODO should eliminate sparseelement if possible
-    def optimize(self, symtab, options):
-        node, optI = self.i.optimize(symtab, options)
-        if optI:
-            self.i = node
-
-        node, optJ = self.j.optimize(symtab, options)
-        if optI:
-            self.j = node
-
-        node, optA = self.a.optimize(symtab, options)
-        if optI:
-            self.a = node
-
-        return None, False
-
-    def __repr__(self):
-        return "SparesElement(%s %s %s)" % (self.i, self.j, self.a)
-
-class Sparse(Formula):
-    def __init__(self, values):
-        self.m = 0
-        self.n = 0
-        self.values = values
-        for v in values:
-            self.m = v.i if v.i > self.m else self.m
-            self.n = v.j if v.j > self.n else self.n
-
-    def optimize(self, symtab, options):
-        for i in xrange(len(self)):
-            node, opt = self.values[i].optimize(symtab, options)
-            if opt:
-                self.values[i] = node
-        return None, False
-
-    def size(self):
-        return (m, n)
-
-    def __len__(self):
-        return len(self.values)
-
-    def __repr__(self):
-        return "Sparse(%s)" % (self.values)
-
-class Index(Node):
-    def __init__(self, start, stride, stop):
-        self.start = start
-        self.stride = stride
-        self.stop = stop
-
-    #TODO should eliminate Index if possible
-    def optimize(self, symtab, options):
-        node, optStart = self.start.optimize(symtab, options)
-        if optStart:
-            self.start = node
-
-        node, optStride = self.stride.optimize(symtab, options)
-        if optStride:
-            self.stride = node
-
-        node, optStop = self.stop.optimize(symtab, options)
-        if optStop:
-            self.stop = node
-        return None, False
-
-    def __repr__(self):
-        return "Index(%s, %s, %s)" % (self.start, self.stride, self.stop)
-
-##### 1.2 Predefined Parametrized Matrices ######
-class T(Formula):
-    def __init__(self, mn, n, index=None):
-        self.mn = mn
-        self.n = n
-        self.index = index
-
-    def optimize(self, symtab, options):
-        node, optMN = self.mn.optimize(symtab, options)
-        if optMN:
-            self.mn = node
-        node, optN = self.n.optimize(symtab, options)
-        if optN:
-            self.n = node
-        return None, False
-
-    def __repr__(self):
-        return "(T %s %s %s)" % (self.mn, self.n, self.index)
-
-##### 1.3 Predefined Matrix Operations ######
-
-class Scale(Formula):
-    def __init__(self, a, A):
-        self.a = a
-        self.A = A
-
-    def optimize(self, symtab, options):
-        node, opta = self.a.optimize(symtab, options)
-        if opta:
-            self.a = node
-        node, optA = self.A.optimize(symtab, options)
-        if optA:
-            self.A = node
-        return None, False
-
-    def __repr__(self):
-        return "Scale(%s %s)" % (self.a, self.A)
-
 ##### 2.1 Assignment ######
 class Assignment(Node):
     pass
@@ -505,6 +345,7 @@ class Define(Assignment):
         #TODO this is hackish. is there a better way?
         if not isinstance(self.value, numbers.Number):
             symtab[self.symbol] = self.value.evaluate(symtab, options)
+        return []
 
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
@@ -515,6 +356,7 @@ class Undefine(Assignment):
 
     def evaluate(self, symtab, options):
         del symtab[self.symbol]
+        return []
 
     def __repr__(self):
         return "Undefine(%s)" % (self.symbol)
@@ -553,6 +395,7 @@ class Directive(Node):
         options[self.__class__.__name__.lower()] = self.value
         #TODO how do we correctly do subnames and other directives? ugh.
         #return self
+        return []
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.value)
@@ -567,7 +410,7 @@ class Comment(Node):
 
     def evaluate(self, symtab, options):
         #TODO fix
-        return self.txt
+        return [self]
 #print "%s %s %s" % (options.lang.comment_begin(), self.txt, options.lang.comment_end())
 
     def __repr__(self):
@@ -654,6 +497,7 @@ class Primitive(Assignment):
 
     def evaluate(self, symtab, options):
         symtab[self.symbol] = symbols.Primitive(self.shape, options)
+        return []
  
 class Operation(Assignment):
     def __init__(self, symbol, size_rule):
@@ -662,6 +506,7 @@ class Operation(Assignment):
 
     def evaluate(self, symtab, options):
         symtab[self.symbol] = symbols.Operation(self.size_rule, options)
+        return []
  
 class Direct(Assignment):
     def __init__(self, symbol, size_rule):
@@ -670,6 +515,7 @@ class Direct(Assignment):
 
     def evaluate(self, symtab, options):
         symtab[self.symbol] = symbols.Direct(self.size_rule, options)
+        return []
  
 ##### 3.2 Templates ######
 class Template(Assignment):
@@ -686,6 +532,7 @@ class Template(Assignment):
             raise NameError("%s not declared before being used" % 
                 self.pattern.symbol)
         symtab[self.pattern.symbol].addTemplate(self)
+        return []
 
     def __repr__(self):
         return "Template(%s, %s)" % (self.pattern, self.icode_list)

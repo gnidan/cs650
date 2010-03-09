@@ -116,7 +116,7 @@ def main(argv=None):
     icodes = t.evaluate(SymbolTable(), options)
 
     #Get rid of the None's
-    icodes = [i for i in icodes if i]
+#    icodes = [i for i in icodes if i]
     if debug:
         print "\n Icodes:"
         print icodes

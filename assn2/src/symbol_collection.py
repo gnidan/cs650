@@ -140,7 +140,6 @@ class Primitive(Declaration):
     return True
     
   def sizes_for(self, formula):
-    print self.size_rule
     shape = self.size_rule.lower()
     if shape == "spl_shape_square" or shape == "spl_shape_diag":
       input = formula.list[0]

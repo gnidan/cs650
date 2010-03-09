@@ -10,14 +10,21 @@ icode.py represents the icode
 
 """
 
+import copy
+
 class ICode(object):
   def evaluate(self, records, options):
+    new = copy.copy(self)
+    
     if self.dest:
-      self.dest = self.dest.evaluate(records, options)
+      new.dest = self.dest.evaluate(records, options)
     if self.src1:
-      self.src1 = self.src1.evaluate(records, options)
+      new.src1 = self.src1.evaluate(records, options)
     if self.src2:
-      self.src2 = self.src2.evaluate(records, options)
+      new.src2 = self.src2.evaluate(records, options)
+
+    return new
+
   def __repr__(self):
     return str(self)
 
@@ -148,8 +155,7 @@ class StmtList(ICode):
       self.stmts = new_stmts
 
   def evaluate(self, records, options):
-    for s in self.stmts:
-      s.evaluate(records, options)
+    return [s.evaluate(records, options) for s in self.stmts]
 
   def __repr__(self):
     return "StmtList(%s)" % (self.stmts)
