@@ -49,15 +49,6 @@ class Formula(Node):
         self._nx = None
         self._ny = None
 
-    #This is absolutely horrible
-    def nx(self):
-        if self._nx is None:
-            pass
-
-    def ny(self):
-        if self._ny is None:
-            pass
-
     def func(self):
         if hasattr(templates, self.__class__.__name__):
             f = getattr(templates, self.__class__.__name__, None)
@@ -94,11 +85,11 @@ class Formula(Node):
 
     def __init__(self, values):
         self.values = values
-        self.nx, self.ny = self.size_func()(*tuple(self.values))
 
     def simplify(self, symtab):
         self.values = [ i.simplify(symtab) for i in self.values ]
         self.values = [ i for i in self.values if i ]
+        self.nx, self.ny = self.size_func()(*tuple(self.values))
         return self
 
     def __len__(self):

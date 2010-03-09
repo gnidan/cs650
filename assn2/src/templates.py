@@ -179,13 +179,13 @@ def L_size(p1, p2):
 #		$y(0:1:$p1.ny_1)  = call $p1( $t0(0:1:$p1.nx_1) )
 #	))
 def compose(p1, p2, x=VarIn(), y=VarOut()):
-  t0 = Vec()
+  t0 = Vec(p2.ny)
   return [ Call(p2, x, t0),
            Call(p1, t0, y) ]
 
 def compose_size(p1, p2):
   return p2.nx, p1.ny
-  
+
 #(template (tensor any any)
 #		;; ---- Amn x Bpq parameters: self(ny,nx), A(m,n), B(p,q)
 #	(
@@ -199,19 +199,22 @@ def compose_size(p1, p2):
 #		  $y(0:$p2.ny:$p0.ny_1 1) = call $p1( $t0(0:$p2.ny:$r1 1) )
 #		end
 #	))
-# def tensor (p1, p2, x=VarIn(), y=VarOut()):
-#   r0 = VarR();
-#   r1 = VarR();
-#   t0 = Vec();
-#   return [ Mul (p1.nx, p2,ny, r0), # ???
-#            Sub (r0, 1, r1),
-#            # set the size of t0 to $r0 ???,
-#            Do (p1.nx),
-#            Call (p2, x, t0),
-#            End (),
-#            Do (p2.ny),
-#            Call (p1, t0, y),
-#            End () ]
+def tensor(p1, p2, x=VarIn(), y=VarOut()):
+  r0 = VarR()
+  r1 = VarR()
+  t0 = Vec(p1.nx * p2.ny)
+  ny = p1.ny*p2.ny
+  return [ Mul(p1.nx, p2.ny, r0),
+           Sub(r0, 1, r1),
+           Do(p1.nx),
+           Call(p2, Index(x, [(0,1,p2.nx-1), p2.nx]), Index(t0, [(0,1,p2.ny-1), p2.ny])),
+           End(),
+           Do(p2.ny),
+           Call(p1, Index(t0, [(0,p2.ny, r1), 1]), Index(y, [(0,p2.ny, ny-1), 1])),
+           End() ]
+
+def tensor_size(p1, p2):
+  return p1.nx * p2.nx, p1.ny * p2.ny
 
 #(template (direct_sum any any)
 #		;; ---- Amn + Bpq parameters: self(ny,nx), A(mn,n), B(p,q)
@@ -219,10 +222,13 @@ def compose_size(p1, p2):
 #		$y(0:1:$p1.ny_1) = call $p1( $x(0:1:$p1.nx_1) )
 #		$y($p1.ny:1:$p0.ny_1) = call $p2( $x($p1.nx:1:$p0.nx_1) )
 #	))
-#def direct_sum (x, y, p1, p2):
-#  return [ Call (p1, x, y),
-#           Call (p2, x, y) ]
-#
+def direct_sum (x, y, p1, p2):
+  return [ Call (p1, Index(x, [(0, 1, p1.nx-1)]), Index(y, [(0, 1, p1.ny-1)])),
+           Call (p2, x, y) ]
+
+
+def direct_sum_size(p1, p2):
+  return p1.nx + p2.nx, p1.ny + p2.ny
 
 # #(template (matrix (0))		;; ---- matrix parameters: self(ny,nx), matrix
 # #       ;; format: (matrix (a11 ... a1n) ... (am1 ... amn))

@@ -84,12 +84,22 @@ class DoVar(Var):
 ### VECTORS ###
 class Vec(Var):
     var_type = 't'
+    next_val = NextVarSet()
     def __init__(self, size=None):
+        print "Initializing VECTOR", id(self)
         self.size = size
         self.val = None
         self.name = None
         self.out_name = None
-        
+
+    def __str__(self):
+        if self.val is not None:
+            if hasattr(self.val, 'num'):
+                return str(getattr(self.val, 'num')())
+            #return str(self.val)
+        if self.name is None:
+            self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
+        return '$%s' % (self.name)
 
     def __len__(self):
         return self.size
