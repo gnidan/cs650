@@ -27,6 +27,7 @@
 ; predefined primitives
 
 (primitive BLIP SPL_SHAPE_SQUARE)
+(primitive F SPL_SHAPE_SQUARE)
 
 (template (BLIP ANY)
   (
@@ -40,11 +41,13 @@
 (BLIP 5)
 F8
 
-;;(template (F 2)		;; ---- F(2) 
-;;	(
-;;		$y(1) = $x(0) - $x(1)
-;;		$y(0) = $x(0) + $x(1)
-;;	))
+(template (F 2)		;; ---- F(2) ;;
+  (
+    $y(1) = $x(0) - $x(1)
+    $y(0) = $x(0) + $x(1)
+  ))
+
+(F 2)
 ;;
 ;;(template (T ANY ANY, ANY:ANY:ANY) 
 ;;		;; ---- T(mn n,i:j:k) parameters: self(ny,nx), mn, n, i, j, k 
