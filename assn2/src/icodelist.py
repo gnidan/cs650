@@ -112,8 +112,7 @@ class ICodeList:
             if isinstance(inst, Call):
                 newil = inst.src1(inst.src2, inst.dest)
                 newil.inline_calls()
-                # print "INST:::", inst
-                # print "NEWLIL:::", newil
+                #S
                 processed.extend(newil.icode)
             elif isinstance(inst, DefTmp):
                 pass
