@@ -263,9 +263,9 @@ class RecordSet:
         'f': lambda index, sub: self.get_f(index),
         'i': lambda index, sub: self.get_i(index),
         'p': lambda index, sub: self.get_p(index),
-        't': lambda index, sub: self.get_t(index, subscript),
-        'x': lambda index, sub: self.get_x(subscript),
-        'y': lambda index, sub: self.get_y(subscript)
+        't': lambda index, sub: self.get_t(index, sub),
+        'x': lambda index, sub: self.get_x(sub),
+        'y': lambda index, sub: self.get_y(sub)
         }
     func = switch[symbol.var_type]
     return func(symbol.index, symbol.subscript)
