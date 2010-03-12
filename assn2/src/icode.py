@@ -164,9 +164,10 @@ class StmtList(ICode):
     return len(self.stmts)
 
 class Symbol(ICode):
-  def __init__(self, symbol, subscript=None):
+  def __init__(self, symbol, subscript=None, dot=None):
     self.var_type, self.index = symbol
     self.subscript = subscript
+    self.dot = dot
 
   def evaluate(self, records, options):
     return records[self]

@@ -69,8 +69,8 @@ class SPLParser:
         'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
         'LBRACKET', 'RBRACKET',
         'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS',
-        'ISCALAR', 'IVECTOR',
-    )
+        'ISCALAR', 'IVECTOR', 'DOT'
+        )
 
     binop_alias = {
         '+'  : 'add',
@@ -159,6 +159,7 @@ class SPLParser:
     t_HASH = r'\#'
     t_COMMA = r','
     t_COLON = r':'
+    t_DOT = r'\.'
 
     t_WSCALAR = r'w'
 
@@ -546,10 +547,17 @@ class SPLParser:
                 | IVECTOR"""
         p[0] = icode.Symbol(p[1])
 
+    def p_ivar_pattern(self, p):
+        'ivar : ISCALAR DOT symbol'
+        p[0] = icode.Symbol(p[1], dot=p[3])
 
     def p_ivar_vector(self, p):
         'ivar : IVECTOR LPAREN subscript RPAREN'
-        p[0] = icode.Symbol(p[1], p[3])
+        p[0] = icode.Symbol(p[1], subscript=p[3])
+
+    def p_ivar_pattern_vector(self, p):
+        'ivar : ISCALAR DOT symbol LPAREN subscript RPAREN'
+        p[0] = icode.Symbol(p[1], dot=p[3], subscript=p[5])
 
     def p_subscript_simple(self, p):
         'subscript : index'
