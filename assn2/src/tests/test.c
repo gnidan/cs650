@@ -1,10 +1,86 @@
 #include <complex.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "out.c"
 
-void test_func(size_t s, void (*fptr)(complex double *, complex double *)) {
+
+#define M_PI 3.14159265358979323846
+
+
+/**
+ * @brief Compare the observed column of the DFT matrix with the actual column.
+ *
+ * @param col     The observed column.
+ * @param col_num Which column in the matrix we're looking at.
+ * @param size    The size of the DFT matrix.
+ *
+ * @return 1 if the columns match, 0 otherwise
+ */
+unsigned int compare_col (complex double *col, size_t col_num, size_t size)
+{
+  static const double TOL = 0.001;
+  double omega_r, omega_i, o_r, o_i, a, b;
+  unsigned int i;
+
+  /* 0th column should be all 1.0 + 0.0 * I */
+  if ( col_num == 0 )
+    for ( i = 0; i < size; ++i )
+      if ( (fabs (creal(col[i]) - 1.0) > TOL) || 
+	   (fabs (cimag(col[i]) - 0.0) > TOL) )
+	return 0;
+  
+ 
+  /* 0th row should always be 1.0 + 0.0 * I */
+  if ( (fabs (creal(col[0]) - 1.0) > TOL ) ||
+       (fabs (cimag(col[0]) - 0.0) > TOL ) )
+    return 0;
+
+  
+  /* calculate the primitive nth root of unity */
+  omega_r = cos (2 * M_PI / (float) size);
+  omega_i = sin (2 * M_PI / (float) size);
+  
+  /* set o_r and o_i to represents omeaga^col_num */
+  o_r = 1.0;
+  o_i = 0.0;
+  for ( i = 0; i < col_num; ++i )
+    {
+      a = o_r;
+      b = o_i;
+      o_r = a * omega_r - b * omega_i;
+      o_i = a * omega_i + b * omega_r;
+    }
+
+  /* now, o_r + o_i * i is omega^col_num */
+  omega_r = o_r;
+  omega_i = o_i;
+  for ( i = 1; i < size; ++i )
+    {
+      if ( (fabs (creal(col[i]) - o_r) > TOL) ||
+	   (fabs (cimag(col[i]) - o_i) > TOL) )
+	return 0;
+      a = o_r;
+      b = o_i;
+      o_r = a * omega_r - b * omega_i;
+      o_i = a * omega_i + b * omega_r;
+    }
+  return 1;
+}
+
+
+/**
+ * @brief Verify that the DFT of the given size is correct.
+ *
+ * @param s    The size of the DFT being computed.
+ * @param fptr A pointer to the function which computes the DFT of the given
+ *             size.
+ *
+ * @return 1 if the function is correct, 0 otherwise
+ */
+unsigned int test_func(size_t s, 
+		       void (*fptr)(complex double *, complex double *)) {
   complex double *x = malloc(sizeof(complex double) * s);
   complex double *y = malloc(sizeof(complex double) * s);
 
@@ -15,13 +91,16 @@ void test_func(size_t s, void (*fptr)(complex double *, complex double *)) {
     }
 
     fptr(y, x);
-    printf("col = %zu\n", col);
-    for (size_t i = 0; i < s; i++) {
-      printf("%f + %f i\n", creal(y[i]), cimag(y[i]));
-    }
-    printf("\n");
+    if ( !compare_col (y, col, s) )
+      return 0;
+/*  printf("col = %zu\n", col); */
+/*     for (size_t i = 0; i < s; i++) { */
+/*       printf("%f + %f i\n", creal(y[i]), cimag(y[i])); */
+/*     } */
+/*     printf("\n"); */
   }
-  printf("\n\n");
+ /*  printf("\n\n"); */
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -50,8 +129,11 @@ int main(int argc, char *argv[]) {
   /* printf("F(8)\n"); */
   /* test_func(8, func_8); */
 
-  printf("F(64)\n");
-  test_func(64, func);
+/*   printf("F(64) -- "); */
+/*   if ( !test_func(64, func) ) */
+/*     printf ("PASSSED\n"); */
+
+  printf ("F(64) -- %s\n", test_func (64, func) ? "PASSED" : "FAILED");
 
   /* printf("F(9)\n"); */
   /* test_func(9, func_9); */
