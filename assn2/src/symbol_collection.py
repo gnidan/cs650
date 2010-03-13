@@ -254,14 +254,12 @@ class RecordSet:
     self.__f = []
     self.__i = []
     self.__t = []
-
-    self.realcomplex = RealConst # TODO update this
  
   def __getitem__(self, symbol):
     switch = {
         'r': lambda index, sub: self.get_r(index),
         'f': lambda index, sub: self.get_f(index),
-        'i': lambda index, sub: self.get_i(index),
+        'i': lambda index, sub: symbols.IRef(index),
         'p': lambda index, sub: self.get_p(index),
         't': lambda index, sub: self.get_t(index, sub),
         'x': lambda index, sub: self.get_x(sub),
@@ -275,7 +273,7 @@ class RecordSet:
       return self.__r[index]
     except IndexError as inst:
       if index == len(self.__r):
-        self.__r.append(IntegerConst())
+        self.__r.append(symbols.VarR())
         return self.__r[index]
       else:
         raise inst
@@ -285,22 +283,10 @@ class RecordSet:
       return self.__f[index]
     except IndexError as inst:
       if index == len(self.__f):
-        self.__f.append(self.realcomplex())
+        self.__f.append(symbols.VarF())
         return self.__f[index]
       else:
         raise inst
- 
-  def append_loop(self):
-    i = Int()
-    self.__i.append(i)
- 
-  def pop_loop(self):
-    self.__i.pop()
- 
-  def get_i(self, index):
-    # i0 -> i[len(i)-1]
-    index = len(self.__i) - index - 1
-    return self.__i[index]
  
   def get_p(self, index):
     # pattern varible behavior is probably different in a bunch of ways
@@ -314,7 +300,7 @@ class RecordSet:
         raise inst
  
   def new_t(self, size):
-    self.__t.append(Vector(size))
+    self.__t.append(symbols.Vec(size))
     return len(self.__t) - 1
  
   def get_t(self, index, subscript=None):
