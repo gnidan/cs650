@@ -56,16 +56,16 @@ class RecordSet:
  
   def __getitem__(self, symbol):
     switch = {
-        'r': lambda index, sub: self.get_r(index),
-        'f': lambda index, sub: self.get_f(index),
-        'i': lambda index, sub: symbols.IRef(index),
-        'p': lambda index, sub: self.get_p(index),
-        't': lambda index, sub: self.get_t(index, sub),
-        'x': lambda index, sub: self.get_x(sub),
-        'y': lambda index, sub: self.get_y(sub)
+        'r': lambda symbol: self.get_r(symbol.index),
+        'f': lambda symbol: self.get_f(symbol.index),
+        'i': lambda symbol: symbols.IRef(symbol.index),
+        'p': lambda symbol: self.get_p(symbol),
+        't': lambda symbol: self.get_t(symbol.index, sub),
+        'x': lambda symbol: self.get_x(symbol.sub),
+        'y': lambda symbol: self.get_y(symbol.sub)
         }
     func = switch[symbol.var_type]
-    return func(symbol.index, symbol.subscript)
+    return func(symbol)
  
   def get_r(self, index):
     try:
