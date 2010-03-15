@@ -9,7 +9,6 @@ function ans = rader(n, g1, g2)
 
 %0, 1, 3 4 2
 %G1 = [ 1 0 0 0 0; 0 1 0 0 0; 0 0 0 1 0; 0 0 0 0 1; 0 0 1 0 0 ];
-G1 = G(n, g1);
 
 DFT1 = direct_sum( 1, conj_trans(F(n-1)) );
 
@@ -25,7 +24,6 @@ DFT2 = direct_sum(1, F(n-1));
 
 %0, 1, 2, 4, 3
 %G2 = [1 0 0 0 0; 0 1 0 0 0; 0 0 1 0 0; 0 0 0 0 1; 0 0 0 1 0];
-G2 = G(n, g2);
 
-ans = compose(transpose(G1), compose (DFT1, compose (E, compose (DFT2, G2))));
+ans = compose(rpermutation(G(n, g1)), compose(DFT1, compose(E, compose(DFT2, permutation(G(n, g2))))));
 %ans=ws;
