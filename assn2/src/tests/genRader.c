@@ -12,9 +12,9 @@ void makeW (unsigned int n, unsigned int g1, char *W)
   memset (s, 0, 10);
   memset (W, 0, BUF_SIZE);
 
-  strcat (W, "(permute 0");
+  strcat (W, "(permutation 0 1");
   g = 1;
-  for ( i = 1; i < n; ++i )
+  for ( i = 1; i < n - 1; ++i )
     {
       g = g * g1 % n;
       sprintf (s, " %u", g);
@@ -30,9 +30,9 @@ void makeWp (unsigned int n, unsigned int g2, char *WP)
   memset (s, 0, 10);
   memset (WP, 0, BUF_SIZE);
   
-  strcat (WP, "(permute 0");
+  strcat (WP, "(permutation 0 1");
   g = 1;
-  for ( i = 1; i < n; ++i )
+  for ( i = 1; i < n - 1; ++i )
     {
       g = g * g2 % n;
       sprintf (s, " %u", g);
@@ -52,17 +52,35 @@ void makeD (unsigned int n, unsigned int g2, char *D)
   for ( i = 1; i < n - 1; ++i )
     {
       g = g * g2 % n;
-      sprintf (s, " WS(%u, %u)", n, g);
+      sprintf (s, " W(%u, %u)", n, g);
       strcat (D, s);
     }
   strcat (D, ")");
 }
 
-void makeE (unsigned int n, char *D, char *E)
+void makeE (unsigned int n, /* char *D, */unsigned int g2,  char *E)
 {
+  char s[BUF_SIZE];
+  unsigned int i, g;
+
+  memset (s, 0, BUF_SIZE);
   memset (E, 0, BUF_SIZE);
-  sprintf (E, 
-	   "(direct_sum (matrix (1 1) (1 WS(%u, 1)) %s))", n, D);
+  /* sprintf (E, 
+	   "(direct_sum (matrix (1 1) (1 WS(%u, 1)) %s))", n, D); */
+
+  sprintf (E, "(my_sum (matrix (1)) (scale %f (D F%u (matrix", 
+           (float) (1.0 / (float) (n - 1)), n - 1);
+  sprintf (s, " (W(%u, 1))", n);
+  strcat (E, s);
+
+  g = 1;
+  for ( i = 1; i < n - 1; ++i )
+    {
+      g = g * g2 % n;
+      sprintf (s, " (W(%u, %u))", n, g);
+      strcat (E, s);
+    }
+  strcat (E, "))))");
 }
 
 
@@ -176,8 +194,8 @@ int main (int argc, char *argv[])
 
   makeW  (n, g1, W);
   makeWp (n, g2, Wp);
-  makeD  (n, g2, D);
-  makeE  (n, D, E);
+  /* makeD  (n, g2, D); */
+  makeE  (n, /* D, */ g2,  E);
   
   printf ("(compose %s\n", Wp); 
   printf ("         (direct_sum (matrix (1)) (conj_trans F%u))\n", n-1);
