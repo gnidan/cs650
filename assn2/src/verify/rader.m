@@ -1,8 +1,8 @@
 %Must implement:
 %CONJ_TRANS -- this is just a conjugate(transpose(A))... no need for new symbol
 %TRANSPOSE (only deals with scalars... can probably safely be the same as CONJ_TRANS)
-%G
-%WG
+%G -- this can be implemented in the SPL generator ... it is just a permutation array
+%WG -- 
 %E -- should take SPL as input, call it, and add the 3 1's.
 function ans = rader(n, g1, g2)
 
