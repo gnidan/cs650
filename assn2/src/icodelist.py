@@ -138,7 +138,7 @@ class ICodeList:
                 inst.src2 = process_sub(inst.src2, vec, sub)
             inst.dest = process_sub(inst.dest, vec, sub)
 
-    def inline_calls(self):
+    def inline_calls(self, symtab, options):
         processed = []
         for inst in self.icode:
             if isinstance(inst, Call):
@@ -149,9 +149,12 @@ class ICodeList:
                 if isinstance(inst.dest, tuple):
                     y = inst.dest[0]
 
-                newil = inst.src1(x, y)
-                newil.unroll()
-                newil.inline_calls()
+                inst.src1.x = x
+                inst.src1.y = y
+
+                newil = inst.src1.evaluate(symtab, options)
+#                newil.unroll()
+                newil.inline_calls(symtab, options)
 
                 #print "Before PROCESSING:"
                 #print "Src2: ", inst.src2

@@ -33,7 +33,7 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
-        #self.lexer_test(data)
+        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
@@ -69,7 +69,7 @@ class SPLParser:
         'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
         'LBRACKET', 'RBRACKET',
         'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS',
-        'ISCALAR', 'IVECTOR', 'IMATRIX'
+        'ISCALAR', 'IVECTOR', 'IMATRIX', 'IPATTERN'
         )
 
     binop_alias = {
@@ -189,10 +189,6 @@ class SPLParser:
             t.value = 0
         return t
 
-    def t_SYMBOL(self, t):
-        r'[a-zA-Z_][a-zA-Z0-9_]*'
-        t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
-        return t
     
     def t_IMATRIX(self, t):
         r'\$p\d+\.a'
@@ -221,7 +217,7 @@ class SPLParser:
         return t
 
     def t_ISCALAR(self, t):
-        r'\$([rfi]\d+|p\d+(\.(nx|ny|nx_1|ny_1|matrix_row|matrix_col))?)'
+        r'\$([rfi]\d+|p\d+(\.(nx_1|ny_1|nx|ny|matrix_row|matrix_col)))'
         exp = re.compile(r'\$(?P<Type>.)(?P<Index>.+)')
         match = exp.match(t.value)
         if not match:
@@ -230,6 +226,20 @@ class SPLParser:
         t.value = (type, index)
         return t
 
+    def t_IPATTERN(self, t):
+        r'\$p\d+'
+        exp = re.compile(r'\$(?P<Type>.)(?P<Index>.+)')
+        match = exp.match(t.value)
+        if not match:
+          raise Exception()
+        type, index = match.group('Type','Index')
+        t.value = (type, index)
+        return t
+
+    def t_SYMBOL(self, t):
+        r'[a-zA-Z_][a-zA-Z0-9_]*'
+        t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
+        return t
 
     # Define a rule so we can track line numbers
     def t_newline(self,t):
@@ -555,16 +565,28 @@ class SPLParser:
                   | function"""
         p[0] = p[1]
 
-    def p_ivar_scalar(self, p):
-        'ivar : ISCALAR'
+    def p_ivar(self, p):
+        """ivar : iscalar
+                | ivector
+                | imatrix"""
+        p[0] = p[1]
+
+    def p_iscalar(self, p):
+        """iscalar : ISCALAR
+                   | IPATTERN"""
         p[0] = icode.Symbol(p[1])
 
-    def p_ivar_vector(self, p):
-        'ivar : IVECTOR LPAREN subscript RPAREN'
+    def p_ivector(self, p):
+        """ivector : IVECTOR"""
+        p[0] = icode.Symbol(p[1])
+
+    def p_ivector_subvector(self, p):
+        """ivector : IVECTOR LPAREN subscript RPAREN
+                   | IPATTERN LPAREN subscript RPAREN"""
         p[0] = icode.Symbol(p[1], subscript=p[3])
 
-    def p_ivar_matrix(self, p):
-        'ivar : IMATRIX LPAREN ivalue ivalue RPAREN'
+    def p_imatrix(self, p):
+        'imatrix : IMATRIX LPAREN ivalue ivalue RPAREN'
         p[0] = icode.Symbol(p[1], subscript=(p[3], p[4]))
 
     def p_subscript_simple(self, p):
@@ -619,12 +641,12 @@ class SPLParser:
         p[0] = icode.Copy(p[3], p[1])
       
     def p_call(self, p):
-        'call : ivar EQUALS CALL symbol'
-        p[0] = icode.Call(p[4], None, p[1])
+        'call : ivar EQUALS CALL IPATTERN'
+        p[0] = icode.Call(icode.Symbol(p[4]), None, p[1])
 
     def p_call_arg(self, p):
-        'call : ivar EQUALS CALL symbol ivar'
-        p[0] = icode.Call(p[4], p[5], p[1])
+        'call : ivar EQUALS CALL IPATTERN LPAREN ivector RPAREN'
+        p[0] = icode.Call(icode.Symbol(p[4]), p[6], p[1])
 
     def p_do(self, p):
         'do : LOOP ivalue'

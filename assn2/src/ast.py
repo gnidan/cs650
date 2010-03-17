@@ -54,6 +54,9 @@ class Formula(Node):
         self.nx = 0
 
         self.a  = None
+
+        self.x = None
+        self.y = None
  
     def definition(self, symtab, options):
         if options.unroll:

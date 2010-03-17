@@ -21,7 +21,7 @@ class RecordSet:
   def __init__(self):
     self.rs = {}
     self.fs = {}
-    self.ts = []
+    self.ts = {}
  
   def __getitem__(self, symbol):
     switch = {
@@ -47,6 +47,8 @@ class RecordSet:
     return len(self.ts) - 1
  
   def get_t(self, index, subscript=None):
+    if index not in self.ts:
+      self.ts[index] = Vec()
     if(subscript):
       return Index(self.ts[index], subscript)
     else:
@@ -87,8 +89,15 @@ class Declaration:
         records = RecordSet()
  
         # setup vars for input/output and patterns
-        records.x = VarIn(formula.nx)
-        records.y = VarOut(formula.ny)
+        if formula.x is not None:
+          records.x = formula.x
+        else:
+          records.x = VarIn(formula.nx)
+
+        if formula.y is not None:
+          records.y = formula.y
+        else:
+          records.y = VarOut(formula.ny)
  
         patterns = {}
         for i in range(len(template.matches)):
@@ -97,10 +106,11 @@ class Declaration:
             pvars = match.pvars()
             for k, v in pvars.iteritems():
               patterns[str(i) + "." + k] = v
-          elif(isinstance(match, int)):
-            patterns[str(i)] = match
+
+          patterns[str(i)] = match
  
         records.ps = patterns
+        template.matches = None
 
         icode = copy.deepcopy(template.icode_list)
  
@@ -161,7 +171,7 @@ class Operation(Declaration):
       if isinstance(t, ast.Wildcard) and t == "ANY":
         matches.append(f)
       else:
-        bool, wild = compare_trees (t, f)
+        bool, wild = Operation.compare_trees (t, f)
         if bool:
           if wild:
             matches.append(f)
@@ -171,6 +181,7 @@ class Operation(Declaration):
     template.matches = matches
     return True
  
+  @staticmethod
   def compare_trees (t, f):
     if isinstance(t, ast.Wildcard) and t == "ANY":
       return (True, True)
@@ -182,7 +193,7 @@ class Operation(Declaration):
           return (False, False)
         wild = False
         for i in range(len(t.list)):
-          mbool, mwild = compare_trees (t.list[i], f.list[i])
+          mbool, mwild = Operation.compare_trees (t.list[i], f.list[i])
           if mbool == False:
             return (False, False)
           if mwild:

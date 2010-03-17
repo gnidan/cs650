@@ -25,52 +25,52 @@
 ;; for right SPL programs
 
 (primitive BLIP SPL_SHAPE_SQUARE)
-(primitive F SPL_SHAPE_SQUARE)
 
 (template (BLIP ANY)
   (
       dounroll $p0.ny
-        $y( 0 1 ) = $p0.nx
+        $y( 0 1 ) = 1 + $x( 0 1 )
       end
   ))
 
-(define F8
-    (BLIP 4))
+(primitive BLOOP SPL_SHAPE_SQUARE)
 
-; BLIP 5
-(BLIP 5)
-
-; F8 [ = (BLIP 4) ]
-F8
-
-(template (F 2)		;; ---- F(2) ;;
+(template (BLOOP ANY)
   (
-    $y(1) = $x(0) - $x(1)
-    $y(0) = $x(0) + $x(1)
+      dounroll $p0.ny
+        $y( 0 1 ) = 2 + $x( 0 1 )
+      end
   ))
+;;
+;;(define F8
+;;    (BLIP 4))
+;;
+;;(operation JOBU SPL_SIZE_IDENT)
+;;
+;;(template (JOBU ANY)
+;;  (
+;;    dounroll $p0.ny
+;;      $y( 0 1 ) = 2
+;;    end
+;;    ))
+;;
+;;(template (JOBU (BLIP ANY))
+;;  (
+;;    dounroll $p0.ny
+;;      $y( 0 1 ) = 3
+;;    end
+;;    ))
+;;
+;;(JOBU (BLOOP 6))
+;;
 
-; (F 2)
-(F 2)
+(operation compose    SPL_SIZE_COMPOSE)
 
-;;
-;;(template (T ANY ANY, ANY:ANY:ANY) 
-;;		;; ---- T(mn n,i:j:k) parameters: self(ny,nx), mn, n, i, j, k 
-;;	(
-;;		$r0 = $p5 - $p3
-;;		$r0 = $r0 / $p4
-;;		$r0 = $r0 + 1
-;;		do $r0
-;;		  $r1 = $i0 * $p4
-;;		  $r1 = $r1 + $p3
-;;      $y(0 1) = TW($p1 $p2 $r1) * $x(0 1)
-;;		end
-;;	))
-;;
-;;#subname L82
-;;(L 8 2)
-;;
-;;(define F4_SPLIT
-;;	(compose sigma
-;;		 (direct_sum (F 2) (I 2))
-;;		 (L 4 2)))
-;;
+(template (compose ANY ANY) ;; ---- Amn * Bpq parameters: self(ny,nx), A(m,n), B(p,q)
+	(			 
+		deftemp $p2.ny
+		$t0 = call $p2( $x )
+		$y  = call $p1( $t0 )
+	))
+
+(compose (compose (BLOOP 4) (BLIP 4)) (BLOOP 4))

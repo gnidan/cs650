@@ -139,6 +139,14 @@ def main(argv=None):
             print i.count()
 
     if verbose:
+        print "\n** Processing: Inlining Calls"
+    for i in icodes:
+        i.inline_calls(symtab, options)
+        if debug:
+            print "\nIcodes:"
+            print i
+
+    if verbose:
         print "\n** Optimization: Unrolling the icode"
     for i in icodes:
         i.unroll()
@@ -147,13 +155,6 @@ def main(argv=None):
             print i
         if verbose:
             print i.count()
-
-
-    if verbose:
-        print "\n** Processing: Inlining Calls"
-    for i in icodes:
-        i.inline_calls()
-
 
     if verbose:
         print "\n** Optimization: Constant Propagation and Constant Folding (Pass #2)"
