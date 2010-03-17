@@ -26,7 +26,7 @@ class RecordSet:
  
   def __getitem__(self, symbol):
     switch = {
-        'r': lambda symbol: self.rs.setdefault(symbol.index, VarR()),
+        'r': lambda symbol: self.get_r(symbol.index),
         'f': lambda symbol: self.fs.setdefault(symbol.index, VarF()),
         'i': lambda symbol: IRef(int(symbol.index)),
         'p': lambda symbol: self.get_p(symbol.index, symbol.subscript),
@@ -35,7 +35,14 @@ class RecordSet:
         'y': lambda symbol: self.get_y(symbol.subscript)
         }
     func = switch[symbol.var_type]
+    value = func(symbol)
+    print symbol, id(value)
     return func(symbol)
+
+  def get_r(self, index):
+    if index not in self.rs:
+      self.rs[index] = VarR()
+    return self.rs[index]
  
   def get_p(self, index, subscript):
     if subscript:
@@ -113,8 +120,9 @@ class Declaration:
         records.ps = patterns
         template.matches = None
 
+        print "copying icode list from template"
         icode = copy.deepcopy(template.icode_list)
- 
+#        icode = template.icode_list 
         return (icode, records)
 
   def __repr__(self):
@@ -277,7 +285,7 @@ class SymbolTable(dict):
 
 class NextVarSet:
     def __init__(self):
-        #print 'NextVarSet created'
+        print 'NextVarSet created'
         self.vars = {}
  
     def __getitem__(self, key):
@@ -290,11 +298,17 @@ class NextVarSet:
  
 class Var:
     var_type = 'v'
-    next_val = NextVarSet()
  
     def __init__(self,val=None,name=None):
+        try:
+          next_val = Var.next_val
+        except AttributeError:
+          Var.next_val = NextVarSet()
+        
         self.val = val
         self.name = name
+        if not self.name:
+          self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
         self.out_name = None
  
     def num(self):
@@ -308,9 +322,7 @@ class Var:
         if self.val is not None:
             if hasattr(self.val, 'num'):
                 return str(getattr(self.val, 'num')())
-            #return str(self.val)
-        if not self.name:
-            self.name = "Var(%s, %s)" % (self.__class__.next_val[self.__class__.var_type], self.val)
+            return str(self.val)
         return '$%s' % (self.name)
  
     #TODO: this needs to be fixed!
