@@ -69,7 +69,7 @@ class SPLParser:
         'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
         'LBRACKET', 'RBRACKET',
         'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS',
-        'ISCALAR', 'IVECTOR'
+        'ISCALAR', 'IVECTOR', 'IMATRIX'
         )
 
     binop_alias = {
@@ -193,9 +193,22 @@ class SPLParser:
         r'[a-zA-Z_][a-zA-Z0-9_]*'
         t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
         return t
+    
+    def t_IMATRIX(self, t):
+        r'\$p\d+\.a'
+        exp = re.compile(r'\$(?P<Type>.)(?P<Index>.*)')
+        match = exp.match(t.value)
+        if not match:
+          raise Exception()
+        type, index = match.group('Type','Index')
+        if(index):
+          t.value = (type, index)
+        else:
+          t.value = (type, 0)
+        return t
 
     def t_IVECTOR(self, t):
-        r'\$(x|y|t\d+|p\d+\.a)'
+        r'\$(x|y|t\d+)'
         exp = re.compile(r'\$(?P<Type>.)(?P<Index>.*)')
         match = exp.match(t.value)
         if not match:
@@ -543,20 +556,23 @@ class SPLParser:
         p[0] = p[1]
 
     def p_ivar_scalar(self, p):
-        """ivar : ISCALAR
-                | IVECTOR"""
+        'ivar : ISCALAR'
         p[0] = icode.Symbol(p[1])
 
     def p_ivar_vector(self, p):
-        'ivar : IVECTOR LPAREN subscript RPAREN'
+        'ivar : IVECTOR LPAREN v_subscript RPAREN'
         p[0] = icode.Symbol(p[1], subscript=p[3])
 
-    def p_subscript_simple(self, p):
-        'subscript : index'
+    def p_ivar_matrix(self, p):
+        'ivar : IMATRIX LPAREN m_subscript RPAREN'
+        p[0] = icode.Symbol(p[1], subscript=p[3])
+
+    def p_v_subscript_simple(self, p):
+        'v_subscript : index'
         p[0] = icode.Subscript(p[1])
 
-    def p_subscript_multiplicands(self, p):
-        'subscript : index multiplicands'
+    def p_v_subscript_multiplicands(self, p):
+        'v_subscript : index multiplicands'
         p[0] = icode.Subscript(p[1], *p[2])
 
     def p_multiplicands(self, p):
@@ -575,6 +591,10 @@ class SPLParser:
     def p_index_range(self, p):
         'index : ivalue COLON ivalue COLON ivalue'
         p[0] = icode.Range(p[1], p[3], p[5])
+
+    def p_m_subscript(self, p):
+        'm_subscript : ivalue ivalue'
+        p[0] = (p[1], p[2])
 
     def p_add(self, p):
         'add : ivar EQUALS ivalue PLUS ivalue'
