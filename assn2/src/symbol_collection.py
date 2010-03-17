@@ -100,6 +100,163 @@ class RecordSet:
     else:
       return self.y
 
+class Declaration:
+  def __init__(self, size_rule, options):
+    self.templates = []
+    self.size_rule = size_rule
+    self.options   = options
+ 
+  def addTemplate(self, template):
+    self.templates.insert(0, template)
+ 
+  # returns true or false
+  # postcondition: if true, template is filled in with wildcards assigned to
+  #   matching formulas
+  @staticmethod
+  def compare(template, formula):
+    pass
+ 
+  def match(self, formula):
+    for template in self.templates:
+      comparison = self.compare(template, formula)
+ 
+      if comparison:
+        records = RecordSet()
+ 
+        # setup vars for input/output and patterns
+        records.x = symbols.Vec(formula.nx)
+        records.y = symbols.Vec(formula.ny)
+ 
+        patterns = {}
+        for i in range(len(template.matches)):
+          match = templates.matches[i]
+          if(isinstance(match, ast.Formula)):
+            for k, v in match.pvars().iteritems():
+              patterns[str(i) + "." + k] = v
+          elif(isinstance(match, Integer)):
+            patterns[i] = match
+ 
+        records.p = patterns
+ 
+        return (template.icode_list, records)
+ 
+class Primitive(Declaration):
+  @staticmethod
+  def compare(template, formula):
+    if len(formula.list) != len(template.pattern.list):
+      return False
+    
+    # p0 corresponds to the whole formula
+    matches = [ formula ]
+ 
+    for i in range(len(template.pattern.list)):
+      t = template.pattern.list[i]
+      f = formula.list[i]
+ 
+      if isinstance(t, ast.Wildcard) and t == "ANY":
+        # f should be an Integer
+        matches.append(f)
+      elif t != f:
+        return False
+ 
+    template.matches = matches
+    return True
+    
+  def sizes_for(self, formula):
+    shape = self.size_rule.lower()
+    if shape == "spl_shape_square" or shape == "spl_shape_diag":
+      input = formula.list[0]
+      output = input
+      return (output, input)
+    if shape == "spl_shape_rect" or shape == "spl_shape_rectdiag":
+      input = formula.list[0]
+      if len(formula) > 1:
+        output = formula.list[1]
+      else:
+        output = input
+      return (output, input)
+ 
+class Operation(Declaration):
+  @staticmethod
+  def compare(template, formula):
+    if len(formula.list) != len(template.pattern.list):
+      return False
+ 
+    matches = [ formula ]
+ 
+    for i in range(len(template.pattern.list)):
+      t = template.pattern.list[i]
+      f = formula.list[i]
+ 
+      if isinstance(t, ast.Wildcard) and t == "ANY":
+        matches.append(f)
+      else:
+        bool, wild = compare_trees (t, f)
+        if bool:
+          if wild:
+            matches.append(f)
+        else:
+          return False
+ 
+    template.matches = matches
+    return True
+ 
+  def compare_trees (t, f):
+    if isinstance(t, ast.Wildcard) and t == "ANY":
+      return (True, True)
+    if isinstance(t, ast.Formula):
+      if isinstance(f, ast.Formula):
+        if t.symbol != f.symbol:
+          return (False, False)
+        if len(t.list) != len(f.list):
+          return (False, False)
+        wild = False
+        for i in range(len(t.list)):
+          mbool, mwild = compare_trees (t.list[i], f.list[i])
+          if mbool == False:
+            return (False, False)
+          if mwild:
+            wild = True
+        return (True, wild)
+      else:
+        return (False, False)
+    elif t == f:
+      return (True, False)
+    return (False, False)
+ 
+ 
+  def sizes_for(self, formula):
+    if len(formula) == 1:
+      output = formula.list[0].ny
+      input = formula.list[0].nx
+    else:
+      shape = self.size_rule.lower()
+      if shape == "spl_size_ident":
+        output = formula.list[0].ny
+        input = formula.list[0].nx
+      elif shape == "spl_size_transpose":
+        output = formula.list[1].nx
+        input = formula.list[0].ny
+      elif shape == "spl_size_compose":
+        output = formula.list[0].ny;
+        input = formula.list[1].nx;
+      elif shape == "spl_size_sum":
+        output = formula.list[0].ny + formula.list[1].ny
+        input = formula.list[0].nx + formula.list[1].nx
+      elif shpae == "spl_size_tensor":
+        output = formula.list[0].ny * formula.list[1].ny
+        input = formula.list[0].nx * formula.list[1].nx
+    return (output, input)
+ 
+ 
+class Direct(Declaration):
+  @staticmethod
+  def compare(template, formula):
+    pass
+ 
+  def sizes_for(self, formula):
+    pass
+ 
 
 class AlreadyDefinedError(Exception):
   def __init__(self, name):

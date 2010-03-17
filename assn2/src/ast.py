@@ -52,6 +52,8 @@ class Formula(Node):
         self.symbol = symbol
         self.ny = 0
         self.nx = 0
+
+        self.a  = None
  
     def definition(self, symtab, options):
         if options.unroll:
@@ -68,6 +70,15 @@ class Formula(Node):
 
         icode, records = symtab[self]
         return icode.evaluate(records, options)
+
+    def pvars(self):
+      vars = {}
+      nx = self.nx
+      ny = self.ny
+      vars["nx"] = VarR(val=nx)
+      vars["ny"] = VarR(val=ny)
+      vars["nx_1"] = VarR(val=nx-1)
+      vars["ny_1"] = VarR(val=ny-1)
  
     def __repr__(self):
         r = str(self.symbol)
