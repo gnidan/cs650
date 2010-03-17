@@ -183,6 +183,7 @@ class ICodeList:
         i = 0
         while i < len(self.icode):
             inst = self.icode[i]
+            inst = copy.deepcopy(inst)
             #LOOPS
             if isinstance(inst, Do) or isinstance(inst, DoUnroll):
                 stack.insert(0, DoVar(i,num(inst.src1)))
@@ -209,7 +210,6 @@ class ICodeList:
                 dest = self.varunroll(inst.dest, stack, varmap, True)
                 unrolled.append(Copy(src1, dest))
             elif isinstance(inst, Call):
-                inst = copy.deepcopy(inst)
                 src1 = self.varunroll(inst.src1, stack, varmap, False)
                 src2 = self.varunroll(inst.src2, stack, varmap, False)
                 dest = self.varunroll(inst.dest, stack, varmap, True)
