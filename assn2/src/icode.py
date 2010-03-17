@@ -13,13 +13,13 @@ icode.py represents the icode
 import copy
 
 class ICode(object):
-  def simplify(self, records, options):
-    if self.dest and isinstance(self.dest, Symbol):
-      self.dest = self.dest.simplify(records, options)
-    if self.src1 and isinstance(self.src1, Symbol):
-      self.src1 = self.src1.simplify(records, options)
-    if self.src2 and isinstance(self.src2, Symbol):
-      self.src2 = self.src2.simplify(records, options)
+  def simplify(self, records):
+    if isinstance(self.dest, Symbol):
+      self.dest = self.dest.simplify(records)
+    if isinstance(self.src1, Symbol):
+      self.src1 = self.src1.simplify(records)
+    if isinstance(self.src2, Symbol):
+      self.src2 = self.src2.simplify(records)
     return self
 
   def __repr__(self):
@@ -151,8 +151,8 @@ class StmtList(ICode):
         
       self.stmts = new_stmts
 
-  def simplify(self, records, options):
-    return [s.simplify(records, options) for s in self.stmts]
+  def simplify(self, records):
+    return [s.simplify(records) for s in self.stmts]
 
   def __repr__(self):
     return "StmtList(%s)" % (self.stmts)
@@ -165,11 +165,11 @@ class Symbol:
     self.var_type, self.index = symbol
     self.subscript = subscript
 
-  def simplify(self, records, options):
+  def simplify(self, records):
     if self.subscript:
       for i in range(len(self.subscript)):
         if isinstance(self.subscript[i], Symbol):
-          self.subscript[i] = self.subscript[i].simplify(records, options)
+          self.subscript[i] = self.subscript[i].simplify(records)
     return records[self]
 
   def __repr__(self):

@@ -71,7 +71,7 @@ class Formula(Node):
           raise NameError("%s not declared" % self.symbol)
 
         icodes, records = symtab[self]
-        icodes = icodes.simplify(records, options)
+        icodes = icodes.simplify(records)
         icodes = ICodeList(icodes)
         return icodes
 

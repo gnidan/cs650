@@ -566,8 +566,8 @@ class SPLParser:
         p[0] = p[1]
 
     def p_ivar(self, p):
-        """ivar : iscalar
-                | ivector
+        """ivar : ivector
+                | iscalar
                 | imatrix"""
         p[0] = p[1]
 
@@ -576,14 +576,14 @@ class SPLParser:
                    | IPATTERN"""
         p[0] = icode.Symbol(p[1])
 
-    def p_ivector(self, p):
-        """ivector : IVECTOR"""
-        p[0] = icode.Symbol(p[1])
-
     def p_ivector_subvector(self, p):
         """ivector : IVECTOR LPAREN subscript RPAREN
                    | IPATTERN LPAREN subscript RPAREN"""
         p[0] = icode.Symbol(p[1], subscript=p[3])
+
+    def p_ivector(self, p):
+        """ivector : IVECTOR"""
+        p[0] = icode.Symbol(p[1])
 
     def p_imatrix(self, p):
         'imatrix : IMATRIX LPAREN ivalue ivalue RPAREN'
@@ -657,9 +657,7 @@ class SPLParser:
         p[0] = icode.DoUnroll(p[2])
 
     def p_do_end(self, p):
-      """end : END LOOP
-             | END LOOPUNROLL
-             | END"""
+      """end : END"""
       p[0] = icode.End()
 
     def p_newtmp(self, p):

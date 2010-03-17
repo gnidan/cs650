@@ -153,7 +153,7 @@ class ICodeList:
                 inst.src1.y = y
 
                 newil = inst.src1.evaluate(symtab, options)
-#                newil.unroll()
+                newil.unroll()
                 newil.inline_calls(symtab, options)
 
                 #print "Before PROCESSING:"

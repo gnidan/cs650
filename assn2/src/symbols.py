@@ -12,6 +12,7 @@ symbols.py Contains all of the variable types referenced at various stages of IC
 import numbers
 import ast
 import copy
+from icode import *
 
 class RecordSet:
   # notes: actually, maybe the behavior with setting up all the variables,
@@ -38,7 +39,7 @@ class RecordSet:
  
   def get_p(self, index, subscript):
     if subscript:
-      return Index(self.ps[index], subscript)
+      return Index(self.ps[index], subscript).simplify(self)
     else:
       return self.ps[index]
  
@@ -50,19 +51,19 @@ class RecordSet:
     if index not in self.ts:
       self.ts[index] = Vec()
     if(subscript):
-      return Index(self.ts[index], subscript)
+      return Index(self.ts[index], subscript).simplify(self)
     else:
       return self.ts[index]
 
   def get_x(self, subscript=None):
     if(subscript):
-      return Index(self.x, subscript)
+      return Index(self.x, subscript).simplify(self)
     else:
       return self.x
 
   def get_y(self, subscript=None):
     if(subscript):
-      return Index(self.y, subscript)
+      return Index(self.y, subscript).simplify(self)
     else:
       return self.y
 
@@ -168,7 +169,7 @@ class Operation(Declaration):
       t = template.pattern.list[i]
       f = formula.list[i]
  
-      if isinstance(t, ast.Wildcard) and t == "ANY":
+      if isinstance(t, ast.Wildcard) and t.lower() == "any":
         matches.append(f)
       else:
         bool, wild = Operation.compare_trees (t, f)
@@ -224,7 +225,7 @@ class Operation(Declaration):
       elif shape == "spl_size_sum":
         output = formula.list[0].ny + formula.list[1].ny
         input = formula.list[0].nx + formula.list[1].nx
-      elif shpae == "spl_size_tensor":
+      elif shape== "spl_size_tensor":
         output = formula.list[0].ny * formula.list[1].ny
         input = formula.list[0].nx * formula.list[1].nx
     return (output, input)
@@ -398,9 +399,9 @@ class IRef(object):
  
 class SubVector(object):
     def __init__(self, start, step, stop):
-        self.start = int(start)
-        self.step = int(step)
-        self.stop = int(stop)
+        self.start = start
+        self.step = step
+        self.stop = stop
  
     def index(self, old):
         #print self.start, self.step, old
@@ -408,6 +409,15 @@ class SubVector(object):
         if new > self.stop:
             return None
         return new
+
+    def simplify(self, records):
+        if isinstance(self.start, Symbol):
+            self.start = self.start.simplify(records)
+        if isinstance(self.step, Symbol):
+            self.step = self.step.simplify(records)
+        if isinstance(self.stop, Symbol):
+            self.stop = self.stop.simplify(records)
+        return self
  
     def __iadd__(self, other):
         assert isinstance(other, int)
@@ -452,6 +462,21 @@ class Index(object):
         if isinstance(self.exp[0], Var):
             return (self.vec, self.exp[0], accum)
         return (self.vec, accum)
+
+    def simplify(self, records):
+        accum = self.exp[0]
+
+        if isinstance(accum, tuple):
+            accum = SubVector(*accum)
+            self.exp[0] = accum.simplify(records)
+
+        i = 0
+        for e in self.exp[1:]:
+          i+=1
+          if isinstance(e, Symbol):
+            self.exp[i] = e.simplify(records)
+
+        return self
  
     def num(self):
         return self
