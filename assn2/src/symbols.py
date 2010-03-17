@@ -64,10 +64,9 @@ class RecordSet:
       return self.y
 
 class Declaration:
-  def __init__(self, size_rule, options):
+  def __init__(self, size_rule):
     self.templates = []
     self.size_rule = size_rule
-    self.options   = options
  
   def addTemplate(self, template):
     self.templates.insert(0, template)
@@ -102,6 +101,10 @@ class Declaration:
         records.ps = patterns
  
         return (template.icode_list, records)
+
+  def __repr__(self):
+    return "%s(%s, %s)" % (self.__class__.__name__, self.size_rule, 
+        self.templates)
  
 class Primitive(Declaration):
   @staticmethod
@@ -248,6 +251,8 @@ class SymbolTable(dict):
     if self.has_key(key):
       val = super(SymbolTable,self).__getitem__(key)
       if isinstance(val, numbers.Number):
+        return True
+      if isinstance(val, ast.Formula):
         return True
       return val.isConst()
     raise KeyError 

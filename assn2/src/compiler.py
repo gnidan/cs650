@@ -14,7 +14,7 @@ PLY SPL compiler.
 
 import sys
 import getopt
-from symbols import SymbolTable
+from symbol_collection import SymbolTable
 from options import Options
 from icodelist import *
 from parser import SPLParser
@@ -91,6 +91,9 @@ def main(argv=None):
     if verbose: print "\n** Constructing the lexer and parser"
     parser = SPLParser(debug=debug)
 
+    if verbose: print "\n** Initializing the symbol table"
+    symtab = SymbolTable()
+
     if verbose:	print "\n** Constructing the AST"
     try:
         t = parser.parse(data)
@@ -104,41 +107,56 @@ def main(argv=None):
         print t
 
     if verbose:
-        print "\n** Optimising the AST (Constant Propagation)"
-    t.optimize(SymbolTable(), options)
+        print "\n** Simplifying the AST (Constant Propagation, Defines)"
+    t.simplify(symtab)
     if debug:
-        print "\n Optimized AST:"
+        print "\n Simplified AST:"
         print t
+        print "\n Symbol Table Dump:"
+        print symtab
 
     if verbose:
         print "\n** Translating the AST to icode"
-    symtab = SymbolTable()
-    icodes = t.evaluate(SymbolTable(), options)
+    icodes = t.evaluate(symtab, options)
 
     #Get rid of the None's
-#    icodes = [i for i in icodes if i]
+    icodes = [i for i in icodes if i]
     if debug:
         print "\n Icodes:"
         print icodes
 
-    #TODO i don't think this is the right place for this step
-    icodes = [ICodeList(i) for i in icodes]
     if verbose:
         for i in icodes:
             print i.count()
+
+    if verbose:
+        print "\n** Optimization: Constant Propagation and Constant Folding (Pass #1)"
+    for i in icodes:
+        i.constprop()
+        if debug:
+            print "\nIcodes:"
+            print i
+        if verbose:
+            print i.count()
+
+
+    if verbose:
+        print "\n** Processing: Inlining Calls"
+    for i in icodes:
+        i.inline_calls()
 
     if verbose:
         print "\n** Optimization: Unrolling the icode"
     for i in icodes:
         i.unroll()
         if debug:
-            print "\n Icodes:"
+            print "\nIcodes:"
             print i
         if verbose:
             print i.count()
 
     if verbose:
-        print "\n** Optimization: Propagating constants"
+        print "\n** Optimization: Constant Propagation and Constant Folding (Pass #2)"
     for i in icodes:
         i.constprop()
         if verbose:
@@ -150,7 +168,7 @@ def main(argv=None):
     #    i.subexpr()
 
     if debug:
-        print "\n Icodes:"
+        print "\nIcodes:"
         print icodes
 
     if verbose:
