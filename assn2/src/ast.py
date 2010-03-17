@@ -14,7 +14,6 @@ Contains all of the AST Node classes.
 import math
 import cmath
 import numbers
-import templates
 import types
 import symbols
 from options import Options
@@ -75,10 +74,12 @@ class Formula(Node):
       vars = {}
       nx = self.nx
       ny = self.ny
-      vars["nx"] = VarR(val=nx)
-      vars["ny"] = VarR(val=ny)
-      vars["nx_1"] = VarR(val=nx-1)
-      vars["ny_1"] = VarR(val=ny-1)
+      vars["nx"] = symbols.VarR(val=nx)
+      vars["ny"] = symbols.VarR(val=ny)
+      vars["nx_1"] = symbols.VarR(val=nx-1)
+      vars["ny_1"] = symbols.VarR(val=ny-1)
+
+      return vars
  
     def __repr__(self):
         r = str(self.symbol)

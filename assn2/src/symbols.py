@@ -20,13 +20,13 @@ class RecordSet:
   def __init__(self):
     self.rs = {}
     self.fs = {}
-    self.ts = {}
+    self.ts = []
  
   def __getitem__(self, symbol):
     switch = {
-        'r': lambda symbol: self.rs.setdefault(symbol.index, symbols.VarR()),
-        'f': lambda symbol: self.fs.setdefault(symbol.index, symbols.VarF()),
-        'i': lambda symbol: symbols.IRef(symbol.index),
+        'r': lambda symbol: self.rs.setdefault(symbol.index, VarR()),
+        'f': lambda symbol: self.fs.setdefault(symbol.index, VarF()),
+        'i': lambda symbol: IRef(symbol.index),
         'p': lambda symbol: self.get_p(symbol.index, symbol.subscript),
         't': lambda symbol: self.get_t(symbol.index, subscript),
         'x': lambda symbol: self.get_x(symbol.subscript),
@@ -35,37 +35,31 @@ class RecordSet:
     func = switch[symbol.var_type]
     return func(symbol)
  
-  def get_p(self, symbol):
-    index = symbol.index
-    sub   = symbol.subscript
-    try:
-      return self.p[index]
-    except IndexError as inst:
-      if index == len(self.p):
-        self.p.append(Pattern())
-        return self.p[index]
-      else:
-        raise inst
+  def get_p(self, index, subscript):
+    if subscript:
+      return Index(self.ps[index], subscript)
+    else:
+      return self.ps[index]
  
   def new_t(self, size):
-    self.__t.append(symbols.Vec(size))
-    return len(self.__t) - 1
+    self.ts.append(Vec(size))
+    return len(self.ts) - 1
  
   def get_t(self, index, subscript=None):
     if(subscript):
-      return self.__t[index][subscript]
+      return Index(self.ts[index], subscript)
     else:
-      return self.__t[index]
+      return self.ts[index]
 
   def get_x(self, subscript=None):
     if(subscript):
-      return self.x[subscript]
+      return Index(self.x, subscript)
     else:
       return self.x
 
   def get_y(self, subscript=None):
     if(subscript):
-      return self.y[subscript]
+      return Index(self.x, subscript)
     else:
       return self.y
 
@@ -93,8 +87,8 @@ class Declaration:
         records = RecordSet()
  
         # setup vars for input/output and patterns
-        records.x = symbols.Vec(formula.nx)
-        records.y = symbols.Vec(formula.ny)
+        records.x = Vec(formula.nx)
+        records.y = Vec(formula.ny)
  
         patterns = {}
         for i in range(len(template.matches)):
@@ -102,10 +96,10 @@ class Declaration:
           if(isinstance(match, ast.Formula)):
             for k, v in match.pvars().iteritems():
               patterns[str(i) + "." + k] = v
-          elif(isinstance(match, Integer)):
-            patterns[i] = match
+          elif(isinstance(match, ast.Integer)):
+            patterns[str(i)] = match
  
-        records.p = patterns
+        records.ps = patterns
  
         return (template.icode_list, records)
  
@@ -257,6 +251,8 @@ class SymbolTable(dict):
         return True
       return val.isConst()
     raise KeyError 
+
+# stuff for symbols in icode:
 
 class NextVarSet:
     def __init__(self):

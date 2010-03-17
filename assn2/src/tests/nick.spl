@@ -31,8 +31,8 @@
 
 (template (BLIP ANY)
   (
-    dounroll $p1.nx
-      $r0 = $p0.a ( 0 0 )
+    dounroll $p1
+      $r0 = $p0.ny
       $r0 = 5 end dounroll
   ))
 
