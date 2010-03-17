@@ -13,23 +13,21 @@ icodelist.py represents the icodelist and optimizations
 import numbers
 
 from icode import *
-from intrinsics import *
 from symbols import *
+from intrinsics import *
 
 import copy
 
 #TODO Need to keep track of a LoopIdx stack
 #TODO Need to keep track of a Temp stack
 
-#tolerance = 1e-10
-
+TOLERANCE = 1e-10
 def feq(a,b):
-    if abs(a-b)<0.00000001:
-        return True
-    else:
-        return False
+    return abs(a-b) < TOLERANCE
 
 def promote_complex(val):
+    """If a complex value's imaginary value is negligable, it is promoted to a
+    simple real or integer value"""
     if isinstance(val, numbers.Complex):
         if val == complex(1,0):
             return int(1)
@@ -44,8 +42,16 @@ def promote_complex(val):
             return int(-1)
         if feq(0, val.real) and feq(0, val.imag):
             return int(0)
-
     return val
+
+def isequal(a,b):
+    if isinstance(a, tuple) and isinstance(b, tuple):
+        if len(a) == len(b):
+            for i in xrange(len(a)):
+                if a[i] is not b[i]:
+                    return False
+            return True
+    return False
 
 def num(sym):
     if isinstance(sym, numbers.Number):
@@ -59,6 +65,13 @@ def num(sym):
         return sym.num()
     return sym
     #raise NameError
+
+def process_sub(src, v, sub):
+    if isinstance(src, tuple):
+        a,b = src
+        if a is v:
+            return (v, sub.index(b))
+    return src
 
 def isnum_or_none(sym):
     return isinstance(sym, numbers.Number) or sym is None
@@ -89,14 +102,25 @@ class ICodeList:
         elif isinstance(old, Index):
             if isinstance(old.vec, Vec):
                 if isinstance(old.exp, list):
-                    return old.idx(stack)
+                    idx = list(old.idx(stack))
+                    new = [ self.varunroll(i, stack, varmap, False) for i in idx[1:] ]
+                    new.insert(0, idx[0])
+                    return tuple(new)
             return old
         elif isinstance(old, DoVar):
             raise TypeError
         elif isinstance(old, IRef):
             return stack[old.ref].val
+        elif isinstance(old, tuple):
+            #TODO do we want to do this?
+            #print "IREF: ", old
+            return old
         #We want to do SSA. If we are an output variable, create
         #a new map. Otherwise we want to use our old value.
+        elif isinstance(old, A):
+            x = self.varunroll(old.x, stack, varmap, False)
+            y = self.varunroll(old.y, stack, varmap, False)
+            return old.node.a(x,y)
         elif outvar:
             varmap[old] = old.__class__(old.val, old.name)
             return varmap[old]
@@ -105,13 +129,42 @@ class ICodeList:
         else:
             return old
 
+    def process_subvectors(self, vec, sub):
+        assert isinstance(sub, SubVector)
+
+        for inst in self.icode:
+            inst.src1 = process_sub(inst.src1, vec, sub)
+            if hasattr(inst, 'src2'):
+                inst.src2 = process_sub(inst.src2, vec, sub)
+            inst.dest = process_sub(inst.dest, vec, sub)
+
     def inline_calls(self):
         processed = []
         for inst in self.icode:
             if isinstance(inst, Call):
-                newil = inst.src1(inst.src2, inst.dest)
+                x = inst.src2
+                y = inst.dest
+                if isinstance(inst.src2, tuple):
+                    x = inst.src2[0]
+                if isinstance(inst.dest, tuple):
+                    y = inst.dest[0]
+
+                newil = inst.src1(x, y)
+                newil.unroll()
                 newil.inline_calls()
-                #S
+
+                #print "Before PROCESSING:"
+                #print "Src2: ", inst.src2
+                #print "Dest: ", inst.dest
+                #print "IL:\n", newil
+                if isinstance(inst.src2, tuple):
+                    newil.process_subvectors(x, inst.src2[1])
+
+                if isinstance(inst.dest, tuple):
+                    newil.process_subvectors(y, inst.dest[1])
+
+                #print "After PROCESSING:\n", newil, "\n"
+
                 processed.extend(newil.icode)
             elif isinstance(inst, DefTmp):
                 pass
@@ -127,7 +180,6 @@ class ICodeList:
         i = 0
         while i < len(self.icode):
             inst = self.icode[i]
-
             #LOOPS
             if isinstance(inst, Do):
                 stack.insert(0, DoVar(i,num(inst.src1)))
@@ -153,24 +205,46 @@ class ICodeList:
                 src1 = self.varunroll(inst.src1, stack, varmap, False)
                 dest = self.varunroll(inst.dest, stack, varmap, True)
                 unrolled.append(Copy(src1, dest))
+            elif isinstance(inst, Call):
+                src1 = self.varunroll(inst.src1, stack, varmap, False)
+                src2 = self.varunroll(inst.src2, stack, varmap, False)
+                dest = self.varunroll(inst.dest, stack, varmap, True)
+                unrolled.append(Call(src1, src2, dest))
             i+=1
 
         self.icode = unrolled
 
     def constprop(self):
         Var.next_val = NextVarSet()
-        i = 0
-        while i < len(self.icode):
+
+        varmap = {}
+
+        for i in xrange(len(self.icode)):
             inst = self.icode[i]
 
+            #print "Propagating: ", inst
+
+            #If an index tuple is of length 3 (when we have 'x(r0 1)') we
+            #need to reduce to 2
+            if hasattr(inst, 'src1') and isinstance(inst.src1, tuple) and len(inst.src1) > 2:
+                inst.src1 = tuple([inst.src1[0], sum(inst.src1[1:])])
+            if hasattr(inst, 'src2') and isinstance(inst.src2, tuple) and len(inst.src2) > 2:
+                inst.src2 = tuple([inst.src2[0], sum(inst.src2[1:])])
+            if hasattr(inst, 'dest') and isinstance(inst.dest, tuple) and len(inst.dest) > 2:
+                inst.dest = tuple([inst.dest[0], sum(inst.dest[1:])])
+
             if isinstance(inst, OpICode):
-                src1 = num(inst.src1)
-                src2 = num(inst.src2)
+                #src1 = num(inst.src1)
+                #src2 = num(inst.src2)
+
+                src1 = varmap.get(inst.src1, num(inst.src1))
+                src2 = varmap.get(inst.src2, num(inst.src2))
 
                 if isinstance(src1, numbers.Complex):
                     src1 = promote_complex(src1)
                 if isinstance(src2, numbers.Complex):
                     src2 = promote_complex(src2)
+                #print inst.__class__.__name__, src1, src2
 
                 if src1:
                     inst.src1 = src1
@@ -179,97 +253,235 @@ class ICodeList:
 
                 if isinstance(inst, Add):
                     if isnumeric(src1) and isnumeric(src2):
-                        inst.dest.val = src1 + src2
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1 + src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src1 == 0:
-                        inst.dest.val = src2
-                        self.icode[i] = None
+                        varmap[inst.dest] = src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src2 == 0:
-                        inst.dest.val = src1
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
+                    else:
+                        if inst.dest in varmap:
+                            del varmap[inst.dest]
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = None
 
                 elif isinstance(inst, Sub):
                     if isnumeric(src1) and isnumeric(src2):
-                        inst.dest.val = src1 - src2
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1 - src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src2 == 0:
-                        inst.dest.val = src1
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
+                    else:
+                        if inst.dest in varmap:
+                            del varmap[inst.dest]
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = None
 
                 elif isinstance(inst, Mul):
                     if isnumeric(src1) and isnumeric(src2):
-                        if isinstance(inst.dest, tuple):
-                            self.icode[i] = Copy(src1 * src2, inst.dest)
-                        else:
-                            inst.dest.val = src1 * src2
-                            self.icode[i] = None
+                        varmap[inst.dest] = src1 * src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src1 == 1:
-                        if isinstance(inst.dest, tuple):
-                            self.icode[i] = Copy(src2, inst.dest)
-                        else:
-                            inst.dest.val = src2
-                            self.icode[i] = None
+                        varmap[inst.dest] = src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src2 == 1:
-                        if isinstance(inst.dest, tuple):
-                            self.icode[i] = Copy(src1, inst.dest)
-                        else:
-                            inst.dest.val = src1
-                            self.icode[i] = None
+                        varmap[inst.dest] = src1
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src1 == 0 or src2 == 0:
-                        if isinstance(inst.dest, tuple):
-                            self.icode[i] = Copy(src1, inst.dest)
-                        else:
-                            inst.dest.val = 0
-                            self.icode[i] = None
+                        varmap[inst.dest] = 0
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
+                    else:
+                        if inst.dest in varmap:
+                            del varmap[inst.dest]
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = None
 
                 elif isinstance(inst, Div):
                     if isnumeric(src1) and isnumeric(src2):
-                        inst.dest.val = src1 / src2
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1 / src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src1 == 0:
-                        inst.dest.val = 0
-                        self.icode[i] = None
+                        varmap[inst.dest] = 0
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src2 == 1:
-                        inst.dest.val = src1
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src2 == 0:
                         raise ZeroDivisionError
+                    else:
+                        if inst.dest in varmap:
+                            del varmap[inst.dest]
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = None
 
                 elif isinstance(inst, Mod):
                     if isnumeric(src1) and isnumeric(src2):
-                        inst.dest.val = src1 % src2
-                        self.icode[i] = None
-                    elif src1 == 0:
-                        inst.dest.val = 0
-                        self.icode[i] = None
-                    elif src2 == 1:
-                        inst.dest.val = 0
-                        self.icode[i] = None
+                        varmap[inst.dest] = src1 % src2
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
+                    elif src1 == 0 or src2 == 1:
+                        varmap[inst.dest] = 0
+                        self.icode[i] = Copy(varmap[inst.dest], inst.dest)
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = varmap[inst.dest]
                     elif src2 == 0:
                         raise ZeroDivisionError
+                    else:
+                        if inst.dest in varmap:
+                            del varmap[inst.dest]
+                        if not isinstance(inst.dest, tuple):
+                            inst.dest.val = None
 
             elif isinstance(inst, Copy):
-                src1 = num(inst.src1)
-                if src1 is not None:
-                    if not isindex(src1):
-                        if not isindex(inst.dest):
-                            if isinstance(src1, numbers.Number):
-                                inst.dest.val = src1
-                            else:
-                                print i, inst
-                                inst.dest.val = src1.val
-                            self.icode[i] = None
-
-            i+=1
+                inst.src1 = varmap.get(inst.src1, num(inst.src1))
+                varmap[inst.dest] = inst.src1
+                if not isinstance(inst.dest, tuple):
+                    inst.dest.val = inst.src1
 
         #Remove any None placeholders
-        self.icode = [i for i in self.icode if i]
+        self.icode = [i for i in self.icode if i is not None]
+
+    def cse(self):
+        """Common Subexpression Elimination. see 'Advanced Compiler Design &
+        Implementation' by Steven Muchinich"""
+        pass
+
+    def propnegs(self):
+        #This a map from destinations to the assigned expressions
+        subexp = {}
+
+        for i in xrange(len(self.icode)):
+            inst = self.icode[i]
+
+            if isinstance(inst, OpICode):
+                s1 = subexp.get(inst.src1, inst.src1)
+                if not isinstance(s1, OpICode):
+                    inst.src1 = s1
+
+                s2 = subexp.get(inst.src2, inst.src2)
+                if not isinstance(s2, OpICode):
+                    inst.src2 = s2
+
+                #Clear out the unneccessary instruction, because we do not need the value anymore
+                if inst.dest in subexp:
+                    if inst.dest != inst.src1 and inst.dest != inst.src2:
+                        del subexp[inst.dest]
+
+                subexp[inst.dest] = inst.__class__(inst.src1, inst.src2, None)
+
+                if isinstance(inst, Add):
+                    if inst.src1 in subexp:
+                        x = subexp[inst.src1]
+                        if isinstance(x, Mul):
+                            if x.src1 == -1:
+                                inst = Sub(inst.src2, x.src2, inst.dest)
+                                subexp[inst.dest] = inst.__class__(inst.src1, inst.src2, None)
+                            if x.src2 == -1:
+                                inst = Sub(inst.src2, x.src1, inst.dest)
+                                subexp[inst.dest] = inst.__class__(inst.src1, inst.src2, None)
+                    if inst.src2 in subexp:
+                        x = subexp[inst.src2]
+                        if isinstance(x, Mul):
+                            if x.src1 == -1:
+                                del subexp[inst.src2]
+                                inst = Sub(inst.src1, x.src2, inst.dest)
+                                subexp[inst.dest] = inst.__class__(inst.src1, inst.src2, None)
+                            elif x.src2 == -1:
+                                del subexp[inst.src1]
+                                inst = Sub(inst.src2, x.src1, inst.dest)
+                                subexp[inst.dest] = inst.__class__(inst.src1, inst.src2, None)
+
+            self.icode[i] = inst
+
+        #Remove any None placeholders
+        self.icode = [i for i in self.icode if i is not None]
+
+    def dca(self):
+        #maps the variables to the line they are last used in
+        varmap = {}
+
+        #keeps track of whether an outvariable was already set
+        outmap = {}
+
+        for i in reversed(xrange(len(self.icode))):
+            inst = self.icode[i]
+
+            if inst.dest in varmap or (isinstance(inst.dest, tuple) and inst.dest not in outmap):
+                if isinstance(inst.dest, tuple):
+                    outmap[inst.dest] = i
+                    #print "OUTMAP: ", outmap
+                if hasattr(inst, 'src1') and not isinstance(inst.src1, numbers.Number):
+                    varmap[inst.src1] = i
+                if hasattr(inst, 'src2') and not isinstance(inst.src2, numbers.Number):
+                    varmap[inst.src2] = i
+                if inst.dest in varmap:
+                    if not (hasattr(inst, 'src1') and isequal(inst.src1, inst.dest)) and not (hasattr(inst, 'src2') and isequal(inst.src2, inst.dest)):
+                        del varmap[inst.dest]
+                #print "VARMAP: ", inst, varmap
+            else:
+                self.icode[i] = None
+        self.icode = [i for i in self.icode if i is not None]
+
+
+    def split_temp_arrays(self):
+        varmap = {}
+        for i in xrange(len(self.icode)):
+            inst = self.icode[i]
+            if hasattr(inst, 'src1'):
+                if inst.src1 in varmap:
+                    inst.src1 = varmap[inst.src1]
+                elif isinstance(inst.src1, tuple):
+                    if isinstance(inst.src1[0], Vec) and not isinstance(inst.src1[0], IOVec):
+                        varmap[inst.src1] = VarF()
+                        inst.src1 = varmap[inst.src1]
+            if hasattr(inst, 'src2'):
+                if inst.src2 in varmap:
+                    inst.src2 = varmap[inst.src2]
+                elif isinstance(inst.src2, tuple):
+                    if isinstance(inst.src2[0], Vec) and not isinstance(inst.src2[0], IOVec):
+                        varmap[inst.src2] = VarF()
+                        inst.src2 = varmap[inst.src2]
+            if hasattr(inst, 'dest'):
+                if inst.dest in varmap:
+                    inst.dest = varmap[inst.dest]
+                elif isinstance(inst.dest, tuple):
+                    if isinstance(inst.dest[0], Vec) and not isinstance(inst.dest[0], IOVec):
+                        varmap[inst.dest] = VarF()
+                        inst.dest = varmap[inst.dest]
 
     def __repr__(self):
-      return str(self)
+        return str(self)
 
     def __str__(self):
-        return '\n' + '\n'.join([str(i) for i in self.icode])
+        return '\n'.join([str(i) for i in self.icode])
 
     def count(self):
         add = sum([1 for i in self.icode if isinstance(i, Add)])

@@ -138,12 +138,6 @@ def main(argv=None):
         if verbose:
             print i.count()
 
-
-    if verbose:
-        print "\n** Processing: Inlining Calls"
-    for i in icodes:
-        i.inline_calls()
-
     if verbose:
         print "\n** Optimization: Unrolling the icode"
     for i in icodes:
@@ -154,17 +148,55 @@ def main(argv=None):
         if verbose:
             print i.count()
 
+
+    if verbose:
+        print "\n** Processing: Inlining Calls"
+    for i in icodes:
+        i.inline_calls()
+
+
     if verbose:
         print "\n** Optimization: Constant Propagation and Constant Folding (Pass #2)"
     for i in icodes:
         i.constprop()
+        if debug:
+            print "\nIcodes:"
+            print i
         if verbose:
             print i.count()
 
-    #if verbose:
-    #    print "\n** Optimization: Subexpression elimination"
-    #for i in icodes:
-    #    i.subexpr()
+    if verbose:
+        print "\n** Optimization: Splitting Temporary Vectors"
+    for i in icodes:
+        i.split_temp_arrays()
+        if debug:
+            print "\nIcodes:"
+            print i
+ 
+    if verbose:
+        print "\n** Optimization: Constant Propagation and Constant Folding (Pass #3)"
+    for i in icodes:
+        i.constprop()
+        i.propnegs()
+        if verbose:
+            print i.count()
+        if debug:
+            print "\nIcodes:"
+            print i
+ 
+    if verbose:
+        print "\n** Optimization: Subexpression elimination"
+    for i in icodes:
+        i.cse()
+        pass
+ 
+ 
+    if verbose:
+        print "\n** Optimization: Dead Code Elimination"
+    for i in icodes:
+        i.dca()
+        if verbose:
+            print i.count()
 
     if debug:
         print "\nIcodes:"

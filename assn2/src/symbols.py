@@ -264,7 +264,7 @@ class NextVarSet:
     def __init__(self):
         #print 'NextVarSet created'
         self.vars = {}
-
+ 
     def __getitem__(self, key):
         if key not in self.vars:
             self.vars[key] = 0
@@ -272,64 +272,70 @@ class NextVarSet:
         self.vars[key] += 1
         return "%s%d" % (key, i)
         #return i
-
+ 
 class Var:
     var_type = 'v'
     next_val = NextVarSet()
-
+ 
     def __init__(self,val=None,name=None):
-        self.val = val
-        self.name = name
+        self.val = None
+        self.name = None
         self.out_name = None
-
+ 
     def num(self):
         if self.val is not None:
             if hasattr(self.val, 'num'):
                 return getattr(self.val, 'num')()
             return self.val
         return self
-
+ 
     def __str__(self):
         if self.val is not None:
             if hasattr(self.val, 'num'):
                 return str(getattr(self.val, 'num')())
-            return str(self.val)
+            #return str(self.val)
         if not self.name:
             self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
-        return 'Var(%s)' % (self.name)
-
+        return '$%s' % (self.name)
+ 
     #TODO: this needs to be fixed!
     def __mul__(self, other):
         if self.val is not None:
             return self.val * other
         return '%s * %s' % (self.num(), other.num())
-
+ 
     def __rmul__(self, other):
         if self.val is not None:
             return other * self.val
         return '%s * %s' % (other.num(), self.num())
-
+ 
     def __repr__(self):
         return str(self)
-
+ 
 #TODO we should construct these dynamically?
 class VarR(Var):
     var_type = 'r'
-
+ 
+    def __add__(self, other):
+        return self.num() + other
+ 
+    def __radd__(self, other):
+        return other + self.num()
+ 
 class VarF(Var):
     var_type = 'f'
-
+ 
 class DoVar(Var):
     """This is used in Do Loops to indicate the current loop value"""
     def __init__(self,inst,n,val=0):
         self.inst = inst #The instruction this variable is associated with.
         self.n = n # The value that this variable goes up to
         self.val = val #The present value during a particular unrolling step
-
+ 
     def __str__(self):
         return "DoVar(val=%d, n=%d, inst=%d)" % (self.val, self.n, self.inst)
-
-
+ 
+ 
 ### VECTORS ###
 class Vec(Var):
     var_type = 't'
@@ -340,7 +346,7 @@ class Vec(Var):
         self.val = None
         self.name = None
         self.out_name = None
-
+ 
     def __str__(self):
         if self.val is not None:
             if hasattr(self.val, 'num'):
@@ -349,41 +355,69 @@ class Vec(Var):
         if self.name is None:
             self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
         return '$%s' % (self.name)
-
+ 
     def __len__(self):
         return self.size
-
+ 
 class IOVec(Vec):
     def __str__(self):
         return self.var_type
-
+ 
 class VarIn(IOVec):
     var_type = 'x'
-
+ 
 class VarOut(IOVec):
     var_type = 'y'
-
-
-class IRef:
+ 
+ 
+class IRef(object):
     var_type = 'i'
     """This is just a reference to a variable $i0, $i1 ... """
     def __init__(self,ref):
         self.ref = ref
-
+ 
     def __str__(self):
         return "$i%d" % (self.ref)
-
-class Index:
+ 
+class SubVector(object):
+    def __init__(self, start, step, stop):
+        self.start = int(start)
+        self.step = int(step)
+        self.stop = int(stop)
+ 
+    def index(self, old):
+        #print self.start, self.step, old
+        new = self.start + self.step * old
+        if new > self.stop:
+            return None
+        return new
+ 
+    def __iadd__(self, other):
+        assert isinstance(other, int)
+        self.start += other
+        self.stop += other
+        return self
+ 
+    def __repr__(self):
+        return "%s:%s:%s" % (self.start, self.step, self.stop)
+ 
+class Index(object):
     """This is used to store the index in icode."""
     def __init__(self, vec, exp):
         self.vec = vec
         self.exp = exp
-
+ 
     def idx(self, stack=None):
         #Calculate our accumulator and the multiplies
         accum = self.exp[0]
+        if isinstance(accum, tuple):
+            accum = SubVector(*accum)
+ 
+        if isinstance(accum, Var):
+            accum = 0
+ 
         idxs = [ e * i for (e, i) in zip(self.exp[1:], stack) ]
-
+ 
         #The multiplies can be either str or int. sum them up or concatenate
         accum += sum([ i for i in idxs if isinstance(i, int) ])
         strs = [ i for i in idxs if isinstance(i, str) ]
@@ -394,11 +428,22 @@ class Index:
             if accum < 0:
                 s += "-%d" % (-accum)
             return (self.vec, s)
+ 
+        if isinstance(self.exp[0], Var):
+            return (self.vec, self.exp[0], accum)
         return (self.vec, accum)
-
+ 
     def num(self):
         return self
-
+ 
     def __str__(self):
         return "Index(%s, %s)" % (self.vec, self.exp)
-
+ 
+class A(object):
+    def __init__(self, node, x, y):
+        self.node = node
+        self.x = x
+        self.y = y
+ 
+    def __repr__(self):
+        return "A(%s, %s)" % (self.x, self.y)
