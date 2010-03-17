@@ -49,46 +49,26 @@ class RecordSet:
   # not at all in the compiler python code. Instead, perhaps we should just
   # be tracking usage?
   def __init__(self):
-    self.__r = []
-    self.__f = []
-    self.__i = []
-    self.__t = []
+    self.rs = {}
+    self.fs = {}
+    self.ts = {}
  
   def __getitem__(self, symbol):
     switch = {
-        'r': lambda symbol: self.get_r(symbol.index),
-        'f': lambda symbol: self.get_f(symbol.index),
+        'r': lambda symbol: self.rs.setdefault(symbol.index, symbols.VarR()),
+        'f': lambda symbol: self.fs.setdefault(symbol.index, symbols.VarF()),
         'i': lambda symbol: symbols.IRef(symbol.index),
-        'p': lambda symbol: self.get_p(symbol),
-        't': lambda symbol: self.get_t(symbol.index, sub),
-        'x': lambda symbol: self.get_x(symbol.sub),
-        'y': lambda symbol: self.get_y(symbol.sub)
+        'p': lambda symbol: self.get_p(symbol.index, symbol.subscript),
+        't': lambda symbol: self.get_t(symbol.index, subscript),
+        'x': lambda symbol: self.get_x(symbol.subscript),
+        'y': lambda symbol: self.get_y(symbol.subscript)
         }
     func = switch[symbol.var_type]
     return func(symbol)
  
-  def get_r(self, index):
-    try:
-      return self.__r[index]
-    except IndexError as inst:
-      if index == len(self.__r):
-        self.__r.append(symbols.VarR())
-        return self.__r[index]
-      else:
-        raise inst
- 
-  def get_f(self, index):
-    try:
-      return self.__f[index]
-    except IndexError as inst:
-      if index == len(self.__f):
-        self.__f.append(symbols.VarF())
-        return self.__f[index]
-      else:
-        raise inst
- 
-  def get_p(self, index):
-    # pattern varible behavior is probably different in a bunch of ways
+  def get_p(self, symbol):
+    index = symbol.index
+    sub   = symbol.subscript
     try:
       return self.p[index]
     except IndexError as inst:
