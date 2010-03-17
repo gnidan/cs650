@@ -32,7 +32,7 @@
 (template (BLIP ANY)
   (
     dounroll $p1.nx
-      $r0 = $p0.a ( $p1 )
+      $r0 = $p0.a ( 0 0 )
       $r0 = 5 end dounroll
   ))
 
@@ -48,6 +48,7 @@ F8
   ))
 
 (F 2)
+
 ;;
 ;;(template (T ANY ANY, ANY:ANY:ANY) 
 ;;		;; ---- T(mn n,i:j:k) parameters: self(ny,nx), mn, n, i, j, k 

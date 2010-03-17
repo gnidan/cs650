@@ -129,7 +129,7 @@ class Declaration:
  
         patterns = {}
         for i in range(len(template.matches)):
-          match = templates.matches[i]
+          match = template.matches[i]
           if(isinstance(match, ast.Formula)):
             for k, v in match.pvars().iteritems():
               patterns[str(i) + "." + k] = v
