@@ -16,7 +16,7 @@ import cmath
 import numbers
 import templates
 import types
-import symbol_collection as symbols
+import symbols
 from options import Options
 
 class Node(object):
