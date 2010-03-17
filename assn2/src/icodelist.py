@@ -181,7 +181,7 @@ class ICodeList:
         while i < len(self.icode):
             inst = self.icode[i]
             #LOOPS
-            if isinstance(inst, Do):
+            if isinstance(inst, Do) or isinstance(inst, DoUnroll):
                 stack.insert(0, DoVar(i,num(inst.src1)))
                 #print 'DoVar: ', i, inst, num(inst.src1), stack
             elif isinstance(inst, End):

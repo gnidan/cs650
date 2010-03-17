@@ -569,11 +569,13 @@ class SPLParser:
 
     def p_subscript_simple(self, p):
         'subscript : index'
-        p[0] = icode.Subscript(p[1])
+        p[0] = [ p[1] ]
 
     def p_subscript_multiplicands(self, p):
         'subscript : index multiplicands'
-        p[0] = icode.Subscript(p[1], *p[2])
+        list = [ p[1] ]
+        list.extend(p[2])
+        p[0] = list
 
     def p_multiplicands(self, p):
         'multiplicands : ivalue multiplicands'
@@ -586,43 +588,43 @@ class SPLParser:
 
     def p_index_simple(self, p):
         'index : ivalue'
-        p[0] = icode.Index(p[1])
+        p[0] = p[1]
 
     def p_index_range(self, p):
         'index : ivalue COLON ivalue COLON ivalue'
-        p[0] = icode.Range(p[1], p[3], p[5])
+        p[0] = (p[1], p[3], p[5])
 
     def p_add(self, p):
         'add : ivar EQUALS ivalue PLUS ivalue'
-        p[0] = icode.Add(p[1], p[3], p[5])
+        p[0] = icode.Add(p[3], p[5], p[1])
 
     def p_sub(self, p):
         'sub : ivar EQUALS ivalue MINUS ivalue'
-        p[0] = icode.Sub(p[1], p[3], p[5])
+        p[0] = icode.Sub(p[3], p[5], p[1])
 
     def p_mul(self, p):
         'mul : ivar EQUALS ivalue MULT ivalue'
-        p[0] = icode.Mul(p[1], p[3], p[5])
+        p[0] = icode.Mul(p[3], p[5], p[1])
 
     def p_div(self, p):
         'div : ivar EQUALS ivalue DIV ivalue'
-        p[0] = icode.Div(p[1], p[3], p[5])
+        p[0] = icode.Div(p[3], p[5], p[1])
 
     def p_mod(self, p):
         'mod : ivar EQUALS ivalue MOD ivalue'
-        p[0] = icode.Mod(p[1], p[3], p[5])
+        p[0] = icode.Mod(p[3], p[5], p[1])
 
     def p_assn(self, p):
         'assn : ivar EQUALS ivalue'
-        p[0] = icode.Copy(p[1], p[3])
+        p[0] = icode.Copy(p[3], p[1])
       
     def p_call(self, p):
         'call : ivar EQUALS CALL symbol'
-        p[0] = icode.Call(p[1], p[4])
+        p[0] = icode.Call(p[4], None, p[1])
 
     def p_call_arg(self, p):
         'call : ivar EQUALS CALL symbol ivar'
-        p[0] = icode.Call(p[1], p[4], p[5])
+        p[0] = icode.Call(p[4], p[5], p[1])
 
     def p_do(self, p):
         'do : LOOP ivalue'

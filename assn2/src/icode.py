@@ -14,16 +14,13 @@ import copy
 
 class ICode(object):
   def simplify(self, records, options):
-    new = copy.copy(self)
-    
     if self.dest and isinstance(self.dest, Symbol):
-      new.dest = self.dest.simplify(records, options)
+      self.dest = self.dest.simplify(records, options)
     if self.src1 and isinstance(self.src1, Symbol):
-      new.src1 = self.src1.simplify(records, options)
+      self.src1 = self.src1.simplify(records, options)
     if self.src2 and isinstance(self.src2, Symbol):
-      new.src2 = self.src2.simplify(records, options)
-
-    return new
+      self.src2 = self.src2.simplify(records, options)
+    return self
 
   def __repr__(self):
     return str(self)
@@ -169,6 +166,10 @@ class Symbol:
     self.subscript = subscript
 
   def simplify(self, records, options):
+    if self.subscript:
+      for i in range(len(self.subscript)):
+        if isinstance(self.subscript[i], Symbol):
+          self.subscript[i] = self.subscript[i].simplify(records, options)
     return records[self]
 
   def __repr__(self):
@@ -176,33 +177,4 @@ class Symbol:
       return "$%s%s" % (self.var_type, self.index)
     else:
       return "$%s%s[%s]" % (self.var_type, self.index, self.subscript)
-
-class Subscript:
-  def __init__(self, index, *multiplicands):
-    self.index = index
-    self.multiplicands = multiplicands
-
-  def __repr__(self):
-    r = repr(self.index)
-    for m in self.multiplicands:
-      r += " "
-      r += repr(m)
-    return r
-
-class Index:
-  def __init__(self, value):
-    self.value = value
-
-  def __repr__(self):
-    return repr(self.value)
-
-class Range(Index):
-  def __init__(self, start, stride, end):
-    self.start = start
-    self.stride = stride
-    self.end = end
-
-  def __repr__(self):
-    return "%s:%s:%s" % (repr(self.start), repr(self.stride), repr(self.end))
-
   

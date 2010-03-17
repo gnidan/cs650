@@ -30,7 +30,7 @@
 (template (BLIP ANY)
   (
       dounroll $p0.ny
-        $y( $i0 ) = $p0.nx
+        $y( 0 1 ) = $p0.nx
       end
   ))
 

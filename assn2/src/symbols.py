@@ -11,6 +11,7 @@ symbols.py Contains all of the variable types referenced at various stages of IC
 
 import numbers
 import ast
+import copy
 
 class RecordSet:
   # notes: actually, maybe the behavior with setting up all the variables,
@@ -26,9 +27,9 @@ class RecordSet:
     switch = {
         'r': lambda symbol: self.rs.setdefault(symbol.index, VarR()),
         'f': lambda symbol: self.fs.setdefault(symbol.index, VarF()),
-        'i': lambda symbol: IRef(symbol.index),
+        'i': lambda symbol: IRef(int(symbol.index)),
         'p': lambda symbol: self.get_p(symbol.index, symbol.subscript),
-        't': lambda symbol: self.get_t(symbol.index, subscript),
+        't': lambda symbol: self.get_t(symbol.index, symbol.subscript),
         'x': lambda symbol: self.get_x(symbol.subscript),
         'y': lambda symbol: self.get_y(symbol.subscript)
         }
@@ -100,8 +101,10 @@ class Declaration:
             patterns[str(i)] = match
  
         records.ps = patterns
+
+        icode = copy.deepcopy(template.icode_list)
  
-        return (template.icode_list, records)
+        return (icode, records)
 
   def __repr__(self):
     return "%s(%s, %s)" % (self.__class__.__name__, self.size_rule, 
@@ -278,8 +281,8 @@ class Var:
     next_val = NextVarSet()
  
     def __init__(self,val=None,name=None):
-        self.val = None
-        self.name = None
+        self.val = val
+        self.name = name
         self.out_name = None
  
     def num(self):
@@ -333,7 +336,7 @@ class DoVar(Var):
         self.val = val #The present value during a particular unrolling step
  
     def __str__(self):
-        return "DoVar(val=%d, n=%d, inst=%d)" % (self.val, self.n, self.inst)
+        return "DoVar(val=%d, n=%d, inst=%s)" % (self.val, self.n, self.inst)
  
  
 ### VECTORS ###
@@ -377,7 +380,10 @@ class IRef(object):
         self.ref = ref
  
     def __str__(self):
-        return "$i%d" % (self.ref)
+        return "IRef(%d)" % (self.ref)
+
+    def __repr__(self):
+        return str(self)
  
 class SubVector(object):
     def __init__(self, start, step, stop):
@@ -414,7 +420,10 @@ class Index(object):
             accum = SubVector(*accum)
  
         if isinstance(accum, Var):
-            accum = 0
+            accum = num(accum)
+
+        if isinstance(accum, IRef):
+            accum = stack[accum.ref].val
  
         idxs = [ e * i for (e, i) in zip(self.exp[1:], stack) ]
  
