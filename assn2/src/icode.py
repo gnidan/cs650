@@ -163,11 +163,10 @@ class StmtList(ICode):
   def __len__(self):
     return len(self.stmts)
 
-class Symbol(ICode):
-  def __init__(self, symbol, subscript=None, dot=None):
+class Symbol:
+  def __init__(self, symbol, subscript=None):
     self.var_type, self.index = symbol
     self.subscript = subscript
-    self.dot = dot
 
   def evaluate(self, records, options):
     return records[self]
@@ -178,7 +177,7 @@ class Symbol(ICode):
     else:
       return "$%s%s[%s]" % (self.var_type, self.index, self.subscript)
 
-class Subscript(ICode):
+class Subscript:
   def __init__(self, index, *multiplicands):
     self.index = index
     self.multiplicands = multiplicands
@@ -190,7 +189,7 @@ class Subscript(ICode):
       r += repr(m)
     return r
 
-class Index(ICode):
+class Index:
   def __init__(self, value):
     self.value = value
 
