@@ -174,9 +174,9 @@ class Symbol(ICode):
 
   def __repr__(self):
     if self.subscript == None:
-      return "$%s%d" % (self.var_type, self.index)
+      return "$%s%s" % (self.var_type, self.index)
     else:
-      return "$%s%d[%s]" % (self.var_type, self.index, self.subscript)
+      return "$%s%s[%s]" % (self.var_type, self.index, self.subscript)
 
 class Subscript(ICode):
   def __init__(self, index, *multiplicands):
