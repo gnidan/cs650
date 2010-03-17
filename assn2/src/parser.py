@@ -547,17 +547,9 @@ class SPLParser:
                 | IVECTOR"""
         p[0] = icode.Symbol(p[1])
 
-    def p_ivar_pattern(self, p):
-        'ivar : ISCALAR DOT symbol'
-        p[0] = icode.Symbol(p[1], dot=p[3])
-
     def p_ivar_vector(self, p):
         'ivar : IVECTOR LPAREN subscript RPAREN'
         p[0] = icode.Symbol(p[1], subscript=p[3])
-
-    def p_ivar_pattern_vector(self, p):
-        'ivar : ISCALAR DOT symbol LPAREN subscript RPAREN'
-        p[0] = icode.Symbol(p[1], dot=p[3], subscript=p[5])
 
     def p_subscript_simple(self, p):
         'subscript : index'
