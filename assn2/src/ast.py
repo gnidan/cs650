@@ -174,9 +174,6 @@ class Scalar(Number):
     def simplify(self, symtab):
         return self.value()
 
-    def evaluate(self, symtab, options):
-        return self.value()
-
     def __repr__(self):
         return "%s" % (self.val)
 
@@ -191,9 +188,6 @@ class Pi(Double):
         pass
 
     def simplify(self, symtab):
-        return math.pi
-
-    def evaluate(self, symtab, options):
         return math.pi
 
     def __repr__(self):
@@ -245,9 +239,6 @@ class Function(Node):
             return calc(number)
         return self
 
-    def evaluate(self, symtab, options):
-        raise NotImplementedError
-
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.number)
 
@@ -257,9 +248,6 @@ class w(Function):
         self.k = k
 
     def simplify(self, symtab):
-        raise NotImplementedError #TODO
-
-    def evaluate(self, symtab, options):
         raise NotImplementedError #TODO
 
     def __repr__(self):
@@ -352,14 +340,6 @@ class Define(Assignment):
         symtab[self.symbol] = self.value
         return None
 
-    def evaluate(self, symtab, options):
-        #print "Symbol: %s" % self.symbol
-        #print "Value: %s" % self.value
-        #TODO this is hackish. is there a better way?
-        if not isinstance(self.value, numbers.Number):
-            symtab[self.symbol] = self.value.evaluate(symtab, options)
-        return []
-
     def __repr__(self):
         return "Define(%s, %s)" % (self.symbol, self.value)
 
@@ -370,10 +350,6 @@ class Undefine(Assignment):
     def simplify(self, symtab):
         del symtab[self.symbol]
         return None
-
-    def evaluate(self, symtab, options):
-        del symtab[self.symbol]
-        return []
 
     def __repr__(self):
         return "Undefine(%s)" % (self.symbol)
@@ -392,9 +368,6 @@ class Symbol(str, Node):
             self)
         return self
 
-    def evaluate(self, symtab, options):
-        return symtab[self.symbol]
-
     def __repr__(self):
         return "Symbol(%s)" % (self.symbol)
 
@@ -411,6 +384,7 @@ class Directive(Node):
 
     def evaluate(self, symtab, options):
         options[self.__class__.__name__.lower()] = self.value
+        return []
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.value)
@@ -424,9 +398,7 @@ class Comment(Node):
         return self
 
     def evaluate(self, symtab, options):
-        #TODO fix
         return [self]
-#print "%s %s %s" % (options.lang.comment_begin(), self.txt, options.lang.comment_end())
 
     def __repr__(self):
         return "Comment(\"%s\")" % (self.txt)
@@ -512,10 +484,6 @@ class Primitive(Assignment):
     def simplify(self, symtab):
         symtab[self.symbol] = symbols.Primitive(self.shape)
         return None
-
-    def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Primitive(self.shape)
-        return []
  
 class Operation(Assignment):
     def __init__(self, symbol, size_rule):
@@ -525,10 +493,6 @@ class Operation(Assignment):
     def simplify(self, symtab):
         symtab[self.symbol] = symbols.Operation(self.size_rule)
         return None
-
-    def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Operation(self.size_rule)
-        return []
  
 class Direct(Assignment):
     def __init__(self, symbol, size_rule):
@@ -538,10 +502,6 @@ class Direct(Assignment):
     def simplify(self, symtab):
         symtab[self.symbol] = symbols.Direct(self.size_rule)
         return None
-
-    def evaluate(self, symtab, options):
-        symtab[self.symbol] = symbols.Direct(self.size_rule)
-        return []
  
 ##### 3.2 Templates ######
 class Template(Assignment):
@@ -559,13 +519,6 @@ class Template(Assignment):
                 self.pattern.symbol)
         symtab[self.pattern.symbol].addTemplate(self)
         return None
- 
-    def evaluate(self, symtab, options):
-        if self.pattern.symbol not in symtab:
-            raise NameError("%s not declared before being used" % 
-                self.pattern.symbol)
-        symtab[self.pattern.symbol].addTemplate(self)
-        return []
 
     def __repr__(self):
         return "Template(%s, %s)" % (self.pattern, self.icode_list)
