@@ -33,7 +33,7 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
-#        self.lexer_test(data)
+        self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):
@@ -69,7 +69,7 @@ class SPLParser:
         'SYMBOL', 'SHAPE', 'SIZE_RULE', 'PRIMITIVE', 'OPERATION', 'DIRECT',
         'LBRACKET', 'RBRACKET',
         'CALL', 'LOOP', 'LOOPUNROLL', 'END', 'NEWTMP', 'EQUALS',
-        'ISCALAR', 'IVECTOR', 'DOT'
+        'ISCALAR', 'IVECTOR'
         )
 
     binop_alias = {
@@ -159,7 +159,6 @@ class SPLParser:
     t_HASH = r'\#'
     t_COMMA = r','
     t_COLON = r':'
-    t_DOT = r'\.'
 
     t_WSCALAR = r'w'
 
@@ -195,16 +194,6 @@ class SPLParser:
         t.type = self.RESERVED.get(t.value.lower(), "SYMBOL")
         return t
 
-    def t_ISCALAR(self, t):
-        r'\$([rfi]\d+|p\d+(\.(nx|ny|nx_1|ny_1|matrix_row|matrix_col))?)'
-        exp = re.compile(r'\$(?P<Type>.)(?P<Index>.+)')
-        match = exp.match(t.value)
-        if not match:
-          raise Exception()
-        type, index = match.group('Type','Index')
-        t.value = (type, index)
-        return t
-
     def t_IVECTOR(self, t):
         r'\$(x|y|t\d+|p\d+\.a)'
         exp = re.compile(r'\$(?P<Type>.)(?P<Index>.*)')
@@ -217,6 +206,17 @@ class SPLParser:
         else:
           t.value = (type, 0)
         return t
+
+    def t_ISCALAR(self, t):
+        r'\$([rfi]\d+|p\d+(\.(nx|ny|nx_1|ny_1|matrix_row|matrix_col))?)'
+        exp = re.compile(r'\$(?P<Type>.)(?P<Index>.+)')
+        match = exp.match(t.value)
+        if not match:
+          raise Exception()
+        type, index = match.group('Type','Index')
+        t.value = (type, index)
+        return t
+
 
     # Define a rule so we can track line numbers
     def t_newline(self,t):
