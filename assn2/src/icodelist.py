@@ -209,6 +209,7 @@ class ICodeList:
                 dest = self.varunroll(inst.dest, stack, varmap, True)
                 unrolled.append(Copy(src1, dest))
             elif isinstance(inst, Call):
+                inst = copy.deepcopy(inst)
                 src1 = self.varunroll(inst.src1, stack, varmap, False)
                 src2 = self.varunroll(inst.src2, stack, varmap, False)
                 dest = self.varunroll(inst.dest, stack, varmap, True)

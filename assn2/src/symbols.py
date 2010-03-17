@@ -310,7 +310,7 @@ class Var:
                 return str(getattr(self.val, 'num')())
             #return str(self.val)
         if not self.name:
-            self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
+            self.name = "Var(%s, %s)" % (self.__class__.next_val[self.__class__.var_type], self.val)
         return '$%s' % (self.name)
  
     #TODO: this needs to be fixed!
@@ -445,8 +445,10 @@ class Index(object):
 
         if isinstance(accum, IRef):
             accum = stack[accum.ref].val
+
+        zips = zip(self.exp[1:], stack)
  
-        idxs = [ e * i for (e, i) in zip(self.exp[1:], stack) ]
+        idxs = [ e * i for (e, i) in zips ]
  
         #The multiplies can be either str or int. sum them up or concatenate
         accum += sum([ i for i in idxs if isinstance(i, int) ])
