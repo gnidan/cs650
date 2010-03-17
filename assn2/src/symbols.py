@@ -59,7 +59,7 @@ class RecordSet:
 
   def get_y(self, subscript=None):
     if(subscript):
-      return Index(self.x, subscript)
+      return Index(self.y, subscript)
     else:
       return self.y
 
@@ -86,16 +86,17 @@ class Declaration:
         records = RecordSet()
  
         # setup vars for input/output and patterns
-        records.x = Vec(formula.nx)
-        records.y = Vec(formula.ny)
+        records.x = VarIn(formula.nx)
+        records.y = VarOut(formula.ny)
  
         patterns = {}
         for i in range(len(template.matches)):
           match = template.matches[i]
           if(isinstance(match, ast.Formula)):
-            for k, v in match.pvars().iteritems():
+            pvars = match.pvars()
+            for k, v in pvars.iteritems():
               patterns[str(i) + "." + k] = v
-          elif(isinstance(match, ast.Integer)):
+          elif(isinstance(match, int)):
             patterns[str(i)] = match
  
         records.ps = patterns
@@ -277,8 +278,8 @@ class Var:
     next_val = NextVarSet()
 
     def __init__(self,val=None,name=None):
-        self.val = None
-        self.name = None
+        self.val = val
+        self.name = name
         self.out_name = None
 
     def num(self):
@@ -292,10 +293,10 @@ class Var:
         if self.val is not None:
             if hasattr(self.val, 'num'):
                 return str(getattr(self.val, 'num')())
-            #return str(self.val)
+            return str(self.val)
         if not self.name:
             self.name = "%s" % (self.__class__.next_val[self.__class__.var_type])
-        return '$%s' % (self.name)
+        return 'Var(%s)' % (self.name)
 
     #TODO: this needs to be fixed!
     def __mul__(self, other):
@@ -334,7 +335,7 @@ class Vec(Var):
     var_type = 't'
     next_val = NextVarSet()
     def __init__(self, size=None):
-        print "Initializing VECTOR", id(self)
+        #print "Initializing VECTOR", id(self)
         self.size = size
         self.val = None
         self.name = None
@@ -400,3 +401,4 @@ class Index:
 
     def __str__(self):
         return "Index(%s, %s)" % (self.vec, self.exp)
+

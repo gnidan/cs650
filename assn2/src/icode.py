@@ -13,15 +13,15 @@ icode.py represents the icode
 import copy
 
 class ICode(object):
-  def evaluate(self, records, options):
+  def simplify(self, records, options):
     new = copy.copy(self)
     
-    if self.dest:
-      new.dest = self.dest.evaluate(records, options)
-    if self.src1:
-      new.src1 = self.src1.evaluate(records, options)
-    if self.src2:
-      new.src2 = self.src2.evaluate(records, options)
+    if self.dest and isinstance(self.dest, Symbol):
+      new.dest = self.dest.simplify(records, options)
+    if self.src1 and isinstance(self.src1, Symbol):
+      new.src1 = self.src1.simplify(records, options)
+    if self.src2 and isinstance(self.src2, Symbol):
+      new.src2 = self.src2.simplify(records, options)
 
     return new
 
@@ -154,8 +154,8 @@ class StmtList(ICode):
         
       self.stmts = new_stmts
 
-  def evaluate(self, records, options):
-    return [s.evaluate(records, options) for s in self.stmts]
+  def simplify(self, records, options):
+    return [s.simplify(records, options) for s in self.stmts]
 
   def __repr__(self):
     return "StmtList(%s)" % (self.stmts)
@@ -168,7 +168,7 @@ class Symbol:
     self.var_type, self.index = symbol
     self.subscript = subscript
 
-  def evaluate(self, records, options):
+  def simplify(self, records, options):
     return records[self]
 
   def __repr__(self):

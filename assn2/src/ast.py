@@ -17,6 +17,7 @@ import numbers
 import types
 import symbols
 from options import Options
+from icodelist import ICodeList
 
 class Node(object):
     def __init__(self):
@@ -66,9 +67,10 @@ class Formula(Node):
         except KeyError:
           raise NameError("%s not declared" % self.symbol)
 
-        icode, records = symtab[self]
-        icode = icode.ICodeList(icode)
-        return icode.evaluate(records, options)
+        icodes, records = symtab[self]
+        icodes = icodes.simplify(records, options)
+        icodes = ICodeList(icodes)
+        return icodes
 
     def simplify(self, symtab):
         self.list = [ i.simplify(symtab) for i in self.list ]
@@ -139,12 +141,7 @@ class StmtList(Node):
         self.stmts.insert(0, stmt)
 
     def evaluate(self, symtab, options):
-        icodes = []
-        for s in self.stmts:
-          s_ev = s.evaluate(symtab, options)
-          if s_ev:
-            icodes.extend(s_ev)
-        return icodes
+      return [s.evaluate(symtab, options) for s in self.stmts]
 
     def simplify(self, symtab):
         self.stmts = [ i.simplify(symtab) for i in self.stmts ]
@@ -398,7 +395,7 @@ class Comment(Node):
         return self
 
     def evaluate(self, symtab, options):
-        return [self]
+        return ICodeList([self])
 
     def __repr__(self):
         return "Comment(\"%s\")" % (self.txt)

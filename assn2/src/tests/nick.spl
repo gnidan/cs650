@@ -24,21 +24,23 @@
 ;; This is a test file to see if the compiler can generate right code
 ;; for right SPL programs
 
-; predefined primitives
-
 (primitive BLIP SPL_SHAPE_SQUARE)
 (primitive F SPL_SHAPE_SQUARE)
 
 (template (BLIP ANY)
   (
-    dounroll $p1
-      $r0 = $p0.ny
-      $r0 = 5 end dounroll
+      dounroll $p0.ny
+        $y( $i0 ) = $p0.nx
+      end
   ))
 
 (define F8
     (BLIP 4))
+
+; BLIP 5
 (BLIP 5)
+
+; F8 [ = (BLIP 4) ]
 F8
 
 (template (F 2)		;; ---- F(2) ;;
@@ -47,6 +49,7 @@ F8
     $y(0) = $x(0) + $x(1)
   ))
 
+; (F 2)
 (F 2)
 
 ;;

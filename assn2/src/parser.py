@@ -33,7 +33,7 @@ class SPLParser:
           debugfile=self.debugfile, tabmodule=self.tabmodule)
 
     def parse(self, data):
-        self.lexer_test(data)
+        #self.lexer_test(data)
         return yacc.parse(data)
 
     def lexer_test(self,data):

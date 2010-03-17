@@ -13,8 +13,8 @@ icodelist.py represents the icodelist and optimizations
 import numbers
 
 from icode import *
-from symbols import *
 from intrinsics import *
+from symbols import *
 
 import copy
 
@@ -266,10 +266,10 @@ class ICodeList:
         self.icode = [i for i in self.icode if i]
 
     def __repr__(self):
-        return str(self)
+      return str(self)
 
     def __str__(self):
-        return '\n'.join([str(i) for i in self.icode])
+        return '\n' + '\n'.join([str(i) for i in self.icode])
 
     def count(self):
         add = sum([1 for i in self.icode if isinstance(i, Add)])
